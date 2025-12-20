@@ -213,29 +213,29 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#FAF7F0]">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-[#0a0a0a]">
         <div className="flex items-center gap-3">
-          <div className="w-3 h-3 bg-[#D4A574] rounded-full animate-pulse"></div>
-          <div className="w-3 h-3 bg-[#D4A574] rounded-full animate-pulse delay-75"></div>
-          <div className="w-3 h-3 bg-[#D4A574] rounded-full animate-pulse delay-150"></div>
+          <div className="w-3 h-3 bg-[#ff5500] rounded-full animate-pulse"></div>
+          <div className="w-3 h-3 bg-[#ff5500] rounded-full animate-pulse delay-75"></div>
+          <div className="w-3 h-3 bg-[#ff5500] rounded-full animate-pulse delay-150"></div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#FAF7F0] py-8 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gray-50 dark:bg-[#0a0a0a] py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#D4A574]/10 border border-[#D4A574]/20 mb-4">
-            <div className="w-2 h-2 rounded-full bg-[#D4A574] animate-pulse"></div>
-            <span className="text-sm font-medium text-[#8B6F47]">Sistema Activo</span>
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#ff5500]/10 border border-[#ff5500]/20 mb-4">
+            <div className="w-2 h-2 rounded-full bg-[#ff5500] animate-pulse"></div>
+            <span className="text-sm font-medium text-[#ff5500]">Sistema Activo</span>
           </div>
-          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight mb-2 text-[#3E3E3E]">
+          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight mb-2 text-gray-900 dark:text-white">
             SoundCloud Automation
           </h1>
-          <p className="text-base text-[#6B6B6B]">
+          <p className="text-base text-gray-600 dark:text-gray-400">
             Notificaciones automáticas de nuevos tracks
           </p>
         </div>
@@ -245,8 +245,8 @@ export default function Dashboard() {
           <div
             className={`mb-6 p-4 rounded-xl border transition-all ${
               message.type === 'success'
-                ? 'bg-[#E8F5E9] text-[#2E7D32] border-[#81C784]'
-                : 'bg-[#FFEBEE] text-[#C62828] border-[#E57373]'
+                ? 'bg-green-50 dark:bg-green-950/30 text-green-800 dark:text-green-200 border-green-200 dark:border-green-900'
+                : 'bg-red-50 dark:bg-red-950/30 text-red-800 dark:text-red-200 border-red-200 dark:border-red-900'
             }`}
           >
             {message.text}
@@ -256,13 +256,13 @@ export default function Dashboard() {
         {/* Main Grid Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
           {/* Lists Selection - 2 columns */}
-          <div className="lg:col-span-2 bg-[#FFFBF5] border border-[#E8DCC8] rounded-2xl p-6 shadow-sm">
-            <h2 className="text-xl font-semibold mb-5 text-[#3E3E3E]">
+          <div className="lg:col-span-2 bg-white dark:bg-[#141414] border border-gray-200 dark:border-[#262626] rounded-2xl p-6 shadow-sm">
+            <h2 className="text-xl font-semibold mb-5 text-gray-900 dark:text-white">
               Listas de Distribución
             </h2>
 
             {lists.length === 0 ? (
-              <p className="text-[#8B7355] text-center py-8">
+              <p className="text-gray-500 dark:text-gray-400 text-center py-8">
                 No se encontraron listas de contactos
               </p>
             ) : (
@@ -270,17 +270,17 @@ export default function Dashboard() {
                 {lists.map((list) => (
                   <label
                     key={list.id}
-                    className="group flex items-center p-4 border border-[#E8DCC8] rounded-xl hover:border-[#D4A574] hover:bg-white cursor-pointer transition-all"
+                    className="group flex items-center p-4 border border-gray-200 dark:border-[#262626] rounded-xl hover:border-[#ff5500]/50 hover:bg-gray-50 dark:hover:bg-[#1a1a1a] cursor-pointer transition-all"
                   >
                     <input
                       type="checkbox"
                       checked={selectedLists.includes(list.id)}
                       onChange={() => handleToggleList(list.id)}
-                      className="w-5 h-5 accent-[#D4A574] border-[#E8DCC8] rounded focus:ring-2 focus:ring-[#D4A574]/20 transition-all"
+                      className="w-5 h-5 accent-[#ff5500] border-gray-300 dark:border-[#262626] rounded focus:ring-2 focus:ring-[#ff5500]/20 transition-all"
                     />
                     <div className="ml-4 flex-1">
-                      <div className="font-medium text-[#3E3E3E]">{list.name}</div>
-                      <div className="text-sm text-[#8B7355]">
+                      <div className="font-medium text-gray-900 dark:text-white">{list.name}</div>
+                      <div className="text-sm text-gray-500 dark:text-gray-400">
                         {list.totalSubscribers.toLocaleString()} suscriptores
                       </div>
                     </div>
@@ -294,7 +294,7 @@ export default function Dashboard() {
               <button
                 onClick={handleSave}
                 disabled={saving || selectedLists.length === 0}
-                className="px-6 py-3 rounded-xl font-medium bg-[#D4A574] text-white hover:bg-[#C69363] disabled:bg-[#E8DCC8] disabled:text-[#A89580] disabled:cursor-not-allowed transition-all shadow-sm hover:shadow-md"
+                className="px-6 py-3 rounded-xl font-medium bg-[#ff5500] text-white hover:bg-[#ff6b1a] disabled:bg-gray-200 dark:disabled:bg-[#262626] disabled:text-gray-400 dark:disabled:text-gray-600 disabled:cursor-not-allowed transition-all shadow-sm hover:shadow-md"
               >
                 {saving ? 'Guardando...' : 'Guardar Configuración'}
               </button>
@@ -302,14 +302,14 @@ export default function Dashboard() {
               <button
                 onClick={handleTest}
                 disabled={testing || selectedLists.length === 0}
-                className="px-6 py-3 rounded-xl font-medium border-2 border-[#D4A574] text-[#8B6F47] hover:bg-[#D4A574] hover:text-white disabled:border-[#E8DCC8] disabled:text-[#A89580] disabled:cursor-not-allowed transition-all"
+                className="px-6 py-3 rounded-xl font-medium border-2 border-[#ff5500] text-[#ff5500] hover:bg-[#ff5500] hover:text-white disabled:border-gray-200 dark:disabled:border-[#262626] disabled:text-gray-400 dark:disabled:text-gray-600 disabled:cursor-not-allowed transition-all"
               >
                 {testing ? 'Probando...' : 'Probar Ahora'}
               </button>
             </div>
 
             {selectedLists.length === 0 && (
-              <p className="mt-4 text-sm text-[#A89580] text-center">
+              <p className="mt-4 text-sm text-gray-500 dark:text-gray-400 text-center">
                 Selecciona al menos una lista
               </p>
             )}
@@ -317,47 +317,47 @@ export default function Dashboard() {
 
           {/* System Info - 1 column */}
           <div className="space-y-4">
-            <div className="p-6 bg-[#FFFBF5] border border-[#E8DCC8] rounded-2xl shadow-sm">
-              <div className="text-sm text-[#8B7355] mb-2">Frecuencia</div>
-              <div className="text-lg font-semibold text-[#3E3E3E]">Diario 20:00 CET</div>
+            <div className="p-6 bg-white dark:bg-[#141414] border border-gray-200 dark:border-[#262626] rounded-2xl shadow-sm">
+              <div className="text-sm text-gray-500 dark:text-gray-400 mb-2">Frecuencia</div>
+              <div className="text-lg font-semibold text-gray-900 dark:text-white">Diario 20:00 CET</div>
             </div>
-            <div className="p-6 bg-[#FFFBF5] border border-[#E8DCC8] rounded-2xl shadow-sm">
-              <div className="text-sm text-[#8B7355] mb-2">Listas Activas</div>
-              <div className="text-lg font-semibold text-[#3E3E3E]">{selectedLists.length}</div>
+            <div className="p-6 bg-white dark:bg-[#141414] border border-gray-200 dark:border-[#262626] rounded-2xl shadow-sm">
+              <div className="text-sm text-gray-500 dark:text-gray-400 mb-2">Listas Activas</div>
+              <div className="text-lg font-semibold text-gray-900 dark:text-white">{selectedLists.length}</div>
             </div>
           </div>
         </div>
 
         {/* All Tracks Section */}
-        <div className="bg-[#FFFBF5] border border-[#E8DCC8] rounded-2xl p-6 mb-6 shadow-sm">
+        <div className="bg-white dark:bg-[#141414] border border-gray-200 dark:border-[#262626] rounded-2xl p-6 mb-6 shadow-sm">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-semibold text-[#3E3E3E]">
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
               Todas las Canciones
             </h2>
             <button
               onClick={loadAllTracks}
               disabled={loadingTracks}
-              className="px-4 py-2.5 text-sm font-medium rounded-xl border-2 border-[#D4A574] text-[#8B6F47] hover:bg-[#D4A574] hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+              className="px-4 py-2.5 text-sm font-medium rounded-xl border-2 border-[#ff5500] text-[#ff5500] hover:bg-[#ff5500] hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-all"
             >
               {loadingTracks ? 'Cargando...' : showAllTracks ? 'Recargar' : 'Mostrar Tracks'}
             </button>
           </div>
 
           {!showAllTracks ? (
-            <p className="text-[#8B7355] text-center py-12">
+            <p className="text-gray-500 dark:text-gray-400 text-center py-12">
               Haz clic en "Mostrar Tracks" para ver todas las canciones del feed de SoundCloud
             </p>
           ) : (
             <div className="space-y-4">
               {allTracks.length === 0 ? (
-                <p className="text-[#8B7355] text-center py-12">
+                <p className="text-gray-500 dark:text-gray-400 text-center py-12">
                   No se encontraron tracks
                 </p>
               ) : (
                 allTracks.map((track) => (
                   <div
                     key={track.trackId}
-                    className="group border border-[#E8DCC8] rounded-xl p-5 hover:border-[#D4A574] hover:bg-white transition-all"
+                    className="group border border-gray-200 dark:border-[#262626] rounded-xl p-5 hover:border-[#ff5500]/30 hover:bg-gray-50 dark:hover:bg-[#1a1a1a] transition-all"
                   >
                     <div className="flex gap-5">
                       {/* Cover Image */}
@@ -366,11 +366,11 @@ export default function Dashboard() {
                           <img
                             src={track.coverImage}
                             alt={track.title}
-                            className="w-20 h-20 sm:w-24 sm:h-24 rounded-lg object-cover border border-[#E8DCC8] shadow-sm"
+                            className="w-20 h-20 sm:w-24 sm:h-24 rounded-lg object-cover border border-gray-200 dark:border-[#262626] shadow-sm"
                           />
                         </div>
                       ) : (
-                        <div className="flex-shrink-0 w-20 h-20 sm:w-24 sm:h-24 rounded-lg bg-gradient-to-br from-[#D4A574] to-[#C69363] flex items-center justify-center border border-[#E8DCC8]">
+                        <div className="flex-shrink-0 w-20 h-20 sm:w-24 sm:h-24 rounded-lg bg-gradient-to-br from-[#ff5500] to-[#ff8800] flex items-center justify-center border border-gray-200 dark:border-[#262626]">
                           <svg className="w-10 h-10 text-white/90" fill="currentColor" viewBox="0 0 20 20">
                             <path d="M18 3a1 1 0 00-1.196-.98l-10 2A1 1 0 006 5v9.114A4.369 4.369 0 005 14c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V7.82l8-1.6v5.894A4.37 4.37 0 0015 12c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V3z" />
                           </svg>
@@ -380,23 +380,23 @@ export default function Dashboard() {
                       {/* Track Info */}
                       <div className="flex-1 min-w-0">
                         <div className="flex items-start justify-between gap-3 mb-2">
-                          <h3 className="font-semibold text-base sm:text-lg truncate text-[#3E3E3E]">
+                          <h3 className="font-semibold text-base sm:text-lg truncate text-gray-900 dark:text-white">
                             {track.title}
                           </h3>
                           {track.alreadySent && (
-                            <span className="flex-shrink-0 text-xs px-2.5 py-1 rounded-full bg-[#E8F5E9] text-[#2E7D32] border border-[#81C784]">
+                            <span className="flex-shrink-0 text-xs px-2.5 py-1 rounded-full bg-green-50 dark:bg-green-950/30 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-900">
                               Enviado
                             </span>
                           )}
                         </div>
 
                         {track.description && (
-                          <p className="text-sm text-[#6B6B6B] mb-3 line-clamp-2">
+                          <p className="text-sm text-gray-600 dark:text-gray-400 mb-3 line-clamp-2">
                             {track.description}
                           </p>
                         )}
 
-                        <div className="flex flex-wrap items-center gap-3 text-sm text-[#8B7355] mb-3">
+                        <div className="flex flex-wrap items-center gap-3 text-sm text-gray-500 dark:text-gray-400 mb-3">
                           <div className="flex items-center gap-1.5">
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -415,7 +415,7 @@ export default function Dashboard() {
                             <button
                               onClick={() => handleSendTrack(track)}
                               disabled={sendingTrackId === track.trackId || selectedLists.length === 0}
-                              className="inline-flex items-center gap-2 px-4 py-2 bg-[#D4A574] text-white text-sm font-medium rounded-xl hover:bg-[#C69363] disabled:bg-[#E8DCC8] disabled:text-[#A89580] disabled:cursor-not-allowed transition-all shadow-sm hover:shadow-md"
+                              className="inline-flex items-center gap-2 px-4 py-2 bg-[#ff5500] text-white text-sm font-medium rounded-xl hover:bg-[#ff6b1a] disabled:bg-gray-200 dark:disabled:bg-[#262626] disabled:text-gray-400 dark:disabled:text-gray-600 disabled:cursor-not-allowed transition-all shadow-sm hover:shadow-md"
                             >
                               {sendingTrackId === track.trackId ? (
                                 <>
@@ -436,7 +436,7 @@ export default function Dashboard() {
                             href={track.url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center gap-2 px-4 py-2 border-2 border-[#D4A574] text-[#8B6F47] text-sm font-medium rounded-xl hover:bg-[#D4A574] hover:text-white transition-all"
+                            className="inline-flex items-center gap-2 px-4 py-2 border-2 border-[#ff5500] text-[#ff5500] text-sm font-medium rounded-xl hover:bg-[#ff5500] hover:text-white transition-all"
                           >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
@@ -455,8 +455,8 @@ export default function Dashboard() {
 
         {/* Execution History */}
         {history.length > 0 && (
-          <div className="bg-white dark:bg-[#141414] border border-gray-200 dark:border-[#262626] rounded-3xl p-8 shadow-sm">
-            <h2 className="text-xl font-semibold mb-6">
+          <div className="bg-white dark:bg-[#141414] border border-gray-200 dark:border-[#262626] rounded-2xl p-6 shadow-sm">
+            <h2 className="text-xl font-semibold mb-6 text-gray-900 dark:text-white">
               Historial de Ejecuciones
             </h2>
 
@@ -464,7 +464,7 @@ export default function Dashboard() {
               {history.map((item) => (
                 <div
                   key={item.trackId}
-                  className="group border border-gray-200 dark:border-[#262626] rounded-2xl p-5 hover:border-[#ff5500]/30 hover:bg-gray-50 dark:hover:bg-[#1a1a1a] transition-all"
+                  className="group border border-gray-200 dark:border-[#262626] rounded-xl p-5 hover:border-[#ff5500]/30 hover:bg-gray-50 dark:hover:bg-[#1a1a1a] transition-all"
                 >
                   <div className="flex gap-5">
                     {/* Cover Image */}
@@ -473,12 +473,12 @@ export default function Dashboard() {
                         <img
                           src={item.coverImage}
                           alt={item.title}
-                          className="w-24 h-24 sm:w-32 sm:h-32 rounded-xl object-cover border border-gray-200 dark:border-[#262626] shadow-sm"
+                          className="w-20 h-20 sm:w-24 sm:h-24 rounded-lg object-cover border border-gray-200 dark:border-[#262626] shadow-sm"
                         />
                       </div>
                     ) : (
-                      <div className="flex-shrink-0 w-24 h-24 sm:w-32 sm:h-32 rounded-xl bg-gradient-to-br from-[#ff5500] to-[#ff8800] flex items-center justify-center border border-gray-200 dark:border-[#262626]">
-                        <svg className="w-12 h-12 text-white/80" fill="currentColor" viewBox="0 0 20 20">
+                      <div className="flex-shrink-0 w-20 h-20 sm:w-24 sm:h-24 rounded-lg bg-gradient-to-br from-[#ff5500] to-[#ff8800] flex items-center justify-center border border-gray-200 dark:border-[#262626]">
+                        <svg className="w-10 h-10 text-white/80" fill="currentColor" viewBox="0 0 20 20">
                           <path d="M18 3a1 1 0 00-1.196-.98l-10 2A1 1 0 006 5v9.114A4.369 4.369 0 005 14c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V7.82l8-1.6v5.894A4.37 4.37 0 0015 12c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V3z" />
                         </svg>
                       </div>
@@ -486,7 +486,7 @@ export default function Dashboard() {
 
                     {/* Track Info */}
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-lg mb-2 truncate">
+                      <h3 className="font-semibold text-base sm:text-lg mb-2 truncate text-gray-900 dark:text-white">
                         {item.title}
                       </h3>
 
@@ -522,12 +522,12 @@ export default function Dashboard() {
                         href={item.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 px-4 py-2 bg-[#ff5500] text-white text-sm font-medium rounded-xl hover:bg-[#ff6b1a] transition-all group-hover:shadow-md"
+                        className="inline-flex items-center gap-2 px-4 py-2 bg-[#ff5500] text-white text-sm font-medium rounded-xl hover:bg-[#ff6b1a] transition-all shadow-sm hover:shadow-md"
                       >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                         </svg>
-                        Escuchar en SoundCloud
+                        Ver en SoundCloud
                       </a>
                     </div>
                   </div>

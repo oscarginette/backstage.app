@@ -70,14 +70,20 @@ export async function GET() {
       name: 'Gee Beat'
     };
 
-    // Usar messageVersions para enviar a múltiples listas
-    sendSmtpEmail.messageVersions = listIds.map((listId) => ({
-      to: [{
-        email: '',
+    // Configurar destinatarios usando listas de Brevo
+    // Brevo requiere messageVersions para enviar a múltiples listas
+    const messageVersions: brevo.SendSmtpEmailMessageVersionsInner[] = listIds.map((listId) => {
+      const recipient: brevo.SendSmtpEmailMessageVersionsInnerToInner = {
+        email: process.env.SENDER_EMAIL!,
         listId: listId
-      }]
-    })) as any;
+      };
 
+      return {
+        to: [recipient]
+      };
+    });
+
+    sendSmtpEmail.messageVersions = messageVersions;
     sendSmtpEmail.templateId = Number(process.env.BREVO_TEMPLATE_ID);
     sendSmtpEmail.params = {
       TRACK_NAME: latestTrack.title || 'Sin título',
@@ -88,13 +94,17 @@ export async function GET() {
     const response = await apiInstance.sendTransacEmail(sendSmtpEmail);
 
     // 5. Guardar en DB
+    const publishedDate = latestTrack.pubDate
+      ? new Date(latestTrack.pubDate).toISOString()
+      : new Date().toISOString();
+
     await sql`
       INSERT INTO soundcloud_tracks (track_id, title, url, published_at)
       VALUES (
         ${trackId},
         ${latestTrack.title || 'Sin título'},
         ${latestTrack.link || ''},
-        ${new Date(latestTrack.pubDate || Date.now())}
+        ${publishedDate}
       )
     `;
 

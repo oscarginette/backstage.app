@@ -72,12 +72,20 @@ export async function POST(request: Request) {
       name: 'Gee Beat'
     };
 
-    sendSmtpEmail.messageVersions = brevoListIds.map((listId) => ({
-      to: [{
+    // Configurar destinatarios usando listas de Brevo
+    // Brevo requiere messageVersions para enviar a múltiples listas
+    const messageVersions: brevo.SendSmtpEmailMessageVersionsInner[] = brevoListIds.map((listId) => {
+      const recipient: brevo.SendSmtpEmailMessageVersionsInnerToInner = {
+        email: process.env.SENDER_EMAIL!,
         listId: listId
-      }]
-    }));
+      };
 
+      return {
+        to: [recipient]
+      };
+    });
+
+    sendSmtpEmail.messageVersions = messageVersions;
     sendSmtpEmail.templateId = Number(process.env.BREVO_TEMPLATE_ID);
     sendSmtpEmail.params = {
       TRACK_NAME: title,
@@ -91,14 +99,17 @@ export async function POST(request: Request) {
     if (hasDatabase) {
       const { sql } = await import('@vercel/postgres');
 
+      const publishedDateStr = new Date(publishedAt).toISOString();
+      const coverImageValue = coverImage || null;
+
       await sql`
         INSERT INTO soundcloud_tracks (track_id, title, url, published_at, cover_image)
         VALUES (
           ${trackId},
           ${title},
           ${url},
-          ${new Date(publishedAt)},
-          ${coverImage || null}
+          ${publishedDateStr},
+          ${coverImageValue}
         )
       `;
 
