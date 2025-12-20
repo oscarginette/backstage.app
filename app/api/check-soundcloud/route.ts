@@ -41,7 +41,21 @@ export async function GET() {
       });
     }
 
-    // 3. Enviar email via Brevo
+    // 3. Obtener listas de Brevo configuradas
+    const configResult = await sql`
+      SELECT brevo_list_ids FROM app_config WHERE id = 1
+    `;
+
+    let listIds: number[] = [];
+    if (configResult.rows.length > 0 && configResult.rows[0].brevo_list_ids) {
+      listIds = JSON.parse(configResult.rows[0].brevo_list_ids);
+    }
+
+    if (listIds.length === 0) {
+      throw new Error('No Brevo lists configured. Please configure lists in the dashboard.');
+    }
+
+    // 4. Enviar email via Brevo usando listas
     const apiInstance = new brevo.TransactionalEmailsApi();
     apiInstance.setApiKey(
       brevo.TransactionalEmailsApiApiKeys.apiKey,
@@ -54,8 +68,13 @@ export async function GET() {
       name: 'Gee Beat'
     };
 
-    const recipients = JSON.parse(process.env.RECIPIENT_EMAILS || '[]');
-    sendSmtpEmail.to = recipients.map((email: string) => ({ email }));
+    // Usar messageVersions para enviar a múltiples listas
+    sendSmtpEmail.messageVersions = listIds.map((listId) => ({
+      to: [{
+        listId: listId
+      }]
+    }));
+
     sendSmtpEmail.templateId = Number(process.env.BREVO_TEMPLATE_ID);
     sendSmtpEmail.params = {
       TRACK_NAME: latestTrack.title || 'Sin título',
@@ -63,9 +82,9 @@ export async function GET() {
       COVER_IMAGE: latestTrack.itunes?.image || latestTrack.enclosure?.url || ''
     };
 
-    await apiInstance.sendTransacEmail(sendSmtpEmail);
+    const response = await apiInstance.sendTransacEmail(sendSmtpEmail);
 
-    // 4. Guardar en DB
+    // 5. Guardar en DB
     await sql`
       INSERT INTO soundcloud_tracks (track_id, title, url, published_at)
       VALUES (
@@ -76,16 +95,17 @@ export async function GET() {
       )
     `;
 
-    // 5. Log de ejecución
+    // 6. Log de ejecución
     await sql`
       INSERT INTO execution_logs (new_tracks, emails_sent, duration_ms)
-      VALUES (1, ${recipients.length}, ${Date.now() - startTime})
+      VALUES (1, ${listIds.length}, ${Date.now() - startTime})
     `;
 
     return NextResponse.json({
       success: true,
       track: latestTrack.title,
-      emailsSent: recipients.length
+      listsUsed: listIds.length,
+      messageId: response.body?.messageId
     });
 
   } catch (error: any) {

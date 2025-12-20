@@ -30,12 +30,20 @@ CREATE TABLE IF NOT EXISTS execution_logs (
   duration_ms INTEGER
 );
 
+-- App configuration table
+CREATE TABLE IF NOT EXISTS app_config (
+  id INTEGER PRIMARY KEY,
+  brevo_list_ids TEXT NOT NULL,
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
 -- Verify tables were created
 SELECT table_name
 FROM information_schema.tables
 WHERE table_schema = 'public'
-AND table_name IN ('soundcloud_tracks', 'execution_logs');
+AND table_name IN ('soundcloud_tracks', 'execution_logs', 'app_config');
 
 -- Show table structures
 \d soundcloud_tracks
 \d execution_logs
+\d app_config
