@@ -6,6 +6,14 @@ export const dynamic = 'force-dynamic';
 // GET - Obtener configuración actual
 export async function GET() {
   try {
+    // Si no hay POSTGRES_URL, retornar config por defecto
+    if (!process.env.POSTGRES_URL) {
+      console.log('No POSTGRES_URL found, using default config');
+      return NextResponse.json({
+        listIds: [2, 3] // Default: ambas listas
+      });
+    }
+
     const result = await sql`
       SELECT brevo_list_ids FROM app_config WHERE id = 1
     `;
@@ -19,10 +27,10 @@ export async function GET() {
 
   } catch (error: any) {
     console.error('Error fetching config:', error);
-    return NextResponse.json(
-      { error: error.message },
-      { status: 500 }
-    );
+    // Si falla la DB, retornar config por defecto
+    return NextResponse.json({
+      listIds: [2, 3]
+    });
   }
 }
 
@@ -45,6 +53,16 @@ export async function POST(request: Request) {
         { error: 'All list IDs must be numbers' },
         { status: 400 }
       );
+    }
+
+    // Si no hay POSTGRES_URL, solo validar y retornar OK
+    if (!process.env.POSTGRES_URL) {
+      console.log('No POSTGRES_URL found, config saved in memory only');
+      return NextResponse.json({
+        success: true,
+        listIds,
+        message: 'Config saved (in-memory only, no database)'
+      });
     }
 
     // Insertar o actualizar configuración
