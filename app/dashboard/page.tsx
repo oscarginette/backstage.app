@@ -183,7 +183,8 @@ export default function Dashboard() {
           title: track.title,
           url: track.url,
           coverImage: track.coverImage,
-          publishedAt: track.publishedAt
+          publishedAt: track.publishedAt,
+          listIds: selectedLists // Pasar las listas seleccionadas
         })
       });
 
@@ -200,7 +201,9 @@ export default function Dashboard() {
 
       // Recargar datos
       loadData();
-      loadAllTracks();
+      if (showAllTracks) {
+        loadAllTracks();
+      }
     } catch (error: any) {
       setMessage({ type: 'error', text: error.message });
     } finally {
@@ -210,29 +213,29 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-[#FAF7F0]">
         <div className="flex items-center gap-3">
-          <div className="w-2 h-2 bg-[#ff5500] rounded-full animate-pulse"></div>
-          <div className="w-2 h-2 bg-[#ff5500] rounded-full animate-pulse delay-75"></div>
-          <div className="w-2 h-2 bg-[#ff5500] rounded-full animate-pulse delay-150"></div>
+          <div className="w-3 h-3 bg-[#D4A574] rounded-full animate-pulse"></div>
+          <div className="w-3 h-3 bg-[#D4A574] rounded-full animate-pulse delay-75"></div>
+          <div className="w-3 h-3 bg-[#D4A574] rounded-full animate-pulse delay-150"></div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-3xl mx-auto">
+    <div className="min-h-screen bg-[#FAF7F0] py-8 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="mb-12 text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#ff5500]/5 border border-[#ff5500]/10 mb-6">
-            <div className="w-2 h-2 rounded-full bg-[#ff5500] animate-pulse"></div>
-            <span className="text-sm font-medium text-[#ff5500]">Sistema Activo</span>
+        <div className="mb-8">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#D4A574]/10 border border-[#D4A574]/20 mb-4">
+            <div className="w-2 h-2 rounded-full bg-[#D4A574] animate-pulse"></div>
+            <span className="text-sm font-medium text-[#8B6F47]">Sistema Activo</span>
           </div>
-          <h1 className="text-4xl sm:text-5xl font-bold tracking-tight mb-3">
+          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight mb-2 text-[#3E3E3E]">
             SoundCloud Automation
           </h1>
-          <p className="text-lg text-gray-500 dark:text-gray-400">
+          <p className="text-base text-[#6B6B6B]">
             Notificaciones automáticas de nuevos tracks
           </p>
         </div>
@@ -240,86 +243,214 @@ export default function Dashboard() {
         {/* Message */}
         {message && (
           <div
-            className={`mb-8 p-4 rounded-2xl border backdrop-blur-sm transition-all ${
+            className={`mb-6 p-4 rounded-xl border transition-all ${
               message.type === 'success'
-                ? 'bg-emerald-500/5 text-emerald-700 dark:text-emerald-400 border-emerald-500/20'
-                : 'bg-red-500/5 text-red-700 dark:text-red-400 border-red-500/20'
+                ? 'bg-[#E8F5E9] text-[#2E7D32] border-[#81C784]'
+                : 'bg-[#FFEBEE] text-[#C62828] border-[#E57373]'
             }`}
           >
             {message.text}
           </div>
         )}
 
-        {/* Lists Selection */}
-        <div className="bg-white dark:bg-[#141414] border border-gray-200 dark:border-[#262626] rounded-3xl p-8 mb-6 shadow-sm">
-          <h2 className="text-xl font-semibold mb-6">
-            Listas de Distribución
-          </h2>
+        {/* Main Grid Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+          {/* Lists Selection - 2 columns */}
+          <div className="lg:col-span-2 bg-[#FFFBF5] border border-[#E8DCC8] rounded-2xl p-6 shadow-sm">
+            <h2 className="text-xl font-semibold mb-5 text-[#3E3E3E]">
+              Listas de Distribución
+            </h2>
 
-          {lists.length === 0 ? (
-            <p className="text-gray-500 dark:text-gray-400 text-center py-8">
-              No se encontraron listas de contactos
-            </p>
-          ) : (
-            <div className="space-y-3">
-              {lists.map((list) => (
-                <label
-                  key={list.id}
-                  className="group flex items-center p-4 border border-gray-200 dark:border-[#262626] rounded-2xl hover:border-[#ff5500]/30 hover:bg-gray-50 dark:hover:bg-[#1a1a1a] cursor-pointer transition-all"
-                >
-                  <input
-                    type="checkbox"
-                    checked={selectedLists.includes(list.id)}
-                    onChange={() => handleToggleList(list.id)}
-                    className="w-5 h-5 accent-[#ff5500] border-gray-300 dark:border-[#262626] rounded-md focus:ring-2 focus:ring-[#ff5500]/20 transition-all"
-                  />
-                  <div className="ml-4 flex-1">
-                    <div className="font-medium">{list.name}</div>
-                    <div className="text-sm text-gray-500 dark:text-gray-400">
-                      {list.totalSubscribers.toLocaleString()} suscriptores
+            {lists.length === 0 ? (
+              <p className="text-[#8B7355] text-center py-8">
+                No se encontraron listas de contactos
+              </p>
+            ) : (
+              <div className="space-y-3 mb-6">
+                {lists.map((list) => (
+                  <label
+                    key={list.id}
+                    className="group flex items-center p-4 border border-[#E8DCC8] rounded-xl hover:border-[#D4A574] hover:bg-white cursor-pointer transition-all"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selectedLists.includes(list.id)}
+                      onChange={() => handleToggleList(list.id)}
+                      className="w-5 h-5 accent-[#D4A574] border-[#E8DCC8] rounded focus:ring-2 focus:ring-[#D4A574]/20 transition-all"
+                    />
+                    <div className="ml-4 flex-1">
+                      <div className="font-medium text-[#3E3E3E]">{list.name}</div>
+                      <div className="text-sm text-[#8B7355]">
+                        {list.totalSubscribers.toLocaleString()} suscriptores
+                      </div>
                     </div>
-                  </div>
-                </label>
-              ))}
+                  </label>
+                ))}
+              </div>
+            )}
+
+            {/* Action Buttons */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <button
+                onClick={handleSave}
+                disabled={saving || selectedLists.length === 0}
+                className="px-6 py-3 rounded-xl font-medium bg-[#D4A574] text-white hover:bg-[#C69363] disabled:bg-[#E8DCC8] disabled:text-[#A89580] disabled:cursor-not-allowed transition-all shadow-sm hover:shadow-md"
+              >
+                {saving ? 'Guardando...' : 'Guardar Configuración'}
+              </button>
+
+              <button
+                onClick={handleTest}
+                disabled={testing || selectedLists.length === 0}
+                className="px-6 py-3 rounded-xl font-medium border-2 border-[#D4A574] text-[#8B6F47] hover:bg-[#D4A574] hover:text-white disabled:border-[#E8DCC8] disabled:text-[#A89580] disabled:cursor-not-allowed transition-all"
+              >
+                {testing ? 'Probando...' : 'Probar Ahora'}
+              </button>
             </div>
-          )}
 
-          {/* Action Buttons */}
-          <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <button
-              onClick={handleSave}
-              disabled={saving || selectedLists.length === 0}
-              className="px-6 py-3.5 rounded-xl font-medium bg-[#ff5500] text-white hover:bg-[#ff6b1a] disabled:bg-gray-200 dark:disabled:bg-[#262626] disabled:text-gray-400 disabled:cursor-not-allowed transition-all shadow-sm hover:shadow-md hover:-translate-y-0.5 active:translate-y-0"
-            >
-              {saving ? 'Guardando...' : 'Guardar'}
-            </button>
-
-            <button
-              onClick={handleTest}
-              disabled={testing || selectedLists.length === 0}
-              className="px-6 py-3.5 rounded-xl font-medium border border-gray-200 dark:border-[#262626] hover:bg-gray-50 dark:hover:bg-[#1a1a1a] disabled:bg-gray-100 dark:disabled:bg-[#1a1a1a] disabled:text-gray-400 disabled:cursor-not-allowed transition-all"
-            >
-              {testing ? 'Probando...' : 'Probar Ahora'}
-            </button>
+            {selectedLists.length === 0 && (
+              <p className="mt-4 text-sm text-[#A89580] text-center">
+                Selecciona al menos una lista
+              </p>
+            )}
           </div>
 
-          {selectedLists.length === 0 && (
-            <p className="mt-4 text-sm text-gray-400 text-center">
-              Selecciona al menos una lista
-            </p>
-          )}
+          {/* System Info - 1 column */}
+          <div className="space-y-4">
+            <div className="p-6 bg-[#FFFBF5] border border-[#E8DCC8] rounded-2xl shadow-sm">
+              <div className="text-sm text-[#8B7355] mb-2">Frecuencia</div>
+              <div className="text-lg font-semibold text-[#3E3E3E]">Diario 20:00 CET</div>
+            </div>
+            <div className="p-6 bg-[#FFFBF5] border border-[#E8DCC8] rounded-2xl shadow-sm">
+              <div className="text-sm text-[#8B7355] mb-2">Listas Activas</div>
+              <div className="text-lg font-semibold text-[#3E3E3E]">{selectedLists.length}</div>
+            </div>
+          </div>
         </div>
 
-        {/* System Info */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-          <div className="p-6 bg-white dark:bg-[#141414] border border-gray-200 dark:border-[#262626] rounded-2xl">
-            <div className="text-sm text-gray-500 dark:text-gray-400 mb-1">Frecuencia</div>
-            <div className="font-semibold">Diario 20:00 CET</div>
+        {/* All Tracks Section */}
+        <div className="bg-white dark:bg-[#141414] border border-gray-200 dark:border-[#262626] rounded-3xl p-8 mb-6 shadow-sm">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-semibold">
+              Todas las Canciones
+            </h2>
+            <button
+              onClick={loadAllTracks}
+              disabled={loadingTracks}
+              className="px-4 py-2 text-sm font-medium rounded-xl border border-gray-200 dark:border-[#262626] hover:bg-gray-50 dark:hover:bg-[#1a1a1a] disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+            >
+              {loadingTracks ? 'Cargando...' : showAllTracks ? 'Recargar' : 'Mostrar Tracks'}
+            </button>
           </div>
-          <div className="p-6 bg-white dark:bg-[#141414] border border-gray-200 dark:border-[#262626] rounded-2xl">
-            <div className="text-sm text-gray-500 dark:text-gray-400 mb-1">Listas Activas</div>
-            <div className="font-semibold">{selectedLists.length}</div>
-          </div>
+
+          {!showAllTracks ? (
+            <p className="text-gray-500 dark:text-gray-400 text-center py-8">
+              Haz clic en "Mostrar Tracks" para ver todas las canciones del feed de SoundCloud
+            </p>
+          ) : (
+            <div className="space-y-4">
+              {allTracks.length === 0 ? (
+                <p className="text-gray-500 dark:text-gray-400 text-center py-8">
+                  No se encontraron tracks
+                </p>
+              ) : (
+                allTracks.map((track) => (
+                  <div
+                    key={track.trackId}
+                    className="group border border-gray-200 dark:border-[#262626] rounded-2xl p-5 hover:border-[#ff5500]/30 hover:bg-gray-50 dark:hover:bg-[#1a1a1a] transition-all"
+                  >
+                    <div className="flex gap-5">
+                      {/* Cover Image */}
+                      {track.coverImage ? (
+                        <div className="flex-shrink-0">
+                          <img
+                            src={track.coverImage}
+                            alt={track.title}
+                            className="w-20 h-20 sm:w-24 sm:h-24 rounded-xl object-cover border border-gray-200 dark:border-[#262626] shadow-sm"
+                          />
+                        </div>
+                      ) : (
+                        <div className="flex-shrink-0 w-20 h-20 sm:w-24 sm:h-24 rounded-xl bg-gradient-to-br from-[#ff5500] to-[#ff8800] flex items-center justify-center border border-gray-200 dark:border-[#262626]">
+                          <svg className="w-10 h-10 text-white/80" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M18 3a1 1 0 00-1.196-.98l-10 2A1 1 0 006 5v9.114A4.369 4.369 0 005 14c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V7.82l8-1.6v5.894A4.37 4.37 0 0015 12c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V3z" />
+                          </svg>
+                        </div>
+                      )}
+
+                      {/* Track Info */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between gap-3 mb-2">
+                          <h3 className="font-semibold text-base sm:text-lg truncate">
+                            {track.title}
+                          </h3>
+                          {track.alreadySent && (
+                            <span className="flex-shrink-0 text-xs px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                              Enviado
+                            </span>
+                          )}
+                        </div>
+
+                        {track.description && (
+                          <p className="text-sm text-gray-600 dark:text-gray-400 mb-3 line-clamp-2">
+                            {track.description}
+                          </p>
+                        )}
+
+                        <div className="flex flex-wrap items-center gap-3 text-sm text-gray-500 dark:text-gray-400 mb-3">
+                          <div className="flex items-center gap-1.5">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                            <span>{new Date(track.publishedAt).toLocaleDateString('es-ES', {
+                              day: 'numeric',
+                              month: 'short',
+                              year: 'numeric'
+                            })}</span>
+                          </div>
+                        </div>
+
+                        {/* Action Buttons */}
+                        <div className="flex gap-2">
+                          {!track.alreadySent && (
+                            <button
+                              onClick={() => handleSendTrack(track)}
+                              disabled={sendingTrackId === track.trackId || selectedLists.length === 0}
+                              className="inline-flex items-center gap-2 px-4 py-2 bg-[#ff5500] text-white text-sm font-medium rounded-xl hover:bg-[#ff6b1a] disabled:bg-gray-300 dark:disabled:bg-[#262626] disabled:text-gray-400 disabled:cursor-not-allowed transition-all shadow-sm hover:shadow-md"
+                            >
+                              {sendingTrackId === track.trackId ? (
+                                <>
+                                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                  Enviando...
+                                </>
+                              ) : (
+                                <>
+                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                  </svg>
+                                  Enviar Email
+                                </>
+                              )}
+                            </button>
+                          )}
+                          <a
+                            href={track.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-2 px-4 py-2 border border-gray-200 dark:border-[#262626] text-sm font-medium rounded-xl hover:bg-gray-50 dark:hover:bg-[#1a1a1a] transition-all"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                            </svg>
+                            Ver en SoundCloud
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          )}
         </div>
 
         {/* Execution History */}

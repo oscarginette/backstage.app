@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server';
-import { sql } from '@vercel/postgres';
 import * as brevo from '@getbrevo/brevo';
 
 export const maxDuration = 30;
@@ -7,10 +6,11 @@ export const dynamic = 'force-dynamic';
 
 export async function POST(request: Request) {
   const startTime = Date.now();
+  const hasDatabase = !!process.env.POSTGRES_URL;
 
   try {
     const body = await request.json();
-    const { trackId, title, url, coverImage, publishedAt } = body;
+    const { trackId, title, url, coverImage, publishedAt, listIds } = body;
 
     if (!trackId || !title || !url) {
       return NextResponse.json(
@@ -19,29 +19,40 @@ export async function POST(request: Request) {
       );
     }
 
-    // 1. Verificar si ya existe en DB
-    const existing = await sql`
-      SELECT * FROM soundcloud_tracks WHERE track_id = ${trackId}
-    `;
+    // 1. Verificar si ya existe en DB (solo si hay DB)
+    if (hasDatabase) {
+      const { sql } = await import('@vercel/postgres');
+      const existing = await sql`
+        SELECT * FROM soundcloud_tracks WHERE track_id = ${trackId}
+      `;
 
-    if (existing.rows.length > 0) {
-      return NextResponse.json(
-        { error: 'Este track ya ha sido enviado anteriormente' },
-        { status: 400 }
-      );
+      if (existing.rows.length > 0) {
+        return NextResponse.json(
+          { error: 'Este track ya ha sido enviado anteriormente' },
+          { status: 400 }
+        );
+      }
     }
 
     // 2. Obtener listas de Brevo configuradas
-    const configResult = await sql`
-      SELECT brevo_list_ids FROM app_config WHERE id = 1
-    `;
+    let brevoListIds: number[] = [];
 
-    let listIds: number[] = [];
-    if (configResult.rows.length > 0 && configResult.rows[0].brevo_list_ids) {
-      listIds = JSON.parse(configResult.rows[0].brevo_list_ids);
+    if (listIds && Array.isArray(listIds) && listIds.length > 0) {
+      // Usar las listas pasadas desde el cliente
+      brevoListIds = listIds;
+    } else if (hasDatabase) {
+      // Intentar obtener de la DB
+      const { sql } = await import('@vercel/postgres');
+      const configResult = await sql`
+        SELECT brevo_list_ids FROM app_config WHERE id = 1
+      `;
+
+      if (configResult.rows.length > 0 && configResult.rows[0].brevo_list_ids) {
+        brevoListIds = JSON.parse(configResult.rows[0].brevo_list_ids);
+      }
     }
 
-    if (listIds.length === 0) {
+    if (brevoListIds.length === 0) {
       return NextResponse.json(
         { error: 'No hay listas de Brevo configuradas. Por favor, configura las listas primero.' },
         { status: 400 }
@@ -61,7 +72,7 @@ export async function POST(request: Request) {
       name: 'Gee Beat'
     };
 
-    sendSmtpEmail.messageVersions = listIds.map((listId) => ({
+    sendSmtpEmail.messageVersions = brevoListIds.map((listId) => ({
       to: [{
         listId: listId
       }]
@@ -76,42 +87,49 @@ export async function POST(request: Request) {
 
     const response = await apiInstance.sendTransacEmail(sendSmtpEmail);
 
-    // 4. Guardar en DB
-    await sql`
-      INSERT INTO soundcloud_tracks (track_id, title, url, published_at, cover_image)
-      VALUES (
-        ${trackId},
-        ${title},
-        ${url},
-        ${new Date(publishedAt)},
-        ${coverImage || null}
-      )
-    `;
+    // 4. Guardar en DB (solo si hay DB)
+    if (hasDatabase) {
+      const { sql } = await import('@vercel/postgres');
 
-    // 5. Log de ejecución
-    await sql`
-      INSERT INTO execution_logs (new_tracks, emails_sent, duration_ms)
-      VALUES (1, ${listIds.length}, ${Date.now() - startTime})
-    `;
+      await sql`
+        INSERT INTO soundcloud_tracks (track_id, title, url, published_at, cover_image)
+        VALUES (
+          ${trackId},
+          ${title},
+          ${url},
+          ${new Date(publishedAt)},
+          ${coverImage || null}
+        )
+      `;
+
+      // 5. Log de ejecución
+      await sql`
+        INSERT INTO execution_logs (new_tracks, emails_sent, duration_ms)
+        VALUES (1, ${brevoListIds.length}, ${Date.now() - startTime})
+      `;
+    }
 
     return NextResponse.json({
       success: true,
       track: title,
-      listsUsed: listIds.length,
+      listsUsed: brevoListIds.length,
       messageId: response.body?.messageId
     });
 
   } catch (error: any) {
     console.error('Error sending track:', error);
 
-    // Log de error
-    try {
-      await sql`
-        INSERT INTO execution_logs (error, duration_ms)
-        VALUES (${error.message}, ${Date.now() - startTime})
-      `;
-    } catch (logError) {
-      console.error('Failed to log error:', logError);
+    // Log de error (solo si hay DB)
+    if (hasDatabase) {
+      try {
+        const { sql } = await import('@vercel/postgres');
+        await sql`
+          INSERT INTO execution_logs (error, duration_ms)
+          VALUES (${error.message}, ${Date.now() - startTime})
+        `;
+      } catch (logError) {
+        console.error('Failed to log error:', logError);
+      }
     }
 
     return NextResponse.json(

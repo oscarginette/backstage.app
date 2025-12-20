@@ -48,7 +48,9 @@ export async function GET() {
 
     let listIds: number[] = [];
     if (configResult.rows.length > 0 && configResult.rows[0].brevo_list_ids) {
-      listIds = JSON.parse(configResult.rows[0].brevo_list_ids);
+      const rawListIds = configResult.rows[0].brevo_list_ids;
+      // Si ya es un array (PostgreSQL JSONB), usarlo directamente
+      listIds = Array.isArray(rawListIds) ? rawListIds : JSON.parse(rawListIds);
     }
 
     if (listIds.length === 0) {

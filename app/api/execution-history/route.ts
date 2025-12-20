@@ -6,6 +6,14 @@ export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
+    // Verificar si hay POSTGRES_URL configurado
+    if (!process.env.POSTGRES_URL) {
+      console.log('No POSTGRES_URL configured, returning empty history');
+      return NextResponse.json({
+        history: []
+      });
+    }
+
     // Obtener tracks procesados con sus logs de ejecución
     const result = await sql`
       SELECT
@@ -60,9 +68,9 @@ export async function GET() {
 
   } catch (error: any) {
     console.error('Error fetching execution history:', error);
-    return NextResponse.json(
-      { error: error.message },
-      { status: 500 }
-    );
+    // Retornar historial vacío en caso de error para no romper la UI
+    return NextResponse.json({
+      history: []
+    });
   }
 }

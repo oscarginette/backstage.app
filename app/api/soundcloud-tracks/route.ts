@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server';
-import { sql } from '@vercel/postgres';
 import Parser from 'rss-parser';
 
 export const dynamic = 'force-dynamic';
@@ -16,11 +15,21 @@ export async function GET() {
       return NextResponse.json({ tracks: [] });
     }
 
-    // Obtener los tracks que ya han sido enviados desde la DB
-    const sentTracksResult = await sql`
-      SELECT track_id FROM soundcloud_tracks
-    `;
-    const sentTrackIds = new Set(sentTracksResult.rows.map(row => row.track_id));
+    // Intentar obtener tracks enviados desde la DB (opcional)
+    let sentTrackIds = new Set<string>();
+
+    // Solo verificar DB si hay conexión configurada
+    if (process.env.POSTGRES_URL) {
+      try {
+        const { sql } = await import('@vercel/postgres');
+        const sentTracksResult = await sql`
+          SELECT track_id FROM soundcloud_tracks
+        `;
+        sentTrackIds = new Set(sentTracksResult.rows.map(row => row.track_id));
+      } catch (dbError) {
+        console.log('Database not available, showing all tracks as unsent');
+      }
+    }
 
     // Formatear todos los tracks del feed con información de si han sido enviados
     const tracks = feed.items.map(item => {
