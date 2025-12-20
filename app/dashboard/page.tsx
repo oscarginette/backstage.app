@@ -20,10 +20,24 @@ interface ExecutionHistoryItem {
   description: string | null;
 }
 
+interface SoundCloudTrack {
+  trackId: string;
+  title: string;
+  url: string;
+  publishedAt: string;
+  coverImage: string | null;
+  description: string | null;
+  alreadySent: boolean;
+}
+
 export default function Dashboard() {
   const [lists, setLists] = useState<BrevoList[]>([]);
   const [selectedLists, setSelectedLists] = useState<number[]>([]);
   const [history, setHistory] = useState<ExecutionHistoryItem[]>([]);
+  const [allTracks, setAllTracks] = useState<SoundCloudTrack[]>([]);
+  const [loadingTracks, setLoadingTracks] = useState(false);
+  const [showAllTracks, setShowAllTracks] = useState(false);
+  const [sendingTrackId, setSendingTrackId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [testing, setTesting] = useState(false);
@@ -129,6 +143,68 @@ export default function Dashboard() {
       setMessage({ type: 'error', text: error.message });
     } finally {
       setTesting(false);
+    }
+  };
+
+  const loadAllTracks = async () => {
+    setLoadingTracks(true);
+    try {
+      const res = await fetch('/api/soundcloud-tracks');
+      const data = await res.json();
+
+      if (data.error) {
+        throw new Error(data.error);
+      }
+
+      setAllTracks(data.tracks || []);
+      setShowAllTracks(true);
+    } catch (error: any) {
+      setMessage({ type: 'error', text: error.message });
+    } finally {
+      setLoadingTracks(false);
+    }
+  };
+
+  const handleSendTrack = async (track: SoundCloudTrack) => {
+    if (selectedLists.length === 0) {
+      setMessage({ type: 'error', text: 'Debes configurar y guardar al menos una lista primero' });
+      return;
+    }
+
+    setSendingTrackId(track.trackId);
+    setMessage(null);
+
+    try {
+      const res = await fetch('/api/send-track', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          trackId: track.trackId,
+          title: track.title,
+          url: track.url,
+          coverImage: track.coverImage,
+          publishedAt: track.publishedAt
+        })
+      });
+
+      const data = await res.json();
+
+      if (data.error) {
+        throw new Error(data.error);
+      }
+
+      setMessage({
+        type: 'success',
+        text: `✅ Email enviado: "${data.track}" a ${data.listsUsed} lista(s)`
+      });
+
+      // Recargar datos
+      loadData();
+      loadAllTracks();
+    } catch (error: any) {
+      setMessage({ type: 'error', text: error.message });
+    } finally {
+      setSendingTrackId(null);
     }
   };
 
