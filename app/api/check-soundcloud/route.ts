@@ -30,45 +30,53 @@ export async function GET() {
       throw new Error('Track ID not found in RSS feed');
     }
 
-    // 3. Obtener listas de Brevo configuradas
-    const configResult = await sql`
-      SELECT brevo_list_ids FROM app_config WHERE id = 1
+    // 3. Obtener suscriptores activos (no desuscritos)
+    const subscribersResult = await sql`
+      SELECT email, name FROM subscribers WHERE unsubscribed = false
     `;
 
-    let listIds: number[] = [];
-    if (configResult.rows.length > 0 && configResult.rows[0].brevo_list_ids) {
-      const rawListIds = configResult.rows[0].brevo_list_ids;
-      // Si ya es un array (PostgreSQL JSONB), usarlo directamente
-      listIds = Array.isArray(rawListIds) ? rawListIds : JSON.parse(rawListIds);
+    if (subscribersResult.rows.length === 0) {
+      return NextResponse.json({
+        message: 'No active subscribers found'
+      });
     }
 
-    if (listIds.length === 0) {
-      throw new Error('No Brevo lists configured. Please configure lists in the dashboard.');
-    }
-
-    // 4. Enviar email via Resend
+    // 4. Enviar emails via Resend
     const resend = new Resend(process.env.RESEND_API_KEY);
-
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://soundcloud-brevo.vercel.app';
-    const unsubscribeUrl = `${baseUrl}/unsubscribe?email=${encodeURIComponent(process.env.SENDER_EMAIL!)}`;
 
-    const { data, error } = await resend.emails.send({
-      from: 'Gee Beat <onboarding@resend.dev>', // Dominio de prueba de Resend
-      to: [process.env.SENDER_EMAIL!], // Por ahora a ti mismo para probar
-      subject: 'Hey mate',
-      react: NewTrackEmail({
-        trackName: latestTrack.title || 'Sin título',
-        trackUrl: latestTrack.link || '',
-        coverImage: latestTrack.itunes?.image || latestTrack.enclosure?.url || '',
-        unsubscribeUrl
-      })
-    });
+    let emailsSent = 0;
+    let emailsFailed = 0;
 
-    if (error) {
-      throw new Error(`Resend error: ${error.message}`);
+    // Enviar a cada suscriptor
+    for (const subscriber of subscribersResult.rows) {
+      const unsubscribeUrl = `${baseUrl}/unsubscribe?email=${encodeURIComponent(subscriber.email)}`;
+
+      try {
+        const { data, error } = await resend.emails.send({
+          from: 'Gee Beat <onboarding@resend.dev>',
+          to: [subscriber.email],
+          subject: 'Hey mate',
+          react: NewTrackEmail({
+            trackName: latestTrack.title || 'Sin título',
+            trackUrl: latestTrack.link || '',
+            coverImage: latestTrack.itunes?.image || latestTrack.enclosure?.url || '',
+            unsubscribeUrl
+          })
+        });
+
+        if (error) {
+          console.error(`Failed to send to ${subscriber.email}:`, error);
+          emailsFailed++;
+        } else {
+          console.log(`Email sent to ${subscriber.email}:`, data?.id);
+          emailsSent++;
+        }
+      } catch (err) {
+        console.error(`Error sending to ${subscriber.email}:`, err);
+        emailsFailed++;
+      }
     }
-
-    console.log('Email sent:', data?.id);
 
     // 5. Guardar en DB (o actualizar si ya existe)
     const publishedDate = latestTrack.pubDate
@@ -90,14 +98,15 @@ export async function GET() {
     // 6. Log de ejecución
     await sql`
       INSERT INTO execution_logs (new_tracks, emails_sent, duration_ms)
-      VALUES (1, ${listIds.length}, ${Date.now() - startTime})
+      VALUES (1, ${emailsSent}, ${Date.now() - startTime})
     `;
 
     return NextResponse.json({
       success: true,
       track: latestTrack.title,
-      listsUsed: listIds.length,
-      messageId: data?.id
+      emailsSent,
+      emailsFailed,
+      totalSubscribers: subscribersResult.rows.length
     });
 
   } catch (error: any) {
