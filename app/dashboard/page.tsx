@@ -3,7 +3,6 @@
 import { useDashboardData } from '../../hooks/useDashboardData';
 import Header from '../../components/dashboard/Header';
 import StatCards from '../../components/dashboard/StatCards';
-import DistributionLists from '../../components/dashboard/DistributionLists';
 import TrackList from '../../components/dashboard/TrackList';
 import ExecutionHistory from '../../components/dashboard/ExecutionHistory';
 import ContactsList from '../../components/dashboard/ContactsList';
@@ -89,21 +88,8 @@ export default function Dashboard() {
 
         {/* Full Width Stack */}
         <div className="flex flex-col gap-12">
-            
-            {/* 1. Audiences (Full Width) */}
-            <div className="w-full">
-              <DistributionLists 
-                lists={lists} 
-                selectedLists={selectedLists}
-                onToggleList={handleToggleList}
-                onSave={handleSave}
-                onTest={handleTest}
-                saving={saving}
-                testing={testing}
-              />
-            </div>
 
-            {/* 2. Tracks (Full Width) */}
+            {/* 1. Tracks (Full Width) */}
             <div className="w-full">
               <TrackList
                 tracks={allTracks}
@@ -116,10 +102,10 @@ export default function Dashboard() {
               />
             </div>
 
-            {/* 3. Execution History (Full Width) */}
+            {/* 2. Execution History (Full Width) */}
             <ExecutionHistory history={history} />
 
-            {/* 4. Contacts List (Full Width) */}
+            {/* 3. Contacts List (Full Width) */}
             <ContactsList />
         </div>
       </div>
