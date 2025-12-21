@@ -4,16 +4,41 @@ import NewTrackEmail from '@/emails/new-track';
 
 export const dynamic = 'force-dynamic';
 
+export async function POST(request: Request) {
+  try {
+    const body = await request.json();
+    const { trackName, trackUrl, coverImage } = body;
+
+    // Generar URL de unsubscribe de ejemplo
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://soundcloud-brevo.vercel.app';
+    const unsubscribeUrl = `${baseUrl}/unsubscribe?token=preview_token`;
+
+    const html = await render(
+      NewTrackEmail({
+        trackName: trackName || 'Test Track',
+        trackUrl: trackUrl || 'https://soundcloud.com',
+        coverImage: coverImage || '',
+        unsubscribeUrl
+      })
+    );
+
+    return NextResponse.json({ html });
+  } catch (error: any) {
+    console.error('Error rendering email:', error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}
+
 export async function GET() {
   try {
-    // Test with sample data
+    // Test endpoint con datos de ejemplo
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://soundcloud-brevo.vercel.app';
     const html = await render(
       NewTrackEmail({
         trackName: 'Test Track Name',
         trackUrl: 'https://soundcloud.com/test',
         coverImage: 'https://i1.sndcdn.com/artworks-PvWznzRX9GmmRIlq-mlYTvA-t3000x3000.png',
-        cloudinaryCloudName: process.env.CLOUDINARY_CLOUD_NAME || 'demo',
-        unsubscribeUrl: 'https://example.com/unsubscribe'
+        unsubscribeUrl: `${baseUrl}/unsubscribe?token=test_token`
       })
     );
 
