@@ -16,6 +16,7 @@ export function useDashboardData() {
 
   useEffect(() => {
     loadData();
+    loadAllTracks(); // Cargar tracks automáticamente al inicio
   }, []);
 
   const loadData = async () => {
