@@ -7,12 +7,11 @@ import NewTrackEmail from '@/emails/new-track';
 export const maxDuration = 60;
 export const dynamic = 'force-dynamic';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 export async function POST(request: Request) {
   const startTime = Date.now();
 
   try {
+    const resend = new Resend(process.env.RESEND_API_KEY);
     const body = await request.json();
     const { trackId, title, url, coverImage, publishedAt, customContent } = body;
 
