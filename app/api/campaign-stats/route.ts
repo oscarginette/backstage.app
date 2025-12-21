@@ -5,7 +5,7 @@ export const dynamic = 'force-dynamic';
 
 /**
  * GET /api/campaign-stats
- * Obtiene estadísticas de todas las campañas (emails por track)
+ * Obtiene estadísticas de todas las campañas basadas en email_events
  */
 export async function GET(request: Request) {
   try {
@@ -15,16 +15,73 @@ export async function GET(request: Request) {
     let stats;
 
     if (trackId) {
-      // Estadísticas de un track específico
       stats = await sql`
-        SELECT * FROM campaign_stats
-        WHERE track_id = ${trackId}
+        SELECT
+          st.track_id,
+          st.title as track_title,
+          st.url as track_url,
+          st.published_at,
+          COUNT(DISTINCT el.id) as total_sent,
+          COUNT(DISTINCT CASE WHEN ee.event_type = 'delivered' THEN el.id END) as delivered,
+          COUNT(DISTINCT CASE WHEN ee.event_type = 'opened' THEN el.id END) as opened,
+          COUNT(DISTINCT CASE WHEN ee.event_type = 'clicked' THEN el.id END) as clicked,
+          COUNT(DISTINCT CASE WHEN ee.event_type = 'bounced' THEN el.id END) as bounced,
+          COALESCE(ROUND(
+            (COUNT(DISTINCT CASE WHEN ee.event_type = 'delivered' THEN el.id END)::numeric /
+            NULLIF(COUNT(DISTINCT el.id), 0) * 100), 2
+          ), 0) as delivery_rate,
+          COALESCE(ROUND(
+            (COUNT(DISTINCT CASE WHEN ee.event_type = 'opened' THEN el.id END)::numeric /
+            NULLIF(COUNT(DISTINCT CASE WHEN ee.event_type = 'delivered' THEN el.id END), 0) * 100), 2
+          ), 0) as open_rate,
+          COALESCE(ROUND(
+            (COUNT(DISTINCT CASE WHEN ee.event_type = 'clicked' THEN el.id END)::numeric /
+            NULLIF(COUNT(DISTINCT CASE WHEN ee.event_type = 'opened' THEN el.id END), 0) * 100), 2
+          ), 0) as click_rate,
+          COALESCE(ROUND(
+            (COUNT(DISTINCT CASE WHEN ee.event_type = 'bounced' THEN el.id END)::numeric /
+            NULLIF(COUNT(DISTINCT el.id), 0) * 100), 2
+          ), 0) as bounce_rate
+        FROM soundcloud_tracks st
+        LEFT JOIN email_logs el ON st.track_id = el.track_id
+        LEFT JOIN email_events ee ON el.id = ee.email_log_id
+        WHERE el.id IS NOT NULL AND st.track_id = ${trackId}
+        GROUP BY st.track_id, st.title, st.url, st.published_at
       `;
     } else {
-      // Estadísticas de todos los tracks
       stats = await sql`
-        SELECT * FROM campaign_stats
-        ORDER BY last_sent_at DESC
+        SELECT
+          st.track_id,
+          st.title as track_title,
+          st.url as track_url,
+          st.published_at,
+          COUNT(DISTINCT el.id) as total_sent,
+          COUNT(DISTINCT CASE WHEN ee.event_type = 'delivered' THEN el.id END) as delivered,
+          COUNT(DISTINCT CASE WHEN ee.event_type = 'opened' THEN el.id END) as opened,
+          COUNT(DISTINCT CASE WHEN ee.event_type = 'clicked' THEN el.id END) as clicked,
+          COUNT(DISTINCT CASE WHEN ee.event_type = 'bounced' THEN el.id END) as bounced,
+          COALESCE(ROUND(
+            (COUNT(DISTINCT CASE WHEN ee.event_type = 'delivered' THEN el.id END)::numeric /
+            NULLIF(COUNT(DISTINCT el.id), 0) * 100), 2
+          ), 0) as delivery_rate,
+          COALESCE(ROUND(
+            (COUNT(DISTINCT CASE WHEN ee.event_type = 'opened' THEN el.id END)::numeric /
+            NULLIF(COUNT(DISTINCT CASE WHEN ee.event_type = 'delivered' THEN el.id END), 0) * 100), 2
+          ), 0) as open_rate,
+          COALESCE(ROUND(
+            (COUNT(DISTINCT CASE WHEN ee.event_type = 'clicked' THEN el.id END)::numeric /
+            NULLIF(COUNT(DISTINCT CASE WHEN ee.event_type = 'opened' THEN el.id END), 0) * 100), 2
+          ), 0) as click_rate,
+          COALESCE(ROUND(
+            (COUNT(DISTINCT CASE WHEN ee.event_type = 'bounced' THEN el.id END)::numeric /
+            NULLIF(COUNT(DISTINCT el.id), 0) * 100), 2
+          ), 0) as bounce_rate
+        FROM soundcloud_tracks st
+        LEFT JOIN email_logs el ON st.track_id = el.track_id
+        LEFT JOIN email_events ee ON el.id = ee.email_log_id
+        WHERE el.id IS NOT NULL
+        GROUP BY st.track_id, st.title, st.url, st.published_at
+        ORDER BY st.published_at DESC
         LIMIT 50
       `;
     }
@@ -36,11 +93,11 @@ export async function GET(request: Request) {
   } catch (error: any) {
     console.error('Error fetching campaign stats:', error);
 
-    // Si la vista no existe (migración no ejecutada), devolver datos vacíos
+    // Si la tabla no existe, devolver datos vacíos
     if (error.message?.includes('does not exist')) {
       return NextResponse.json({
         stats: [],
-        message: 'Run migration-email-tracking.sql first'
+        message: 'Run migration first: /api/migrate'
       });
     }
 

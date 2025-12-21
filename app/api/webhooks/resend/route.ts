@@ -56,52 +56,54 @@ export async function POST(request: Request) {
     }
 
     const logId = emailLog.rows[0].id;
+    const contactId = emailLog.rows[0].contact_id;
+    const trackId = emailLog.rows[0].track_id;
 
-    // Actualizar status según el tipo de evento
+    // Registrar evento en email_events
+    let eventType: string;
+    let eventData: any = {};
+
     switch (type) {
       case 'email.sent':
-        await sql`
-          UPDATE email_logs
-          SET status = 'sent'
-          WHERE id = ${logId}
-        `;
+        eventType = 'sent';
         break;
 
       case 'email.delivered':
+        eventType = 'delivered';
+        // Actualizar email_logs también
         await sql`
           UPDATE email_logs
-          SET
-            status = 'delivered',
-            delivered_at = NOW()
+          SET delivered_at = NOW()
           WHERE id = ${logId}
         `;
         break;
 
       case 'email.delivery_delayed':
-        await sql`
-          UPDATE email_logs
-          SET status = 'delayed'
-          WHERE id = ${logId}
-        `;
+        eventType = 'delayed';
+        eventData = { reason: data?.reason };
         break;
 
       case 'email.bounced':
-        const bounceType = data?.bounce_type || 'unknown'; // hard, soft
+        eventType = 'bounced';
+        const bounceType = data?.bounce_type || 'unknown';
+        eventData = {
+          bounce_type: bounceType,
+          reason: data?.reason || 'No reason provided'
+        };
+        // Actualizar email_logs
         await sql`
           UPDATE email_logs
-          SET
-            status = 'bounced',
-            error = ${`Bounced: ${bounceType} - ${data?.reason || 'No reason provided'}`}
+          SET error = ${`Bounced: ${bounceType} - ${data?.reason || 'No reason provided'}`}
           WHERE id = ${logId}
         `;
         break;
 
       case 'email.opened':
-        // Incrementar contador de opens (puede abrirse múltiples veces)
+        eventType = 'opened';
+        // Actualizar email_logs
         await sql`
           UPDATE email_logs
           SET
-            status = 'opened',
             opened_at = COALESCE(opened_at, NOW()),
             open_count = COALESCE(open_count, 0) + 1
           WHERE id = ${logId}
@@ -109,12 +111,13 @@ export async function POST(request: Request) {
         break;
 
       case 'email.clicked':
-        // Incrementar contador de clicks
+        eventType = 'clicked';
         const clickedUrl = data?.url || 'unknown';
+        eventData = { url: clickedUrl };
+        // Actualizar email_logs
         await sql`
           UPDATE email_logs
           SET
-            status = 'clicked',
             clicked_at = COALESCE(clicked_at, NOW()),
             click_count = COALESCE(click_count, 0) + 1,
             clicked_urls = COALESCE(clicked_urls, '[]'::jsonb) || ${JSON.stringify([clickedUrl])}::jsonb
@@ -124,7 +127,27 @@ export async function POST(request: Request) {
 
       default:
         console.log(`Unhandled webhook type: ${type}`);
+        return NextResponse.json({ received: true });
     }
+
+    // Insertar evento en email_events
+    await sql`
+      INSERT INTO email_events (
+        email_log_id,
+        contact_id,
+        track_id,
+        event_type,
+        event_data,
+        resend_email_id
+      ) VALUES (
+        ${logId},
+        ${contactId},
+        ${trackId},
+        ${eventType},
+        ${JSON.stringify(eventData)},
+        ${emailId}
+      )
+    `;
 
     return NextResponse.json({ received: true });
 
