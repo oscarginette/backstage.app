@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
-import { sql } from '@vercel/postgres';
+import { GetCampaignStatsUseCase } from '@/domain/services/GetCampaignStatsUseCase';
+import { emailAnalyticsRepository } from '@/infrastructure/database/repositories';
 
 export const dynamic = 'force-dynamic';
 
@@ -10,90 +11,15 @@ export const dynamic = 'force-dynamic';
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const trackId = searchParams.get('track_id');
+    const trackId = searchParams.get('track_id') || undefined;
 
-    let stats;
+    const useCase = new GetCampaignStatsUseCase(emailAnalyticsRepository);
+    const result = await useCase.execute(trackId);
 
-    if (trackId) {
-      stats = await sql`
-        SELECT
-          st.track_id,
-          st.title as track_title,
-          st.url as track_url,
-          st.published_at,
-          COUNT(DISTINCT el.id) as total_sent,
-          COUNT(DISTINCT CASE WHEN ee.event_type = 'delivered' THEN el.id END) as delivered,
-          COUNT(DISTINCT CASE WHEN ee.event_type = 'opened' THEN el.id END) as opened,
-          COUNT(DISTINCT CASE WHEN ee.event_type = 'clicked' THEN el.id END) as clicked,
-          COUNT(DISTINCT CASE WHEN ee.event_type = 'bounced' THEN el.id END) as bounced,
-          COALESCE(ROUND(
-            (COUNT(DISTINCT CASE WHEN ee.event_type = 'delivered' THEN el.id END)::numeric /
-            NULLIF(COUNT(DISTINCT el.id), 0) * 100), 2
-          ), 0) as delivery_rate,
-          COALESCE(ROUND(
-            (COUNT(DISTINCT CASE WHEN ee.event_type = 'opened' THEN el.id END)::numeric /
-            NULLIF(COUNT(DISTINCT CASE WHEN ee.event_type = 'delivered' THEN el.id END), 0) * 100), 2
-          ), 0) as open_rate,
-          COALESCE(ROUND(
-            (COUNT(DISTINCT CASE WHEN ee.event_type = 'clicked' THEN el.id END)::numeric /
-            NULLIF(COUNT(DISTINCT CASE WHEN ee.event_type = 'opened' THEN el.id END), 0) * 100), 2
-          ), 0) as click_rate,
-          COALESCE(ROUND(
-            (COUNT(DISTINCT CASE WHEN ee.event_type = 'bounced' THEN el.id END)::numeric /
-            NULLIF(COUNT(DISTINCT el.id), 0) * 100), 2
-          ), 0) as bounce_rate
-        FROM soundcloud_tracks st
-        LEFT JOIN email_logs el ON st.track_id = el.track_id
-        LEFT JOIN email_events ee ON el.id = ee.email_log_id
-        WHERE el.id IS NOT NULL AND st.track_id = ${trackId}
-        GROUP BY st.track_id, st.title, st.url, st.published_at
-      `;
-    } else {
-      stats = await sql`
-        SELECT
-          st.track_id,
-          st.title as track_title,
-          st.url as track_url,
-          st.published_at,
-          COUNT(DISTINCT el.id) as total_sent,
-          COUNT(DISTINCT CASE WHEN ee.event_type = 'delivered' THEN el.id END) as delivered,
-          COUNT(DISTINCT CASE WHEN ee.event_type = 'opened' THEN el.id END) as opened,
-          COUNT(DISTINCT CASE WHEN ee.event_type = 'clicked' THEN el.id END) as clicked,
-          COUNT(DISTINCT CASE WHEN ee.event_type = 'bounced' THEN el.id END) as bounced,
-          COALESCE(ROUND(
-            (COUNT(DISTINCT CASE WHEN ee.event_type = 'delivered' THEN el.id END)::numeric /
-            NULLIF(COUNT(DISTINCT el.id), 0) * 100), 2
-          ), 0) as delivery_rate,
-          COALESCE(ROUND(
-            (COUNT(DISTINCT CASE WHEN ee.event_type = 'opened' THEN el.id END)::numeric /
-            NULLIF(COUNT(DISTINCT CASE WHEN ee.event_type = 'delivered' THEN el.id END), 0) * 100), 2
-          ), 0) as open_rate,
-          COALESCE(ROUND(
-            (COUNT(DISTINCT CASE WHEN ee.event_type = 'clicked' THEN el.id END)::numeric /
-            NULLIF(COUNT(DISTINCT CASE WHEN ee.event_type = 'opened' THEN el.id END), 0) * 100), 2
-          ), 0) as click_rate,
-          COALESCE(ROUND(
-            (COUNT(DISTINCT CASE WHEN ee.event_type = 'bounced' THEN el.id END)::numeric /
-            NULLIF(COUNT(DISTINCT el.id), 0) * 100), 2
-          ), 0) as bounce_rate
-        FROM soundcloud_tracks st
-        LEFT JOIN email_logs el ON st.track_id = el.track_id
-        LEFT JOIN email_events ee ON el.id = ee.email_log_id
-        WHERE el.id IS NOT NULL
-        GROUP BY st.track_id, st.title, st.url, st.published_at
-        ORDER BY st.published_at DESC
-        LIMIT 50
-      `;
-    }
-
-    return NextResponse.json({
-      stats: stats.rows
-    });
-
+    return NextResponse.json(result);
   } catch (error: any) {
     console.error('Error fetching campaign stats:', error);
 
-    // Si la tabla no existe, devolver datos vacíos
     if (error.message?.includes('does not exist')) {
       return NextResponse.json({
         stats: [],
@@ -101,9 +27,6 @@ export async function GET(request: Request) {
       });
     }
 
-    return NextResponse.json(
-      { error: error.message },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
