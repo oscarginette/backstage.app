@@ -6,6 +6,7 @@ import StatCards from '../../components/dashboard/StatCards';
 import DistributionLists from '../../components/dashboard/DistributionLists';
 import TrackList from '../../components/dashboard/TrackList';
 import ExecutionHistory from '../../components/dashboard/ExecutionHistory';
+import ContactsList from '../../components/dashboard/ContactsList';
 
 export default function Dashboard() {
   const {
@@ -104,7 +105,7 @@ export default function Dashboard() {
 
             {/* 2. Tracks (Full Width) */}
             <div className="w-full">
-              <TrackList 
+              <TrackList
                 tracks={allTracks}
                  loading={loadingTracks}
                  showAll={showAllTracks}
@@ -114,8 +115,12 @@ export default function Dashboard() {
                  hasSelectedLists={selectedLists.length > 0}
               />
             </div>
-            
-             <ExecutionHistory history={history} />
+
+            {/* 3. Execution History (Full Width) */}
+            <ExecutionHistory history={history} />
+
+            {/* 4. Contacts List (Full Width) */}
+            <ContactsList />
         </div>
       </div>
     </div>

@@ -68,7 +68,8 @@ export async function GET() {
       react: NewTrackEmail({
         trackName: latestTrack.title || 'Sin título',
         trackUrl: latestTrack.link || '',
-        coverImage: latestTrack.itunes?.image || latestTrack.enclosure?.url || ''
+        coverImage: latestTrack.itunes?.image || latestTrack.enclosure?.url || '',
+        cloudinaryCloudName: process.env.CLOUDINARY_CLOUD_NAME || 'demo'
       })
     });
 

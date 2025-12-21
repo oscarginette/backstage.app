@@ -14,16 +14,23 @@ interface NewTrackEmailProps {
   trackName: string;
   trackUrl: string;
   coverImage: string;
+  cloudinaryCloudName: string;
+  unsubscribeUrl?: string;
 }
 
 export default function NewTrackEmail({
   trackName,
   trackUrl,
   coverImage,
+  cloudinaryCloudName,
+  unsubscribeUrl,
 }: NewTrackEmailProps) {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3002';
-  // Ensure HTTPS for email clients
-  const coverUrl = coverImage.replace('http://', 'https://');
+  // Logo hosted on GitHub (black version for white/light backgrounds in email)
+  const logoUrl = 'https://raw.githubusercontent.com/oscarginette/soundcloud-brevo/main/public/GEE_BEAT_LOGO_BLACK_HORIZONTAL.png';
+
+  // Use Cloudinary fetch for reliable image delivery in emails
+  // Resolution: 500x500 for retina, displayed at 300x300
+  const coverUrl = `https://res.cloudinary.com/${cloudinaryCloudName}/image/fetch/f_auto,q_auto,w_500,c_limit/${encodeURIComponent(coverImage)}`;
 
   return (
     <Html>
@@ -31,18 +38,6 @@ export default function NewTrackEmail({
       <Preview>This is my new track {trackName}</Preview>
       <Body style={main}>
         <Container style={container}>
-          {/* Cover Image */}
-          <Section style={coverSection}>
-            <Link href={trackUrl}>
-              <Img
-                src={coverUrl}
-                alt={trackName}
-                width="600"
-                style={cover}
-              />
-            </Link>
-          </Section>
-
           {/* Content */}
           <Section style={contentSection}>
             <Text style={paragraph}>
@@ -51,6 +46,23 @@ export default function NewTrackEmail({
             <Text style={paragraph}>
               This is my new track <strong style={{ fontWeight: '600' }}>{trackName}</strong> and it's now on Soundcloud!
             </Text>
+          </Section>
+
+          {/* Cover Image */}
+          <Section style={coverSection}>
+            <Link href={trackUrl}>
+              <Img
+                src={coverUrl}
+                alt={`Album cover: ${trackName}`}
+                width="300"
+                height="300"
+                style={cover}
+              />
+            </Link>
+          </Section>
+
+          {/* Continue Content */}
+          <Section style={contentSection}>
             <Text style={paragraph}>
               Have a great day :)
             </Text>
@@ -72,12 +84,39 @@ export default function NewTrackEmail({
           {/* Logo Footer */}
           <Section style={logoFooterSection}>
             <Img
-              src={`${baseUrl}/GEE_BEAT_LOGO_BLACK_HORIZONTAL.png`}
+              src={logoUrl}
               alt="Gee Beat"
-              width="80"
+              width="100"
               style={logoFooter}
             />
           </Section>
+
+          {/* Social Links */}
+          <Section style={socialSection}>
+            <Link href="https://www.geebeat.com" style={socialLink}>
+              geebeat.com
+            </Link>
+            {' • '}
+            <Link href="https://instagram.com/gee_beat" style={socialLink}>
+              Instagram
+            </Link>
+            {' • '}
+            <Link href="https://geebeat.bandcamp.com" style={socialLink}>
+              Bandcamp
+            </Link>
+          </Section>
+
+          {/* Unsubscribe */}
+          {unsubscribeUrl && (
+            <Section style={unsubscribeSection}>
+              <Text style={unsubscribeText}>
+                Don't want to receive these emails?{' '}
+                <Link href={unsubscribeUrl} style={unsubscribeLink}>
+                  Unsubscribe
+                </Link>
+              </Text>
+            </Section>
+          )}
         </Container>
       </Body>
     </Html>
@@ -86,12 +125,12 @@ export default function NewTrackEmail({
 
 // Ultra minimal modern styles
 const main = {
-  backgroundColor: '#000000',
+  backgroundColor: '#ffffff',
   fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif',
 };
 
 const container = {
-  backgroundColor: '#000000',
+  backgroundColor: '#ffffff',
   margin: '0 auto',
   maxWidth: '600px',
 };
@@ -122,7 +161,7 @@ const contentSection = {
 };
 
 const paragraph = {
-  color: '#ffffff',
+  color: '#000000',
   fontSize: '16px',
   fontWeight: '400',
   lineHeight: '24px',
@@ -130,7 +169,7 @@ const paragraph = {
 };
 
 const signature = {
-  color: '#ffffff',
+  color: '#000000',
   fontSize: '16px',
   fontWeight: '400',
   lineHeight: '24px',
@@ -143,8 +182,8 @@ const buttonSection = {
 };
 
 const button = {
-  backgroundColor: '#ffffff',
-  color: '#000000',
+  backgroundColor: '#000000',
+  color: '#ffffff',
   fontSize: '13px',
   fontWeight: '600',
   textDecoration: 'none',
@@ -157,13 +196,41 @@ const button = {
 };
 
 const logoFooterSection = {
-  padding: '48px 32px 32px',
+  padding: '48px 32px 24px',
   textAlign: 'center' as const,
-  borderTop: '1px solid #222222',
+  borderTop: '1px solid #e0e0e0',
 };
 
 const logoFooter = {
+  display: 'block',
   margin: '0 auto',
-  opacity: '0.5',
-  filter: 'invert(1)',
+};
+
+const socialSection = {
+  padding: '0 32px 24px',
+  textAlign: 'center' as const,
+};
+
+const socialLink = {
+  color: '#666666',
+  fontSize: '13px',
+  textDecoration: 'none',
+  letterSpacing: '0.3px',
+};
+
+const unsubscribeSection = {
+  padding: '0 32px 32px',
+  textAlign: 'center' as const,
+};
+
+const unsubscribeText = {
+  color: '#444444',
+  fontSize: '11px',
+  lineHeight: '16px',
+  margin: '0',
+};
+
+const unsubscribeLink = {
+  color: '#666666',
+  textDecoration: 'underline',
 };

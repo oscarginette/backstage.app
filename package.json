@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "biome check",
-    "format": "biome format --write"
+    "format": "biome format --write",
+    "migrate-contacts": "tsx scripts/migrate-brevo-contacts.ts"
   },
   "dependencies": {
     "@getbrevo/brevo": "^3.0.1",
@@ -28,6 +29,7 @@
     "@types/react-dom": "^19",
     "dotenv": "^17.2.3",
     "tailwindcss": "^4",
+    "tsx": "^4.21.0",
     "typescript": "^5"
   }
 }
