@@ -7,7 +7,7 @@ interface TrackListProps {
   loading: boolean;
   showAll: boolean;
   onLoadAll: () => void;
-  onSend: (track: SoundCloudTrack) => void;
+  onSend: (track: SoundCloudTrack, customContent?: { subject?: string; greeting?: string; message?: string; signature?: string }) => void;
   sendingTrackId: string | null;
   hasSelectedLists: boolean;
 }
