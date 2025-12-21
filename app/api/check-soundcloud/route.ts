@@ -61,6 +61,9 @@ export async function GET() {
     // 4. Enviar email via Resend
     const resend = new Resend(process.env.RESEND_API_KEY);
 
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://soundcloud-brevo.vercel.app';
+    const unsubscribeUrl = `${baseUrl}/unsubscribe?email=${encodeURIComponent(process.env.SENDER_EMAIL!)}`;
+
     const { data, error } = await resend.emails.send({
       from: 'Gee Beat <onboarding@resend.dev>', // Dominio de prueba de Resend
       to: [process.env.SENDER_EMAIL!], // Por ahora a ti mismo para probar
@@ -69,7 +72,7 @@ export async function GET() {
         trackName: latestTrack.title || 'Sin título',
         trackUrl: latestTrack.link || '',
         coverImage: latestTrack.itunes?.image || latestTrack.enclosure?.url || '',
-        cloudinaryCloudName: process.env.CLOUDINARY_CLOUD_NAME || 'demo'
+        unsubscribeUrl
       })
     });
 
