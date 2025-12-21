@@ -1,9 +1,3 @@
-export interface BrevoList {
-  id: number;
-  name: string;
-  totalSubscribers: number;
-}
-
 export interface ExecutionHistoryItem {
   trackId: string;
   title: string;

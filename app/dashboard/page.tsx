@@ -9,20 +9,13 @@ import ContactsList from '../../components/dashboard/ContactsList';
 
 export default function Dashboard() {
   const {
-    lists,
-    selectedLists,
     history,
     allTracks,
     loadingTracks,
     showAllTracks,
     sendingTrackId,
     loading,
-    saving,
-    testing,
     message,
-    handleToggleList,
-    handleSave,
-    handleTest,
     loadAllTracks,
     handleSendTrack,
     setMessage
@@ -96,7 +89,6 @@ export default function Dashboard() {
                  onLoadAll={loadAllTracks}
                  onSend={handleSendTrack}
                  sendingTrackId={sendingTrackId}
-                 hasSelectedLists={selectedLists.length > 0}
               />
             </div>
 

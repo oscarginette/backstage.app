@@ -9,7 +9,6 @@ interface TrackListProps {
   onLoadAll: () => void;
   onSend: (track: SoundCloudTrack, customContent?: { subject?: string; greeting?: string; message?: string; signature?: string }) => void;
   sendingTrackId: string | null;
-  hasSelectedLists: boolean;
 }
 
 export default function TrackList({
@@ -18,8 +17,7 @@ export default function TrackList({
   showAll,
   onLoadAll,
   onSend,
-  sendingTrackId,
-  hasSelectedLists
+  sendingTrackId
 }: TrackListProps) {
   const [previewTrack, setPreviewTrack] = useState<SoundCloudTrack | null>(null);
   const [contactsCount, setContactsCount] = useState(0);
@@ -132,7 +130,7 @@ export default function TrackList({
                     <div className="flex justify-center sm:justify-start">
                       <button
                         onClick={() => handleSendClick(track)}
-                        disabled={sendingTrackId === track.trackId || !hasSelectedLists}
+                        disabled={sendingTrackId === track.trackId}
                         className="inline-flex items-center gap-2 px-4 py-2 bg-[#1c1c1c] text-white text-xs font-bold rounded-full hover:bg-black disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 shadow-lg shadow-black/10 hover:-translate-y-0.5"
                       >
                         {sendingTrackId === track.trackId ? (
