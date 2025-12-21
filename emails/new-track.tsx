@@ -15,6 +15,11 @@ interface NewTrackEmailProps {
   trackUrl: string;
   coverImage: string;
   unsubscribeUrl?: string;
+  customContent?: {
+    greeting?: string;
+    message?: string;
+    signature?: string;
+  };
 }
 
 export default function NewTrackEmail({
@@ -22,6 +27,7 @@ export default function NewTrackEmail({
   trackUrl,
   coverImage,
   unsubscribeUrl,
+  customContent,
 }: NewTrackEmailProps) {
   // Logo hosted on GitHub (black version for white/light backgrounds in email)
   const logoUrl = 'https://raw.githubusercontent.com/oscarginette/soundcloud-brevo/main/public/GEE_BEAT_LOGO_BLACK_HORIZONTAL.png';
@@ -29,19 +35,35 @@ export default function NewTrackEmail({
   // Use direct image URL - SoundCloud images work well in emails
   const coverUrl = coverImage;
 
+  // Default content
+  const greeting = customContent?.greeting || 'Hey mate,';
+  const message = customContent?.message || `This is my new track **${trackName}** and it's now on Soundcloud!`;
+  const signatureLines = (customContent?.signature || 'Much love,\nGee Beat').split('\n');
+
+  // Parse message for bold text (**text**)
+  const parseMessage = (text: string) => {
+    const parts = text.split(/(\*\*.*?\*\*)/g);
+    return parts.map((part, i) => {
+      if (part.startsWith('**') && part.endsWith('**')) {
+        return <strong key={i} style={{ fontWeight: '600' }}>{part.slice(2, -2)}</strong>;
+      }
+      return part;
+    });
+  };
+
   return (
     <Html>
       <Head />
-      <Preview>This is my new track {trackName}</Preview>
+      <Preview>{greeting} {trackName}</Preview>
       <Body style={main}>
         <Container style={container}>
           {/* Content */}
           <Section style={contentSection}>
             <Text style={paragraph}>
-              Hey mate,
+              {greeting}
             </Text>
             <Text style={paragraph}>
-              This is my new track <strong style={{ fontWeight: '600' }}>{trackName}</strong> and it's now on Soundcloud!
+              {parseMessage(message)}
             </Text>
           </Section>
 
@@ -63,12 +85,11 @@ export default function NewTrackEmail({
             <Text style={paragraph}>
               Have a great day :)
             </Text>
-            <Text style={signature}>
-              Much love,
-            </Text>
-            <Text style={signature}>
-              Gee Beat
-            </Text>
+            {signatureLines.map((line, i) => (
+              <Text key={i} style={signature}>
+                {line}
+              </Text>
+            ))}
           </Section>
 
           {/* CTA Button */}

@@ -7,7 +7,7 @@ export const dynamic = 'force-dynamic';
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { trackName, trackUrl, coverImage } = body;
+    const { trackName, trackUrl, coverImage, customContent } = body;
 
     // Generar URL de unsubscribe de ejemplo
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://soundcloud-brevo.vercel.app';
@@ -18,7 +18,8 @@ export async function POST(request: Request) {
         trackName: trackName || 'Test Track',
         trackUrl: trackUrl || 'https://soundcloud.com',
         coverImage: coverImage || '',
-        unsubscribeUrl
+        unsubscribeUrl,
+        customContent
       })
     );
 

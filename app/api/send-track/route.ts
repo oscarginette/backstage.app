@@ -14,7 +14,7 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json();
-    const { trackId, title, url, coverImage, publishedAt } = body;
+    const { trackId, title, url, coverImage, publishedAt, customContent } = body;
 
     if (!trackId || !title || !url) {
       return NextResponse.json(
@@ -68,15 +68,19 @@ export async function POST(request: Request) {
             trackName: title,
             trackUrl: url,
             coverImage: coverImage || '',
-            unsubscribeUrl
+            unsubscribeUrl,
+            customContent
           })
         );
+
+        // Usar subject personalizado si está disponible
+        const emailSubject = customContent?.subject || 'New music from Gee Beat';
 
         // Enviar con Resend (con tracking habilitado)
         const { data, error } = await resend.emails.send({
           from: `Gee Beat <${process.env.SENDER_EMAIL}>`,
           to: contact.email,
-          subject: `🎵 New track: ${title}`,
+          subject: emailSubject,
           html: emailHtml,
           tags: [
             { name: 'category', value: 'new_track' },

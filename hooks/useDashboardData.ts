@@ -137,7 +137,7 @@ export function useDashboardData() {
     }
   };
 
-  const handleSendTrack = async (track: SoundCloudTrack) => {
+  const handleSendTrack = async (track: SoundCloudTrack, customContent?: { subject?: string; greeting?: string; message?: string; signature?: string }) => {
     if (selectedLists.length === 0) {
       setMessage({ type: 'error', text: 'Debes configurar y guardar al menos una lista primero' });
       return;
@@ -156,7 +156,8 @@ export function useDashboardData() {
           url: track.url,
           coverImage: track.coverImage,
           publishedAt: track.publishedAt,
-          listIds: selectedLists // Pasar las listas seleccionadas
+          listIds: selectedLists, // Pasar las listas seleccionadas
+          customContent // Pasar contenido personalizado
         })
       });
 

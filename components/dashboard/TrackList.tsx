@@ -42,9 +42,9 @@ export default function TrackList({
     setPreviewTrack(track);
   };
 
-  const handleConfirmSend = () => {
+  const handleConfirmSend = (customContent?: { subject?: string; greeting?: string; message?: string; signature?: string }) => {
     if (previewTrack) {
-      onSend(previewTrack);
+      onSend(previewTrack, customContent);
       setPreviewTrack(null);
     }
   };
