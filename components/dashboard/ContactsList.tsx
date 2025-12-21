@@ -326,21 +326,6 @@ export default function ContactsList() {
           </tbody>
         </table>
       </div>
-
-      {/* Show More Button */}
-      {filteredAndSortedContacts.length > 10 && (
-        <div className="p-6 border-t border-[#E8E6DF] bg-[#F5F3ED]/30">
-          <button
-            onClick={() => setShowAll(!showAll)}
-            className="w-full py-3 px-6 rounded-xl bg-white border border-[#E8E6DF] hover:bg-[#F5F3ED] transition-all text-sm font-medium text-[#1c1c1c]"
-          >
-            {showAll
-              ? 'Mostrar menos'
-              : `Ver todos (${filteredAndSortedContacts.length} ${searchQuery ? 'resultados' : 'contactos'})`
-            }
-          </button>
-        </div>
-      )}
     </div>
   );
 }
