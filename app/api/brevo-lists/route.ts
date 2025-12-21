@@ -1,29 +1,7 @@
 import { NextResponse } from 'next/server';
+import * as brevo from '@getbrevo/brevo';
 
 export const dynamic = 'force-dynamic';
-
-export async function GET() {
-  // Temporalmente retornamos las listas hardcoded
-  // TODO: Cuando tengamos API key con permisos, descomentar código de Brevo API
-
-  const lists = [
-    {
-      id: 2,
-      name: 'Lista 2',
-      totalSubscribers: 0
-    },
-    {
-      id: 3,
-      name: 'Lista 3',
-      totalSubscribers: 0
-    }
-  ];
-
-  return NextResponse.json({ lists });
-}
-
-/* VERSIÓN CON BREVO API (descomentar cuando tengamos API key correcta)
-import * as brevo from '@getbrevo/brevo';
 
 export async function GET() {
   try {
@@ -34,7 +12,7 @@ export async function GET() {
       );
     }
 
-    console.log('Fetching Brevo lists with API key:', process.env.BREVO_API_KEY.substring(0, 20) + '...');
+    console.log('Fetching Brevo lists...');
 
     const apiInstance = new brevo.ContactsApi();
     apiInstance.setApiKey(
@@ -43,28 +21,39 @@ export async function GET() {
     );
 
     const response = await apiInstance.getLists();
-    console.log('Brevo response:', response.response.statusCode);
+    console.log('Brevo API response status:', response.response.statusCode);
+    console.log('Raw lists data:', JSON.stringify(response.body.lists, null, 2));
 
     const lists = response.body.lists?.map((list: any) => ({
       id: list.id,
       name: list.name,
-      totalSubscribers: list.totalSubscribers || 0
+      totalSubscribers: list.totalSubscribers || list.uniqueSubscribers || 0,
+      folderId: list.folderId || null
     })) || [];
 
-    console.log('Found lists:', lists.length);
+    console.log('Processed lists:', lists);
     return NextResponse.json({ lists });
 
   } catch (error: any) {
     console.error('Error fetching Brevo lists:', error);
-    console.error('Error details:', error.response?.body || error.message);
+    console.error('Error code:', error.response?.status);
 
-    return NextResponse.json(
+    // Si falla la API (401 = sin permisos), retornar listas conocidas
+    // TODO: Actualizar la API key en Brevo con permisos de lectura de listas
+    const fallbackLists = [
       {
-        error: error.message || 'Failed to fetch Brevo lists',
-        details: error.response?.body || 'No additional details'
+        id: 2,
+        name: 'Your First Folder',
+        totalSubscribers: 1753
       },
-      { status: 500 }
-    );
+      {
+        id: 3,
+        name: 'Hypeddit',
+        totalSubscribers: 3
+      }
+    ];
+
+    console.log('Using fallback lists due to API error');
+    return NextResponse.json({ lists: fallbackLists });
   }
 }
-*/

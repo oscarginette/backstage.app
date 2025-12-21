@@ -38,7 +38,7 @@ export async function GET() {
     const parser = new Parser();
     const rssUrl = `https://feeds.soundcloud.com/users/soundcloud:users:${process.env.SOUNDCLOUD_USER_ID}/sounds.rss`;
 
-    let feed;
+    let feed: Parser.Output | undefined;
     try {
       feed = await parser.parseURL(rssUrl);
     } catch (error) {

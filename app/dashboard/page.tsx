@@ -30,62 +30,74 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-[#0a0a0a]">
-        <div className="flex flex-col items-center gap-4">
-          <div className="relative">
-            <div className="w-12 h-12 rounded-full border-4 border-orange-200 dark:border-orange-900 border-t-orange-500 animate-spin"></div>
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
-            </div>
-          </div>
-          <span className="text-sm font-medium text-gray-500 dark:text-gray-400 animate-pulse">Cargando sistema...</span>
+      <div className="min-h-screen flex items-center justify-center bg-[#FDFCF8]">
+        <div className="flex flex-col items-center gap-6">
+          <div className="w-16 h-16 rounded-full border-4 border-[#E8E6DF] border-t-[#FF5500] animate-spin"></div>
+          <span className="font-serif text-xl text-[#1c1c1c] animate-pulse">Iniciando sistema...</span>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#fafafa] dark:bg-[#0a0a0a] text-gray-900 dark:text-gray-100 selection:bg-orange-500 selection:text-white">
-      {/* Background Gradients */}
+    <div className="min-h-screen bg-[#FDFCF8] text-[#1c1c1c] selection:bg-[#FF5500] selection:text-white overflow-hidden">
+      {/* Aurora Background */}
       <div className="fixed inset-0 z-0 pointer-events-none">
-        <div className="absolute top-0 -left-4 w-96 h-96 bg-orange-500/10 rounded-full mix-blend-multiply filter blur-3xl opacity-30 dark:opacity-10 animate-blob"></div>
-        <div className="absolute top-0 -right-4 w-96 h-96 bg-purple-500/10 rounded-full mix-blend-multiply filter blur-3xl opacity-30 dark:opacity-10 animate-blob animation-delay-2000"></div>
-        <div className="absolute -bottom-8 left-20 w-96 h-96 bg-pink-500/10 rounded-full mix-blend-multiply filter blur-3xl opacity-30 dark:opacity-10 animate-blob animation-delay-4000"></div>
+        <div className="absolute top-0 left-0 w-full h-full bg-aurora-light"></div>
       </div>
 
-      <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        <Header />
-
+      <div className="relative z-10 w-full max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 py-16 sm:py-24">
+        
         {/* Global Message Toast */}
         {message && (
-          <div className="fixed top-6 right-6 z-50 animate-fade-in-down">
-            <div className={`flex items-center gap-3 p-4 pr-10 rounded-xl shadow-2xl backdrop-blur-md border ${
+          <div className="fixed top-8 right-8 z-50 animate-fade-in-down">
+            <div className={`flex items-center gap-4 p-5 pr-12 rounded-2xl shadow-2xl backdrop-blur-xl border ${
               message.type === 'success' 
-                ? 'bg-emerald-50/90 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-200' 
-                : 'bg-red-50/90 dark:bg-red-900/20 border-red-200 dark:border-red-800 text-red-800 dark:text-red-200'
+                ? 'bg-white/90 border-emerald-100 text-emerald-800' 
+                : 'bg-white/90 border-red-100 text-red-800'
             }`}>
-              {message.type === 'success' ? (
-                <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
-              ) : (
-                <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-              )}
-              <span className="font-medium text-sm">{message.text}</span>
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                 message.type === 'success' ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600'
+              }`}>
+                {message.type === 'success' ? (
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                ) : (
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                )}
+              </div>
+              <span className="font-medium text-base">{message.text}</span>
               <button 
                 onClick={() => setMessage(null)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:bg-black/5 dark:hover:bg-white/5 rounded-full transition-colors"
+                className="absolute right-4 top-1/2 -translate-y-1/2 p-2 hover:bg-gray-100 rounded-full transition-colors"
               >
-                <svg className="w-4 h-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
               </button>
             </div>
           </div>
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-12">
-          {/* Left Column (Stats & Control) */}
-          <div className="lg:col-span-4 flex flex-col gap-6">
-            <StatCards activeListsCount={selectedLists.length} />
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-24">
+          {/* Left Column (Header & Branding) */}
+          <div className="lg:col-span-4 lg:sticky lg:top-24 self-start">
+             <Header />
+             
+             <div className="hidden lg:block mt-12 pl-6 border-l-2 border-[#E8E6DF]">
+                <p className="text-sm text-gray-400 italic mb-4">
+                  "La música es el arte más directo, entra por el oído y va al corazón."
+                </p>
+                <span className="text-xs font-bold text-gray-300 uppercase tracking-widest">Gee Beat System v2.0</span>
+             </div>
+          </div>
+
+          {/* Right Column (Functional Stack) */}
+          <div className="lg:col-span-8 flex flex-col gap-8">
+            {/* 1. Stats (Top Right, Compact) */}
+            <div className="w-full">
+               <StatCards activeListsCount={selectedLists.length} />
+            </div>
             
-            <div className="flex-1">
+            {/* 2. Audiences (Below Stats) */}
+            <div className="w-full">
               <DistributionLists 
                 lists={lists} 
                 selectedLists={selectedLists}
@@ -96,23 +108,23 @@ export default function Dashboard() {
                 testing={testing}
               />
             </div>
-          </div>
 
-          {/* Right Column (Tracks) */}
-          <div className="lg:col-span-8">
-            <TrackList 
-              tracks={allTracks}
-               loading={loadingTracks}
-               showAll={showAllTracks}
-               onLoadAll={loadAllTracks}
-               onSend={handleSendTrack}
-               sendingTrackId={sendingTrackId}
-               hasSelectedLists={selectedLists.length > 0}
-            />
+            {/* 3. Tracks (Below Audiences) */}
+            <div className="w-full">
+              <TrackList 
+                tracks={allTracks}
+                 loading={loadingTracks}
+                 showAll={showAllTracks}
+                 onLoadAll={loadAllTracks}
+                 onSend={handleSendTrack}
+                 sendingTrackId={sendingTrackId}
+                 hasSelectedLists={selectedLists.length > 0}
+              />
+            </div>
+            
+             <ExecutionHistory history={history} />
           </div>
         </div>
-
-        <ExecutionHistory history={history} />
       </div>
     </div>
   );
