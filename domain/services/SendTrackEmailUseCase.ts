@@ -5,6 +5,8 @@ import { IExecutionLogRepository } from '@/domain/repositories/IExecutionLogRepo
 import { IEmailProvider } from '@/infrastructure/email/IEmailProvider';
 import { render } from '@react-email/components';
 import NewTrackEmail from '@/emails/new-track';
+import { RenderTemplateWithDataUseCase } from './email-templates/RenderTemplateWithDataUseCase';
+import { PostgresEmailTemplateRepository } from '@/infrastructure/database/repositories/PostgresEmailTemplateRepository';
 
 export interface SendTrackInput {
   trackId: string;
@@ -12,6 +14,7 @@ export interface SendTrackInput {
   url: string;
   coverImage?: string;
   publishedAt?: string;
+  templateId?: string;
   customContent?: {
     subject?: string;
     greeting?: string;
@@ -149,22 +152,46 @@ export class SendTrackEmailUseCase {
     baseUrl: string
   ) {
     const unsubscribeUrl = `${baseUrl}/unsubscribe?token=${contact.unsubscribeToken}`;
+    let emailHtml: string;
+    let emailSubject: string;
 
-    const emailHtml = await render(
-      NewTrackEmail({
-        trackName: input.title,
-        trackUrl: input.url,
-        coverImage: input.coverImage || '',
-        unsubscribeUrl,
-        customContent: input.customContent ? {
-          greeting: input.customContent.greeting,
-          message: input.customContent.message,
-          signature: input.customContent.signature
-        } : undefined
-      })
-    );
+    if (input.templateId) {
+      const templateRepo = new PostgresEmailTemplateRepository();
+      const renderUseCase = new RenderTemplateWithDataUseCase(templateRepo);
 
-    const emailSubject = input.customContent?.subject || 'New music from Gee Beat';
+      const rendered = await renderUseCase.execute({
+        templateId: input.templateId,
+        data: {
+          trackName: input.title,
+          trackUrl: input.url,
+          coverImage: input.coverImage || '',
+          greeting: input.customContent?.greeting || 'Hey mate,',
+          message: input.customContent?.message || `This is my new track **${input.title}** and it's now on Soundcloud!`,
+          signature: input.customContent?.signature || 'Much love,\nGee Beat',
+          unsubscribeUrl,
+          subject: input.customContent?.subject
+        }
+      });
+
+      emailHtml = rendered.html;
+      emailSubject = rendered.subject || input.customContent?.subject || 'New music from Gee Beat';
+    } else {
+      emailHtml = await render(
+        NewTrackEmail({
+          trackName: input.title,
+          trackUrl: input.url,
+          coverImage: input.coverImage || '',
+          unsubscribeUrl,
+          customContent: input.customContent ? {
+            greeting: input.customContent.greeting,
+            message: input.customContent.message,
+            signature: input.customContent.signature
+          } : undefined
+        })
+      );
+
+      emailSubject = input.customContent?.subject || 'New music from Gee Beat';
+    }
 
     return await this.emailProvider.send({
       to: contact.email,
@@ -173,7 +200,8 @@ export class SendTrackEmailUseCase {
       tags: [
         { name: 'category', value: 'new_track' },
         { name: 'track_id', value: input.trackId }
-      ]
+      ],
+      unsubscribeUrl
     });
   }
 
