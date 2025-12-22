@@ -82,9 +82,9 @@ export default function Dashboard() {
         )}
 
         {/* Header Section */}
-        <div className="mb-8">
+        <div className="mb-12 flex flex-col md:flex-row md:items-end md:justify-between gap-6">
           <Header />
-          <div className="w-full max-w-md">
+          <div className="pb-2">
             <StatCards />
           </div>
         </div>
