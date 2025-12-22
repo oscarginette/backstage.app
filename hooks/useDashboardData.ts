@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ExecutionHistoryItem, SoundCloudTrack } from '../types/dashboard';
+import { ExecutionHistoryItem, SoundCloudTrack, EmailContent } from '../types/dashboard';
 
 export function useDashboardData() {
   const [history, setHistory] = useState<ExecutionHistoryItem[]>([]);
@@ -9,6 +9,8 @@ export function useDashboardData() {
   const [sendingTrackId, setSendingTrackId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [showEmailEditor, setShowEmailEditor] = useState(false);
+  const [sendingCustomEmail, setSendingCustomEmail] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -91,6 +93,72 @@ export function useDashboardData() {
     }
   };
 
+  const handleSendCustomEmail = async (content: EmailContent) => {
+    setSendingCustomEmail(true);
+    setMessage(null);
+
+    try {
+      const res = await fetch('/api/send-custom-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...content,
+          saveAsDraft: false
+        })
+      });
+
+      const data = await res.json();
+
+      if (data.error) {
+        throw new Error(data.error);
+      }
+
+      setMessage({
+        type: 'success',
+        text: `Email enviado a ${data.emailsSent} contacto(s)`
+      });
+
+      setShowEmailEditor(false);
+
+      // Recargar datos
+      loadData();
+    } catch (error: any) {
+      setMessage({ type: 'error', text: error.message });
+    } finally {
+      setSendingCustomEmail(false);
+    }
+  };
+
+  const handleSaveDraft = async (content: EmailContent) => {
+    setMessage(null);
+
+    try {
+      const res = await fetch('/api/campaigns', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...content,
+          status: 'draft'
+        })
+      });
+
+      const data = await res.json();
+
+      if (data.error) {
+        throw new Error(data.error);
+      }
+
+      setMessage({
+        type: 'success',
+        text: 'Borrador guardado correctamente'
+      });
+
+      setShowEmailEditor(false);
+    } catch (error: any) {
+      setMessage({ type: 'error', text: error.message });
+    }
+  };
+
   return {
     history,
     allTracks,
@@ -99,8 +167,13 @@ export function useDashboardData() {
     sendingTrackId,
     loading,
     message,
+    showEmailEditor,
+    sendingCustomEmail,
     loadAllTracks,
     handleSendTrack,
-    setMessage
+    handleSendCustomEmail,
+    handleSaveDraft,
+    setMessage,
+    setShowEmailEditor
   };
 }
