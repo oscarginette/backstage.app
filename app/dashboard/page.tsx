@@ -10,6 +10,7 @@ import ContactsList from '../../components/dashboard/ContactsList';
 import CreateEmailButton from '../../components/dashboard/CreateEmailButton';
 import EmailEditorModal from '../../components/dashboard/EmailEditorModal';
 import DraftsList from '../../components/dashboard/DraftsList';
+import Dock from '../../components/ui/Dock';
 
 export default function Dashboard() {
   const {
@@ -94,15 +95,17 @@ export default function Dashboard() {
         </div>
 
         {/* Full Width Stack */}
-        <div className="flex flex-col gap-12">
+        <div className="flex flex-col gap-12 pb-32">
 
             {/* 1. Drafts List (Full Width) */}
-            <DraftsList onDraftSent={() => {
-              setMessage({ type: 'success', text: 'Borrador enviado correctamente' });
-            }} />
+            <div id="drafts">
+              <DraftsList onDraftSent={() => {
+                setMessage({ type: 'success', text: 'Borrador enviado correctamente' });
+              }} />
+            </div>
 
             {/* 2. Tracks (Full Width) */}
-            <div className="w-full">
+            <div className="w-full" id="tracks">
               <TrackList
                 tracks={allTracks}
                  loading={loadingTracks}
@@ -114,11 +117,17 @@ export default function Dashboard() {
             </div>
 
             {/* 3. Execution History (Full Width) */}
-            <ExecutionHistory history={history} />
+            <div id="history">
+              <ExecutionHistory history={history} />
+            </div>
 
             {/* 4. Contacts List (Full Width) */}
-            <ContactsList />
+            <div id="contacts">
+              <ContactsList />
+            </div>
         </div>
+
+        <Dock />
 
         {/* Email Editor Modal */}
         {showEmailEditor && (
