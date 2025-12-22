@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "biome check",
-    "format": "biome format --write"
+    "format": "biome format --write",
+    "migrate:multi-tenant": "tsx scripts/migrate-to-multi-tenant.ts",
+    "db:sync-schema": "tsx scripts/sync-database-schema.ts"
   },
   "dependencies": {
     "@react-email/components": "^1.0.2",
@@ -23,7 +25,6 @@
     "mjml-react": "^2.0.8",
     "next": "16.1.0",
     "next-auth": "^5.0.0-beta.30",
-    "next-intl": "^4.6.1",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "react-email": "^5.1.0",

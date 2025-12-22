@@ -1,242 +1,111 @@
-import { ITrackRepository } from '@/domain/repositories/ITrackRepository';
-import { IContactRepository } from '@/domain/repositories/IContactRepository';
-import { IEmailLogRepository } from '@/domain/repositories/IEmailLogRepository';
-import { IExecutionLogRepository } from '@/domain/repositories/IExecutionLogRepository';
-import { IEmailProvider } from '@/infrastructure/email/IEmailProvider';
-import { render } from '@react-email/components';
-import NewTrackEmail from '@/emails/new-track';
-import { RenderTemplateWithDataUseCase } from './email-templates/RenderTemplateWithDataUseCase';
-import { PostgresEmailTemplateRepository } from '@/infrastructure/database/repositories/PostgresEmailTemplateRepository';
+/**
+ * SendTrackEmailUseCase
+ *
+ * Sends tracked email with quota enforcement.
+ * Handles quota checking, email sending, and quota increment.
+ *
+ * Clean Architecture: Business logic in domain layer.
+ * SOLID: Single Responsibility, Dependency Inversion (depends on interfaces).
+ * GDPR: Tracks email sending for audit trail.
+ */
 
-export interface SendTrackInput {
-  trackId: string;
-  title: string;
-  url: string;
-  coverImage?: string;
-  publishedAt?: string;
-  templateId?: string;
-  customContent?: {
-    subject?: string;
-    greeting?: string;
-    message?: string;
-    signature?: string;
-  };
+import { IEmailProvider } from '../providers/IEmailProvider';
+import { IQuotaTrackingRepository } from '../repositories/IQuotaTrackingRepository';
+import { QuotaExceededError } from './CheckQuotaUseCase';
+
+export interface SendTrackEmailInput {
+  userId: number;
+  to: string;
+  subject: string;
+  html: string;
+  from?: string;
+  replyTo?: string;
+  headers?: Record<string, string>;
 }
 
-export interface SendTrackResult {
+export interface SendTrackEmailResult {
   success: boolean;
-  track: string;
-  emailsSent: number;
-  emailsFailed: number;
-  totalContacts: number;
-  duration: number;
-  failures?: Array<{ email: string; error: string }>;
-}
-
-export class ValidationError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = 'ValidationError';
-  }
+  messageId?: string;
+  error?: string;
+  quotaRemaining: number;
 }
 
 export class SendTrackEmailUseCase {
   constructor(
-    private trackRepository: ITrackRepository,
-    private contactRepository: IContactRepository,
-    private emailProvider: IEmailProvider,
-    private emailLogRepository: IEmailLogRepository,
-    private executionLogRepository: IExecutionLogRepository
+    private readonly emailProvider: IEmailProvider,
+    private readonly quotaRepository: IQuotaTrackingRepository
   ) {}
 
-  async execute(input: SendTrackInput): Promise<SendTrackResult> {
-    const startTime = Date.now();
+  async execute(input: SendTrackEmailInput): Promise<SendTrackEmailResult> {
+    // Validate input
+    this.validateInput(input);
 
-    try {
-      // 1. Validar input
-      this.validateInput(input);
+    // Check quota BEFORE sending
+    const quota = await this.quotaRepository.getByUserId(input.userId);
 
-      // 2. Verificar si el track ya fue enviado
-      await this.checkDuplicateTrack(input.trackId);
-
-      // 3. Obtener contactos suscritos
-      const contacts = await this.contactRepository.getSubscribed();
-
-      if (contacts.length === 0) {
-        throw new ValidationError('No hay contactos suscritos');
-      }
-
-      console.log(`Enviando emails a ${contacts.length} contactos...`);
-
-      // 4. Enviar emails
-      const results = await this.sendEmails(contacts, input);
-
-      // 5. Guardar track en DB
-      await this.saveTrack(input);
-
-      // 6. Log de ejecución exitosa
-      await this.logExecution(input, results.emailsSent.length, startTime);
-
-      // 7. Construir respuesta
-      return {
-        success: true,
-        track: input.title,
-        emailsSent: results.emailsSent.length,
-        emailsFailed: results.emailsFailed.length,
-        totalContacts: contacts.length,
-        duration: Date.now() - startTime,
-        failures: results.emailsFailed.length > 0 ? results.emailsFailed : undefined
-      };
-    } catch (error: any) {
-      // Log de error
-      await this.logError(error, startTime);
-      throw error;
-    }
-  }
-
-  private validateInput(input: SendTrackInput): void {
-    if (!input.trackId || !input.title || !input.url) {
-      throw new ValidationError('Missing required fields: trackId, title, url');
-    }
-  }
-
-  private async checkDuplicateTrack(trackId: string): Promise<void> {
-    const exists = await this.trackRepository.existsByTrackId(trackId);
-    if (exists) {
-      throw new ValidationError('Este track ya ha sido enviado anteriormente');
-    }
-  }
-
-  private async sendEmails(
-    contacts: Array<{ id: number; email: string; name?: string | null; unsubscribeToken: string }>,
-    input: SendTrackInput
-  ) {
-    const emailsSent: Array<{ email: string; id?: string }> = [];
-    const emailsFailed: Array<{ email: string; error: string }> = [];
-
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://backstage-art.vercel.app';
-
-    for (const contact of contacts) {
-      try {
-        const result = await this.sendSingleEmail(contact, input, baseUrl);
-
-        if (result.success) {
-          emailsSent.push({ email: contact.email, id: result.id });
-          await this.emailLogRepository.create({
-            contactId: contact.id,
-            trackId: input.trackId,
-            resendEmailId: result.id || null,
-            status: 'sent'
-          });
-        } else {
-          emailsFailed.push({ email: contact.email, error: result.error || 'Unknown error' });
-          await this.emailLogRepository.create({
-            contactId: contact.id,
-            trackId: input.trackId,
-            status: 'failed',
-            error: result.error
-          });
-        }
-      } catch (error: any) {
-        console.error(`Error procesando ${contact.email}:`, error);
-        emailsFailed.push({ email: contact.email, error: error.message });
-      }
+    if (!quota) {
+      throw new Error(`Quota tracking not found for user ${input.userId}`);
     }
 
-    return { emailsSent, emailsFailed };
-  }
-
-  private async sendSingleEmail(
-    contact: { email: string; unsubscribeToken: string },
-    input: SendTrackInput,
-    baseUrl: string
-  ) {
-    const unsubscribeUrl = `${baseUrl}/unsubscribe?token=${contact.unsubscribeToken}`;
-    let emailHtml: string;
-    let emailSubject: string;
-
-    if (input.templateId) {
-      const templateRepo = new PostgresEmailTemplateRepository();
-      const renderUseCase = new RenderTemplateWithDataUseCase(templateRepo);
-
-      const rendered = await renderUseCase.execute({
-        templateId: input.templateId,
-        data: {
-          trackName: input.title,
-          trackUrl: input.url,
-          coverImage: input.coverImage || '',
-          greeting: input.customContent?.greeting || 'Hey mate,',
-          message: input.customContent?.message || `This is my new track **${input.title}** and it's now on Soundcloud!`,
-          signature: input.customContent?.signature || 'Much love,\nGee Beat',
-          unsubscribeUrl,
-          subject: input.customContent?.subject
-        }
-      });
-
-      emailHtml = rendered.html;
-      emailSubject = rendered.subject || input.customContent?.subject || 'New music from Gee Beat';
+    // Reset if new day
+    if (quota.needsReset()) {
+      await this.quotaRepository.resetDailyCount(input.userId);
     } else {
-      emailHtml = await render(
-        NewTrackEmail({
-          trackName: input.title,
-          trackUrl: input.url,
-          coverImage: input.coverImage || '',
-          unsubscribeUrl,
-          customContent: input.customContent ? {
-            greeting: input.customContent.greeting,
-            message: input.customContent.message,
-            signature: input.customContent.signature
-          } : undefined
-        })
-      );
-
-      emailSubject = input.customContent?.subject || 'New music from Gee Beat';
+      // Check if quota exceeded
+      if (!quota.canSendEmail()) {
+        throw new QuotaExceededError(
+          `Daily email limit reached (${quota.monthlyLimit}). Quota resets tomorrow.`
+        );
+      }
     }
 
-    return await this.emailProvider.send({
-      to: contact.email,
-      subject: emailSubject,
-      html: emailHtml,
-      tags: [
-        { name: 'category', value: 'new_track' },
-        { name: 'track_id', value: input.trackId }
-      ],
-      unsubscribeUrl
+    // Send email
+    const emailResult = await this.emailProvider.send({
+      to: input.to,
+      subject: input.subject,
+      html: input.html,
+      from: input.from,
+      replyTo: input.replyTo,
+      headers: input.headers,
     });
-  }
 
-  private async saveTrack(input: SendTrackInput): Promise<void> {
-    const publishedDateStr = input.publishedAt
-      ? new Date(input.publishedAt).toISOString()
-      : new Date().toISOString();
-
-    await this.trackRepository.save({
-      trackId: input.trackId,
-      title: input.title,
-      url: input.url,
-      publishedAt: publishedDateStr,
-      coverImage: input.coverImage || null
-    });
-  }
-
-  private async logExecution(input: SendTrackInput, emailsSent: number, startTime: number): Promise<void> {
-    await this.executionLogRepository.create({
-      newTracks: 1,
-      emailsSent,
-      durationMs: Date.now() - startTime,
-      trackId: input.trackId,
-      trackTitle: input.title
-    });
-  }
-
-  private async logError(error: Error, startTime: number): Promise<void> {
-    try {
-      await this.executionLogRepository.create({
-        error: error.message,
-        durationMs: Date.now() - startTime
-      });
-    } catch (logError) {
-      console.error('Failed to log error:', logError);
+    // Only increment quota if email sent successfully
+    if (emailResult.success) {
+      await this.quotaRepository.incrementEmailCount(input.userId);
     }
+
+    // Get updated quota
+    const updatedQuota = await this.quotaRepository.getByUserId(input.userId);
+    const remaining = updatedQuota ? updatedQuota.getRemainingQuota() : 0;
+
+    return {
+      success: emailResult.success,
+      messageId: emailResult.messageId,
+      error: emailResult.error,
+      quotaRemaining: remaining,
+    };
+  }
+
+  private validateInput(input: SendTrackEmailInput): void {
+    if (!input.userId || input.userId <= 0) {
+      throw new Error('Invalid userId');
+    }
+
+    if (!input.to || !this.isValidEmail(input.to)) {
+      throw new Error('Invalid recipient email address');
+    }
+
+    if (!input.subject || input.subject.trim().length === 0) {
+      throw new Error('Subject cannot be empty');
+    }
+
+    if (!input.html || input.html.trim().length === 0) {
+      throw new Error('Email body cannot be empty');
+    }
+  }
+
+  private isValidEmail(email: string): boolean {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
   }
 }
