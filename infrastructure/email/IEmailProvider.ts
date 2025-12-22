@@ -4,6 +4,7 @@ export interface EmailParams {
   html: string;
   from?: string;
   tags?: Array<{ name: string; value: string }>;
+  unsubscribeUrl?: string; // For List-Unsubscribe header (CAN-SPAM compliance)
 }
 
 export interface EmailResult {
