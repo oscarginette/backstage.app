@@ -272,13 +272,13 @@ export default function EmailContentEditor({
       {/* Editor Panel and Preview */}
       <div className="flex-1 overflow-hidden flex">
         {/* Editor Panel */}
-        <div className="w-1/2 border-r border-[#E8E6DF] overflow-y-auto p-6 bg-gray-50">
-          <h3 className="text-lg font-semibold text-[#1c1c1c] mb-4">Personalizar Contenido</h3>
+        <div className="w-1/2 border-r border-[#E8E6DF] overflow-y-auto p-8 bg-[#FDFCF8]">
+          <h3 className="text-xl font-serif text-[#1c1c1c] mb-6">Personalizar Contenido</h3>
 
           <div className="space-y-4">
             {/* Subject */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2 font-serif">
                 Asunto del Email
               </label>
               <input
@@ -298,7 +298,7 @@ export default function EmailContentEditor({
 
             {/* Greeting */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2 font-serif">
                 Saludo
               </label>
               <input
@@ -312,9 +312,9 @@ export default function EmailContentEditor({
 
             {/* Message */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2 font-serif">
                 Mensaje Principal
-                <span className="text-xs text-gray-500 ml-2">(Usa **texto** para negrita)</span>
+                <span className="text-xs text-gray-400 font-sans ml-2">(Usa **texto** para negrita)</span>
               </label>
               <textarea
                 value={message}
@@ -327,7 +327,7 @@ export default function EmailContentEditor({
 
             {/* Signature */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2 font-serif">
                 Firma
               </label>
               <textarea
@@ -348,7 +348,7 @@ export default function EmailContentEditor({
                 setSignature(initialContent.signature);
                 setCoverImage(initialContent.coverImage || '');
               }}
-              className="w-full px-4 py-2 rounded-xl border border-[#E8E6DF] text-sm text-gray-600 hover:bg-white transition-colors"
+              className="w-full px-6 py-3 rounded-full border border-[#E8E6DF] text-sm text-gray-500 hover:bg-white hover:text-black hover:border-black transition-colors"
             >
               Restaurar Original
             </button>
@@ -356,8 +356,8 @@ export default function EmailContentEditor({
         </div>
 
         {/* Preview Panel */}
-        <div className="w-1/2 overflow-y-auto p-6 bg-gray-50">
-          <h3 className="text-lg font-semibold text-[#1c1c1c] mb-4">Vista Previa</h3>
+        <div className="w-1/2 overflow-y-auto p-8 bg-gray-50">
+          <h3 className="text-xl font-serif text-[#1c1c1c] mb-6">Vista Previa</h3>
 
           {loadingPreview ? (
             <div className="flex items-center justify-center py-12">
@@ -379,20 +379,20 @@ export default function EmailContentEditor({
       <div className="p-6 border-t border-[#E8E6DF] bg-white">
         <div className="flex items-center justify-between gap-4">
           <div className="text-sm text-gray-500">
-            Subject: <span className="font-medium text-gray-700">{subject}</span>
+            Subject: <span className="font-serif text-[#1c1c1c] ml-1">{subject}</span>
           </div>
           <div className="flex gap-3">
             <button
               onClick={onClose}
               disabled={saving || savingDraft}
-              className="px-6 py-2.5 rounded-xl border border-[#E8E6DF] text-[#1c1c1c] hover:bg-[#F5F3ED] transition-colors disabled:opacity-50"
+              className="px-6 py-3 rounded-full text-gray-500 hover:text-[#1c1c1c] transition-colors disabled:opacity-50"
             >
               Cancelar
             </button>
             <button
               onClick={handleSaveDraft}
               disabled={saving || savingDraft}
-              className="px-6 py-2.5 rounded-xl border border-[#E8E6DF] text-[#1c1c1c] hover:bg-[#F5F3ED] transition-colors disabled:opacity-50 flex items-center gap-2"
+              className="px-6 py-3 rounded-full border border-[#E8E6DF] text-[#1c1c1c] hover:border-[#1c1c1c] hover:bg-white transition-all disabled:opacity-50 flex items-center gap-2"
             >
               {savingDraft ? (
                 <>
@@ -411,7 +411,7 @@ export default function EmailContentEditor({
             <button
               onClick={handleSave}
               disabled={saving || savingDraft}
-              className="px-6 py-2.5 rounded-xl bg-[#FF5500] text-white font-medium hover:bg-[#FF6600] transition-colors disabled:opacity-50 flex items-center gap-2"
+              className="px-8 py-3 rounded-full bg-[#1c1c1c] text-[#FDFCF8] font-medium hover:bg-[#1c1c1c]/90 active:scale-95 transition-all disabled:opacity-50 flex items-center gap-2 shadow-lg hover:shadow-xl"
             >
               {saving ? (
                 <>
@@ -420,9 +420,9 @@ export default function EmailContentEditor({
                 </>
               ) : (
                 <>
-                  Enviar Email
+                  <span className="font-serif italic">Enviar Email</span>
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                   </svg>
                 </>
               )}
