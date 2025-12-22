@@ -3,7 +3,7 @@
 import { Check, X } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/lib/i18n/context';
 
 export default function PricingSection() {
   const t = useTranslations('pricing');

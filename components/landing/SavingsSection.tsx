@@ -1,7 +1,7 @@
 "use client";
 
 import SavingsCalculator from "./SavingsCalculator";
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/lib/i18n/context';
 
 export default function SavingsSection() {
   const t = useTranslations('savings');

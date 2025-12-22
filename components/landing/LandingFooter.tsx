@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/lib/i18n/context';
 
 export default function LandingFooter() {
   const t = useTranslations('footer');

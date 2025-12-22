@@ -1,7 +1,7 @@
 "use client";
 
 import { CheckCircle2, Zap, Palette, BarChart3 } from "lucide-react";
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/lib/i18n/context';
 
 export default function FeatureSection() {
   const t = useTranslations('features');

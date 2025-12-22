@@ -1,7 +1,7 @@
 "use client";
 
 import { Mail, Users, TrendingUp } from "lucide-react";
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/lib/i18n/context';
 
 export default function ValuePropSection() {
   const t = useTranslations('valueProp');
@@ -54,23 +54,37 @@ export default function ValuePropSection() {
         </div>
         
         {/* Comparison Graphic */}
-        <div className="mt-16 p-8 md:p-12 rounded-[2rem] bg-foreground text-background overflow-hidden relative">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-accent/20 rounded-full blur-[100px]" />
-          <div className="relative z-10 grid md:grid-cols-2 gap-8 items-center">
+        <div className="mt-16 p-8 md:p-12 rounded-[2.5rem] bg-[#1a1a1a] text-white overflow-hidden relative border border-white/5 shadow-2xl">
+          <div className="absolute top-0 right-0 w-96 h-96 bg-accent/10 rounded-full blur-[120px] -z-10" />
+          <div className="absolute bottom-0 left-0 w-64 h-64 bg-accent/5 rounded-full blur-[100px] -z-10" />
+          
+          <div className="relative z-10 grid md:grid-cols-2 gap-12 items-center">
             <div>
-              <h4 className="text-3xl font-serif mb-4">{t('engagement.title')}</h4>
-              <p className="text-background/60 text-lg">
+              <h4 className="text-3xl md:text-4xl font-serif mb-6">{t('engagement.title')}</h4>
+              <p className="text-white/60 text-lg leading-relaxed max-w-md">
                 {t('engagement.description')}
               </p>
             </div>
-            <div className="flex justify-around items-end gap-4 h-32">
-              <div className="flex flex-col items-center gap-2 w-full">
-                <div className="w-full bg-accent/20 h-8 rounded-t-lg transition-all hover:h-12" />
-                <span className="text-xs font-medium">{t('engagement.socialReach')}</span>
+            
+            <div className="flex justify-center items-end gap-8 h-48">
+              {/* Social Reach Bar */}
+              <div className="flex flex-col items-center gap-4 w-28 group">
+                <div className="w-full bg-white/5 border border-white/10 h-10 rounded-2xl flex items-center justify-center transition-all duration-500 group-hover:h-14 group-hover:bg-white/10">
+                  <span className="text-sm font-bold text-white/30">3-5%</span>
+                </div>
+                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40 text-center">
+                  {t('engagement.socialReach')}
+                </span>
               </div>
-              <div className="flex flex-col items-center gap-2 w-full">
-                <div className="w-full bg-accent h-32 rounded-t-lg shadow-[0_0_20px_rgba(255,85,0,0.5)]" />
-                <span className="text-xs font-medium">{t('engagement.emailOpenRate')}</span>
+
+              {/* Email Open Rate Bar */}
+              <div className="flex flex-col items-center gap-4 w-28 group">
+                <div className="w-full bg-accent h-40 rounded-2xl flex items-center justify-center shadow-[0_20px_40px_-10px_rgba(255,85,0,0.4)] transition-all duration-500 group-hover:scale-105 group-hover:-translate-y-2">
+                  <span className="text-xl font-black text-white">99%</span>
+                </div>
+                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-accent text-center">
+                  {t('engagement.emailOpenRate')}
+                </span>
               </div>
             </div>
           </div>

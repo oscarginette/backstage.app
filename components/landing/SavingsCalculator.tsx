@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react";
 import { ArrowRight, Info } from "lucide-react";
 import Link from "next/link";
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/lib/i18n/context';
 
 export default function SavingsCalculator() {
   const t = useTranslations('savings.calculator');

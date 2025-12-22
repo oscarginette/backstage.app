@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { Instrument_Serif, Inter } from "next/font/google";
+import { I18nProvider } from "@/lib/i18n/context";
+import { getLocale } from "@/lib/i18n/server";
 import "./globals.css";
 
 const instrumentSerif = Instrument_Serif({
@@ -20,17 +22,20 @@ export const metadata: Metadata = {
   description: "Automated community growth and management for modern artists.",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Detect user's preferred locale on the server
+  const locale = await getLocale();
+
   return (
-    <html lang="es">
+    <html lang={locale}>
       <body
         className={`${instrumentSerif.variable} ${inter.variable} antialiased bg-[#FDFCF8] text-[#1a1a1a]`}
       >
-        {children}
+        <I18nProvider initialLocale={locale}>{children}</I18nProvider>
       </body>
     </html>
   );

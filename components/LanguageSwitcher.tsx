@@ -1,27 +1,17 @@
 "use client";
 
-import { useLocale } from 'next-intl';
-import { usePathname, useRouter } from 'next/navigation';
+import { useLocale, useSetLocale } from '@/lib/i18n/context';
 import { Globe } from 'lucide-react';
-import { useState, useTransition } from 'react';
+import { useState } from 'react';
 
 export default function LanguageSwitcher() {
   const locale = useLocale();
-  const router = useRouter();
-  const pathname = usePathname();
-  const [isPending, startTransition] = useTransition();
+  const setLocale = useSetLocale();
   const [isOpen, setIsOpen] = useState(false);
 
-  const switchLocale = (newLocale: string) => {
-    // Replace the current locale with the new one
-    const segments = pathname.split('/');
-    segments[1] = newLocale; // Replace locale segment
-    const newPath = segments.join('/');
-
-    startTransition(() => {
-      router.push(newPath);
-      setIsOpen(false);
-    });
+  const switchLocale = (newLocale: 'en' | 'es') => {
+    setLocale(newLocale);
+    setIsOpen(false);
   };
 
   return (
@@ -29,7 +19,6 @@ export default function LanguageSwitcher() {
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center gap-2 px-3 py-2 rounded-full border border-border bg-white/50 backdrop-blur-sm hover:bg-white/80 transition-all text-sm font-medium text-foreground/80 hover:text-foreground"
-        disabled={isPending}
       >
         <Globe className="w-4 h-4" />
         <span className="uppercase">{locale}</span>
