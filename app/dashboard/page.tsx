@@ -1,11 +1,15 @@
 'use client';
 
 import { useDashboardData } from '../../hooks/useDashboardData';
+import { useEmailTemplates } from '../../hooks/useEmailTemplates';
 import Header from '../../components/dashboard/Header';
 import StatCards from '../../components/dashboard/StatCards';
 import TrackList from '../../components/dashboard/TrackList';
 import ExecutionHistory from '../../components/dashboard/ExecutionHistory';
 import ContactsList from '../../components/dashboard/ContactsList';
+import CreateEmailButton from '../../components/dashboard/CreateEmailButton';
+import EmailEditorModal from '../../components/dashboard/EmailEditorModal';
+import DraftsList from '../../components/dashboard/DraftsList';
 
 export default function Dashboard() {
   const {
@@ -16,10 +20,17 @@ export default function Dashboard() {
     sendingTrackId,
     loading,
     message,
+    showEmailEditor,
+    sendingCustomEmail,
     loadAllTracks,
     handleSendTrack,
-    setMessage
+    handleSendCustomEmail,
+    handleSaveDraft,
+    setMessage,
+    setShowEmailEditor
   } = useDashboardData();
+
+  const { defaultTemplate } = useEmailTemplates();
 
   if (loading) {
     return (
@@ -77,10 +88,20 @@ export default function Dashboard() {
           </div>
         </div>
 
+        {/* Create Email Button */}
+        <div className="mb-8">
+          <CreateEmailButton onClick={() => setShowEmailEditor(true)} />
+        </div>
+
         {/* Full Width Stack */}
         <div className="flex flex-col gap-12">
 
-            {/* 1. Tracks (Full Width) */}
+            {/* 1. Drafts List (Full Width) */}
+            <DraftsList onDraftSent={() => {
+              setMessage({ type: 'success', text: 'Borrador enviado correctamente' });
+            }} />
+
+            {/* 2. Tracks (Full Width) */}
             <div className="w-full">
               <TrackList
                 tracks={allTracks}
@@ -92,12 +113,23 @@ export default function Dashboard() {
               />
             </div>
 
-            {/* 2. Execution History (Full Width) */}
+            {/* 3. Execution History (Full Width) */}
             <ExecutionHistory history={history} />
 
-            {/* 3. Contacts List (Full Width) */}
+            {/* 4. Contacts List (Full Width) */}
             <ContactsList />
         </div>
+
+        {/* Email Editor Modal */}
+        {showEmailEditor && (
+          <EmailEditorModal
+            onClose={() => setShowEmailEditor(false)}
+            onSave={handleSendCustomEmail}
+            onSaveDraft={handleSaveDraft}
+            defaultTemplate={defaultTemplate}
+            saving={sendingCustomEmail}
+          />
+        )}
       </div>
     </div>
   );

@@ -19,3 +19,37 @@ export interface SoundCloudTrack {
   description: string | null;
   alreadySent: boolean;
 }
+
+export interface EmailTemplate {
+  id: string;
+  name: string;
+  subject: string;
+  greeting: string;
+  message: string;
+  signature: string;
+  type: 'track' | 'custom';
+  isDefault: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface EmailCampaign {
+  id: string;
+  templateId: string | null;
+  trackId: string | null;
+  subject: string;
+  htmlContent: string;
+  status: 'draft' | 'sent';
+  scheduledAt: string | null;
+  sentAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface EmailContent {
+  subject: string;
+  greeting: string;
+  message: string;
+  signature: string;
+  coverImage?: string;
+}
