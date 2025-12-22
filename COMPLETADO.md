@@ -100,7 +100,7 @@ POSTGRES_URL="[tu postgres url de vercel]" node scripts/setup-db.js
 
 #### A. Abrir Dashboard:
 ```
-https://soundcloud-brevo.vercel.app/dashboard
+https://backstage-art.vercel.app/dashboard
 ```
 
 Deberías ver:

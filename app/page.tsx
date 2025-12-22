@@ -5,6 +5,7 @@ import LandingHero from "@/components/landing/LandingHero";
 import ProblemSection from "@/components/landing/ProblemSection";
 import ValuePropSection from "@/components/landing/ValuePropSection";
 import FeatureSection from "@/components/landing/FeatureSection";
+import PricingSection from "@/components/landing/PricingSection";
 import LandingFooter from "@/components/landing/LandingFooter";
 
 export default function Home() {
@@ -37,6 +38,7 @@ export default function Home() {
         <ValuePropSection />
         <div id="features" />
         <FeatureSection />
+        <PricingSection />
       </main>
 
       <LandingFooter />

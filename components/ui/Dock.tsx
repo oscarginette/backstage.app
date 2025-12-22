@@ -27,28 +27,43 @@ const IDLE_TIMEOUT = 3000; // 3 seconds
 const ACTIVE_DISTANCE = 300; // Lux distance to be considered "near"
 
 export default function Dock() {
-  const mouseX = useMotionValue(Infinity);
   const mouseY = useMotionValue(Infinity);
+  const dockDistance = useMotionValue(Infinity);
   const [isIdle, setIsIdle] = useState(false);
   const idleTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const dockRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleGlobalMouseMove = (e: MouseEvent) => {
-      mouseX.set(e.pageX);
+      if (!dockRef.current) return;
       
-      // Check proximity to the dock area (right side)
-      const distFromRight = window.innerWidth - e.pageX;
-      const isNear = distFromRight < ACTIVE_DISTANCE;
-      const isMagnificationRange = distFromRight < 150;
+      const rect = dockRef.current.getBoundingClientRect();
+      const centerY = rect.top + rect.height / 2;
+      const rightX = window.innerWidth; // Dock is at right edge, effectively
+      
+      // Calculate distances using client coordinates (viewport relative) as Dock is fixed
+      const dX = Math.abs(rightX - e.clientX); // Distance from right edge
+      const dyRaw = Math.abs(e.clientY - rect.top - rect.height / 2) - rect.height / 2;
+      const dY = Math.max(0, dyRaw); // 0 if inside vertical bounds
+      
+      // True 2D distance to the "dock segment"
+      const distance = Math.hypot(dX, dY);
+      
+      dockDistance.set(distance);
+      
+      // Active zones
+      const isMagnificationZone = distance < 150;
+      const isOpacityZone = distance < 300;
 
-      // Only animate icons (magnification) if we are horizontally close
-      if (isMagnificationRange) {
-        mouseY.set(e.pageY);
+      // Magnification logic
+      if (isMagnificationZone) {
+        mouseY.set(e.clientY);
       } else {
         mouseY.set(Infinity);
       }
 
-      if (isNear) {
+      // Idle logic
+      if (isOpacityZone) {
         setIsIdle(false);
         if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
       } else {
@@ -65,7 +80,7 @@ export default function Dock() {
       window.removeEventListener('mousemove', handleGlobalMouseMove);
       if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
     };
-  }, [isIdle]);
+  }, [isIdle, dockDistance, mouseY]);
 
   const scrollToSection = (id: string) => {
     const element = document.getElementById(id);
@@ -83,12 +98,11 @@ export default function Dock() {
 
   // Base opacity based on proximity and idle state
   const proximityOpacitySync = useTransform(
-    mouseX,
+    dockDistance,
     (val) => {
       if (isIdle) return 0.05;
-      const distFromRight = window.innerWidth - val;
-      if (distFromRight > ACTIVE_DISTANCE) return 0.1;
-      return 1 - (distFromRight / ACTIVE_DISTANCE) * 0.9;
+      if (val > ACTIVE_DISTANCE) return 0.1;
+      return 1 - (val / ACTIVE_DISTANCE) * 0.9;
     }
   );
   
@@ -97,6 +111,7 @@ export default function Dock() {
   return (
     <div className="fixed right-6 top-1/2 -translate-y-1/2 z-50">
       <motion.div
+        ref={dockRef}
         style={{ opacity: dockOpacity }}
         className="flex flex-col items-center gap-4 px-2 py-4"
       >
@@ -129,7 +144,8 @@ function DockItem({
 
   const distance = useTransform(mouseY, (val: number) => {
     const bounds = ref.current?.getBoundingClientRect() ?? { y: 0, height: 0 };
-    return val - (bounds.y + window.scrollY) - bounds.height / 2;
+    // val is now clientY (viewport), bounds.y is viewport. No need for scrollY.
+    return val - bounds.y - bounds.height / 2;
   });
 
   const widthSync = useTransform(distance, [-150, 0, 150], [44, 75, 44]);

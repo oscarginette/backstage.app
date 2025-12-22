@@ -13,7 +13,7 @@
 
 **Prueba realizada:**
 ```bash
-curl -X POST https://soundcloud-brevo.vercel.app/api/webhook/hypedit \
+curl -X POST https://backstage-art.vercel.app/api/webhook/hypedit \
   -H "Content-Type: application/json" \
   -H "X-Webhook-Secret: hypedit_make_secret_2024" \
   -d '{"email":"test-webhook-1234@example.com","name":"Test User Manual"}'
@@ -64,7 +64,7 @@ curl -X POST https://soundcloud-brevo.vercel.app/api/webhook/hypedit \
 
 **URL:**
 ```
-https://soundcloud-brevo.vercel.app/api/webhook/hypedit
+https://backstage-art.vercel.app/api/webhook/hypedit
 ```
 
 **Method:**
@@ -110,7 +110,7 @@ Content-Type: application/json
 
 ### Opción 1: Desde terminal
 ```bash
-curl -X POST https://soundcloud-brevo.vercel.app/api/webhook/hypedit \
+curl -X POST https://backstage-art.vercel.app/api/webhook/hypedit \
   -H "Content-Type: application/json" \
   -H "X-Webhook-Secret: hypedit_make_secret_2024" \
   -d '{"email":"test@example.com","name":"Test User"}'
@@ -130,7 +130,7 @@ curl -X POST https://soundcloud-brevo.vercel.app/api/webhook/hypedit \
 
 ## 📞 Información de contacto
 
-**Webhook URL:** https://soundcloud-brevo.vercel.app/api/webhook/hypedit
+**Webhook URL:** https://backstage-art.vercel.app/api/webhook/hypedit
 **Secreto:** hypedit_make_secret_2024 (configurado en Vercel)
 **Método:** POST
 **Formato:** JSON

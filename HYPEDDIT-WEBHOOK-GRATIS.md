@@ -20,7 +20,7 @@ Zapier tiene plan gratuito con 100 tareas/mes (suficiente para empezar).
 4. **Action**:
    - App: **Webhooks by Zapier**
    - Event: **POST**
-   - URL: `https://soundcloud-brevo.vercel.app/api/webhook/hypedit`
+   - URL: `https://backstage-art.vercel.app/api/webhook/hypedit`
    - Payload Type: **JSON**
    - Headers:
      ```
@@ -97,7 +97,7 @@ Pipedream tiene un plan gratuito generoso con 10,000 invocaciones/mes.
 4. **Step**:
    - **HTTP Request**
    - Method: POST
-   - URL: `https://soundcloud-brevo.vercel.app/api/webhook/hypedit`
+   - URL: `https://backstage-art.vercel.app/api/webhook/hypedit`
    - Headers:
      ```json
      {
@@ -142,7 +142,7 @@ Según la [documentación de Hypeddit](https://hypeddit.zendesk.com/hc/en-us/art
 
 4. **Then That (Action)**:
    - Webhooks → Make a web request
-   - URL: `https://soundcloud-brevo.vercel.app/api/webhook/hypedit`
+   - URL: `https://backstage-art.vercel.app/api/webhook/hypedit`
    - Method: POST
    - Headers:
      ```
@@ -214,7 +214,7 @@ export default defineComponent({
   async run({ steps, $ }) {
     const response = await require("@pipedream/platform").axios($, {
       method: "POST",
-      url: "https://soundcloud-brevo.vercel.app/api/webhook/hypedit",
+      url: "https://backstage-art.vercel.app/api/webhook/hypedit",
       headers: {
         "X-Webhook-Secret": "tu_secreto_aqui_123",
         "Content-Type": "application/json"

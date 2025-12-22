@@ -75,7 +75,7 @@ RESEND_API_KEY=re_tu_api_key_aqui
 SENDER_EMAIL=info@geebeat.com
 
 # Base URL de tu app (para links de unsubscribe)
-NEXT_PUBLIC_APP_URL=https://soundcloud-brevo.vercel.app
+NEXT_PUBLIC_APP_URL=https://backstage-art.vercel.app
 
 # Webhook secret para Hypedit (genera uno random)
 HYPEDIT_WEBHOOK_SECRET=tu_secreto_super_seguro_aqui
@@ -94,7 +94,7 @@ POSTGRES_URL=postgresql://...
 
 Si Hypedit permite configurar webhooks directamente:
 
-1. URL: `https://soundcloud-brevo.vercel.app/api/webhook/hypedit`
+1. URL: `https://backstage-art.vercel.app/api/webhook/hypedit`
 2. Method: `POST`
 3. Headers:
    ```
@@ -117,7 +117,7 @@ Si Hypedit permite configurar webhooks directamente:
 2. En Make.com, crea un nuevo escenario:
    - **Trigger**: Webhook de Hypedit (o lo que uses actualmente)
    - **Action**: HTTP Request
-     - URL: `https://soundcloud-brevo.vercel.app/api/webhook/hypedit`
+     - URL: `https://backstage-art.vercel.app/api/webhook/hypedit`
      - Method: `POST`
      - Headers:
        ```json
@@ -140,7 +140,7 @@ Si Hypedit permite configurar webhooks directamente:
 
 ```bash
 # Desde tu terminal
-curl -X POST https://soundcloud-brevo.vercel.app/api/webhook/hypedit \
+curl -X POST https://backstage-art.vercel.app/api/webhook/hypedit \
   -H "X-Webhook-Secret: tu_secreto_super_seguro_aqui" \
   -H "Content-Type: application/json" \
   -d '{
@@ -236,7 +236,7 @@ node scripts/import-brevo-contacts.js
 ### 1. Añadir un contacto de prueba
 
 ```bash
-curl -X POST https://soundcloud-brevo.vercel.app/api/webhook/hypedit \
+curl -X POST https://backstage-art.vercel.app/api/webhook/hypedit \
   -H "X-Webhook-Secret: tu_secreto_super_seguro_aqui" \
   -H "Content-Type: application/json" \
   -d '{
@@ -256,7 +256,7 @@ SELECT * FROM contacts WHERE email = 'tu@email.com';
 Desde tu dashboard o API:
 
 ```bash
-curl -X POST https://soundcloud-brevo.vercel.app/api/send-track \
+curl -X POST https://backstage-art.vercel.app/api/send-track \
   -H "Content-Type: application/json" \
   -d '{
     "trackId": "test-123",

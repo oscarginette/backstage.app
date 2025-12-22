@@ -11,7 +11,7 @@ export async function POST(request: Request) {
     const { trackName, trackUrl, coverImage, customContent } = body;
 
     // Generar URL de unsubscribe de ejemplo
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://backstage.app';
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://backstage-art.vercel.app';
     const unsubscribeUrl = `${baseUrl}/unsubscribe?token=preview_token`;
 
     // If customContent is provided, use CustomEmail template (from email editor)
@@ -49,7 +49,7 @@ export async function POST(request: Request) {
 export async function GET() {
   try {
     // Test endpoint con datos de ejemplo
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://backstage.app';
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://backstage-art.vercel.app';
     const html = await render(
       NewTrackEmail({
         trackName: 'Test Track Name',

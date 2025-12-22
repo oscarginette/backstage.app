@@ -100,7 +100,7 @@ Al configurar las variables, Vercel redesplegará automáticamente.
 
 #### B. Abrir Dashboard
 
-URL: `https://soundcloud-brevo.vercel.app/dashboard`
+URL: `https://backstage-art.vercel.app/dashboard`
 
 Deberías ver:
 - ✅ 2 listas (Lista 2 y Lista 3)
@@ -175,7 +175,7 @@ SELECT * FROM app_config;
 ### Cambiar Listas de Destino:
 
 **Opción A - Desde Dashboard:**
-1. Ve a `https://soundcloud-brevo.vercel.app/dashboard`
+1. Ve a `https://backstage-art.vercel.app/dashboard`
 2. Selecciona/deselecciona listas
 3. Click "Guardar Configuración"
 
@@ -229,7 +229,7 @@ Referencia: https://crontab.guru
 
 ## 📊 URLs Importantes
 
-- **Dashboard**: https://soundcloud-brevo.vercel.app/dashboard
+- **Dashboard**: https://backstage-art.vercel.app/dashboard
 - **Vercel Project**: https://vercel.com/oscarginette/soundcloud-brevo
 - **GitHub Repo**: https://github.com/oscarginette/soundcloud-brevo
 - **Brevo Dashboard**: https://app.brevo.com

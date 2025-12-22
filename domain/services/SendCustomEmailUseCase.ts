@@ -149,7 +149,7 @@ export class SendCustomEmailUseCase {
 
   private async buildHtmlContent(input: SendCustomEmailInput): Promise<string> {
     // Build a temporary unsubscribe URL for preview (will be replaced per contact)
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://backstage.app';
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://backstage-art.vercel.app';
     const tempUnsubscribeUrl = `${baseUrl}/unsubscribe?token=TEMP_TOKEN`;
 
     return await render(
@@ -171,7 +171,7 @@ export class SendCustomEmailUseCase {
     const emailsSent: Array<{ email: string; id?: string }> = [];
     const emailsFailed: Array<{ email: string; error: string }> = [];
 
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://backstage.app';
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://backstage-art.vercel.app';
 
     for (const contact of contacts) {
       try {

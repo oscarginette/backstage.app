@@ -138,13 +138,13 @@ Vercel **redesplegará automáticamente** el proyecto.
 
 Abre en tu navegador:
 ```
-https://soundcloud-brevo.vercel.app/api/check-soundcloud
+https://backstage-art.vercel.app/api/check-soundcloud
 ```
 
 ### Opción 3 - Test desde terminal:
 
 ```bash
-curl https://soundcloud-brevo.vercel.app/api/check-soundcloud
+curl https://backstage-art.vercel.app/api/check-soundcloud
 ```
 
 ---
