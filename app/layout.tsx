@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Instrument_Serif, Inter } from "next/font/google";
 import { I18nProvider } from "@/lib/i18n/context";
 import { getLocale } from "@/lib/i18n/server";
+import SessionProvider from "@/components/SessionProvider";
 import "./globals.css";
 
 const instrumentSerif = Instrument_Serif({
@@ -35,7 +36,9 @@ export default async function RootLayout({
       <body
         className={`${instrumentSerif.variable} ${inter.variable} antialiased bg-[#FDFCF8] text-[#1a1a1a]`}
       >
-        <I18nProvider initialLocale={locale}>{children}</I18nProvider>
+        <SessionProvider>
+          <I18nProvider initialLocale={locale}>{children}</I18nProvider>
+        </SessionProvider>
       </body>
     </html>
   );
