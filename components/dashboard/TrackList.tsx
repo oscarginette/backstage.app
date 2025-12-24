@@ -53,30 +53,11 @@ export default function TrackList({
 
   return (
     <>
-      <div className="bg-white border border-[#E8E6DF] rounded-[32px] p-8 transition-all duration-300 hover:shadow-2xl hover:shadow-black/5">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-10">
-          <div>
-            <h2 className="font-serif text-3xl text-[#1c1c1c] mb-2">Feed de Tracks</h2>
-            <p className="text-sm text-gray-400">Tus últimos lanzamientos en SoundCloud</p>
-          </div>
-          {hasSoundCloudId && (
-            <button
-              onClick={onLoadAll}
-              disabled={loading}
-              className="px-6 py-3 rounded-full text-sm font-medium border border-[#E8E6DF] text-[#1c1c1c] hover:bg-[#FDFCF8] disabled:opacity-50 transition-colors"
-            >
-              {loading ? 'Sincronizando...' : showAll ? 'Actualizar Feed' : 'Ver Todos'}
-            </button>
-          )}
-        </div>
-
+      <div className="bg-white border border-[#E8E6DF] rounded-3xl p-8">
         {!hasSoundCloudId ? (
-          <div className="flex flex-col items-center justify-center py-8 text-center bg-gradient-to-br from-[#FF5500]/5 to-[#FF5500]/10 rounded-[24px] border-2 border-dashed border-[#FF5500]/20">
-            <div className="w-16 h-16 mb-4 rounded-full bg-white border-2 border-[#FF5500]/30 flex items-center justify-center shadow-lg">
-              <Settings className="w-7 h-7 text-[#FF5500]" />
-            </div>
+          <div className="flex flex-col items-center justify-center py-4 text-center bg-gradient-to-br from-[#FF5500]/5 to-[#FF5500]/10 rounded-[24px] border-2 border-dashed border-[#FF5500]/20">
             <h3 className="font-serif text-lg text-[#1c1c1c] mb-2">Conecta tu SoundCloud</h3>
-            <p className="text-sm text-gray-500 max-w-md mx-auto leading-relaxed mb-4">
+            <p className="text-sm text-gray-500 max-w-md mx-auto leading-relaxed mb-3">
               Para ver tus tracks y enviar campañas automáticas, necesitas configurar tu SoundCloud ID en Settings.
             </p>
             <Link
