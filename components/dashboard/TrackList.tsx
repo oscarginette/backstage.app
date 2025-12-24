@@ -55,9 +55,9 @@ export default function TrackList({
     <>
       <div className="bg-white border border-[#E8E6DF] rounded-3xl p-8">
         {!hasSoundCloudId ? (
-          <div className="flex flex-col items-center justify-center py-4 text-center bg-gradient-to-br from-[#FF5500]/5 to-[#FF5500]/10 rounded-[24px] border-2 border-dashed border-[#FF5500]/20">
-            <h3 className="font-serif text-lg text-[#1c1c1c] mb-2">Conecta tu SoundCloud</h3>
-            <p className="text-sm text-gray-500 max-w-md mx-auto leading-relaxed mb-3">
+          <div className="text-center py-8">
+            <h3 className="text-lg font-semibold text-gray-600 mb-2">Conecta tu SoundCloud</h3>
+            <p className="text-sm text-gray-400 mb-4">
               Para ver tus tracks y enviar campañas automáticas, necesitas configurar tu SoundCloud ID en Settings.
             </p>
             <Link
@@ -69,18 +69,34 @@ export default function TrackList({
             </Link>
           </div>
         ) : !showAll ? (
-          <div className="flex flex-col items-center justify-center py-24 text-center bg-[#FDFCF8] rounded-[24px]">
-            <div className="w-16 h-16 mb-6 rounded-full bg-white border border-[#E8E6DF] flex items-center justify-center">
-              <svg className="w-6 h-6 text-gray-300" fill="currentColor" viewBox="0 0 24 24">
+          <div className="text-center py-8">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gray-50 flex items-center justify-center">
+              <svg className="w-8 h-8 text-gray-300" fill="currentColor" viewBox="0 0 24 24">
                  <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z" />
               </svg>
             </div>
-            <h3 className="font-serif text-2xl text-[#1c1c1c] mb-2">Explora tu música</h3>
-            <p className="text-gray-400 max-w-sm mx-auto leading-relaxed">
+            <h3 className="text-lg font-semibold text-gray-600 mb-2">Explora tu música</h3>
+            <p className="text-sm text-gray-400">
               Visualiza tus tracks y lanza campañas de email marketing con un solo clic.
             </p>
           </div>
         ) : (
+          <>
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h3 className="text-xl font-serif text-[#1c1c1c]">Feed de Tracks</h3>
+                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">
+                  Tus últimos lanzamientos
+                </p>
+              </div>
+              <button
+                onClick={onLoadAll}
+                disabled={loading}
+                className="px-4 py-2 rounded-full text-xs font-medium border border-[#E8E6DF] text-[#1c1c1c] hover:bg-[#FDFCF8] disabled:opacity-50 transition-colors"
+              >
+                {loading ? 'Sincronizando...' : 'Actualizar'}
+              </button>
+            </div>
           <div className="grid grid-cols-1 gap-6 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
             {tracks.length === 0 ? (
               <div className="text-center py-12 text-gray-400 font-serif text-lg">No hay tracks para mostrar</div>
@@ -157,6 +173,7 @@ export default function TrackList({
               ))
             )}
           </div>
+          </>
         )}
       </div>
 

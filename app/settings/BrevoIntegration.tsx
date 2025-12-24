@@ -60,6 +60,7 @@ export default function BrevoIntegration({ userId }: BrevoIntegrationProps) {
   const [success, setSuccess] = useState<string | null>(null);
   const [importResult, setImportResult] = useState<ImportResult | null>(null);
   const [showApiKeyHelp, setShowApiKeyHelp] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   // Fetch initial status
   useEffect(() => {
@@ -193,17 +194,47 @@ export default function BrevoIntegration({ userId }: BrevoIntegrationProps) {
   }
 
   return (
-    <div className="bg-white/40 backdrop-blur-2xl border border-white/60 rounded-2xl p-6 shadow-sm">
-      {/* Header */}
-      <div className="mb-5">
-        <div className="flex items-center gap-2 mb-1">
+    <div className="bg-white/40 backdrop-blur-2xl border border-white/60 rounded-2xl shadow-sm overflow-hidden">
+      {/* Header - Always Visible */}
+      <button
+        type="button"
+        onClick={() => setIsExpanded(!isExpanded)}
+        className="w-full p-6 flex items-center justify-between hover:bg-white/20 transition-colors"
+      >
+        <div className="flex items-center gap-3">
           <Mail className="w-5 h-5 text-[#0B996E]" />
-          <h2 className="text-base font-serif">Brevo Integration</h2>
+          <div className="text-left">
+            <h2 className="text-base font-serif">Brevo Integration</h2>
+            <p className="text-foreground/50 text-xs">
+              {status.connected
+                ? `Connected • ${status.integration?.stats.contactsFromBrevo || 0} contacts`
+                : 'Import your contacts from Brevo'}
+            </p>
+          </div>
         </div>
-        <p className="text-foreground/50 text-xs">
-          Import your contacts from Brevo to Backstage
-        </p>
-      </div>
+        <div className="flex items-center gap-2">
+          {status.connected && (
+            <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+          )}
+          {isExpanded ? (
+            <ChevronUp className="w-5 h-5 text-foreground/40" />
+          ) : (
+            <ChevronDown className="w-5 h-5 text-foreground/40" />
+          )}
+        </div>
+      </button>
+
+      {/* Expandable Content */}
+      <AnimatePresence>
+        {isExpanded && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="overflow-hidden"
+          >
+            <div className="px-6 pb-6 pt-4 border-t border-white/40">
 
       {/* Error/Success Messages */}
       <AnimatePresence mode="wait">
@@ -446,6 +477,11 @@ export default function BrevoIntegration({ userId }: BrevoIntegrationProps) {
           )}
         </div>
       )}
+
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
