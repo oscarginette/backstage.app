@@ -93,7 +93,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (user) {
         token.id = user.id;
         token.email = user.email;
-        token.role = (user as any).role || 'user';
+        token.role = (user as any).role || 'artist';
       }
 
       // Session update (e.g., user changes profile)
@@ -122,7 +122,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (token) {
         session.user.id = token.id as string;
         session.user.email = token.email as string;
-        session.user.role = (token.role as 'user' | 'admin') || 'user';
+        session.user.role = (token.role as 'artist' | 'admin') || 'artist';
       }
       return session;
     },
@@ -139,14 +139,14 @@ declare module 'next-auth' {
     user: {
       id: string;
       email: string;
-      role: 'user' | 'admin';
+      role: 'artist' | 'admin';
     };
   }
 
   interface User {
     id: string;
     email: string;
-    role: 'user' | 'admin';
+    role: 'artist' | 'admin';
   }
 }
 
@@ -154,6 +154,6 @@ declare module '@auth/core/jwt' {
   interface JWT {
     id: string;
     email: string;
-    role: 'user' | 'admin';
+    role: 'artist' | 'admin';
   }
 }

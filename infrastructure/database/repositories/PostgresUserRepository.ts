@@ -31,7 +31,7 @@ export class PostgresUserRepository implements IUserRepository {
         VALUES (
           ${data.email.toLowerCase().trim()},
           ${data.passwordHash},
-          'user',
+          'artist',
           true,
           NOW(),
           NOW()

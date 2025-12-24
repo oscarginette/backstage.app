@@ -10,7 +10,7 @@
 
 import bcrypt from 'bcrypt';
 
-export type UserRole = 'user' | 'admin';
+export type UserRole = 'artist' | 'admin';
 
 export interface UserProps {
   id: number;
@@ -141,7 +141,7 @@ export class User {
    * @param role - User role (default: 'user')
    * @returns Promise<User> - User entity with hashed password
    */
-  static async createNew(email: string, password: string, role: UserRole = 'user'): Promise<User> {
+  static async createNew(email: string, password: string, role: UserRole = 'artist'): Promise<User> {
     // Validate password strength
     if (!password || password.length < 8) {
       throw new Error('Password must be at least 8 characters long');

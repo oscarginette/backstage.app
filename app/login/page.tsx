@@ -16,7 +16,7 @@ export default function LoginPage() {
 
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('admin@backstage-art.com');
-  const [password, setPassword] = useState('admin123');
+  const [password, setPassword] = useState('Admin123');
   const [name, setName] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -44,9 +44,41 @@ export default function LoginPage() {
         router.push(callbackUrl);
         router.refresh();
       } else {
-        // Signup logic would go here
-        // For now simulate and redirect
-        window.location.href = '/dashboard';
+        // Signup with API
+        const response = await fetch('/api/auth/signup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email,
+            password,
+            passwordConfirm: password,
+          }),
+        });
+
+        const data = await response.json();
+
+        if (!data.success) {
+          setError(data.error || 'Signup failed');
+          setIsLoading(false);
+          return;
+        }
+
+        // Auto-login after signup
+        const loginResult = await signIn('credentials', {
+          email,
+          password,
+          redirect: false,
+        });
+
+        if (loginResult?.error) {
+          setError('Account created! Please login.');
+          setIsLogin(true);
+          setIsLoading(false);
+          return;
+        }
+
+        router.push(callbackUrl);
+        router.refresh();
       }
     } catch (err) {
       console.error('Auth error:', err);
