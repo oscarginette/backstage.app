@@ -12,6 +12,7 @@ import { SendTrackEmailUseCase } from '@/domain/services/SendTrackEmailUseCase';
 import { PostgresQuotaTrackingRepository } from '@/infrastructure/database/repositories/PostgresQuotaTrackingRepository';
 import { resendEmailProvider } from '@/infrastructure/email';
 import { QuotaExceededError } from '@/domain/services/CheckQuotaUseCase';
+import { auth } from '@/lib/auth';
 
 export const maxDuration = 60;
 export const dynamic = 'force-dynamic';
@@ -39,16 +40,16 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
 
-    // TODO: Get userId from session/auth middleware
-    // For now, using placeholder - replace with actual auth
-    const userId = 1; // Replace with: const { userId } = await getSession(request);
-
-    if (!userId) {
+    // Authenticate user
+    const session = await auth();
+    if (!session?.user?.id) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
       );
     }
+
+    const userId = parseInt(session.user.id);
 
     // Initialize repository and use case
     const quotaRepository = new PostgresQuotaTrackingRepository();
