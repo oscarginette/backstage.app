@@ -15,7 +15,7 @@
 
 ### PASO 1: Crear Base de Datos en Vercel (5 min)
 
-1. Ve a tu proyecto en Vercel: https://vercel.com/oscarginette/soundcloud-brevo
+1. Ve a tu proyecto en Vercel: https://vercel.com/gee_beat/soundcloud-brevo
 2. Click en **Storage** (menú lateral)
 3. **Create Database** → **Postgres**
 4. Nombre: `soundcloud-automation`
@@ -230,8 +230,8 @@ Referencia: https://crontab.guru
 ## 📊 URLs Importantes
 
 - **Dashboard**: https://backstage-art.vercel.app/dashboard
-- **Vercel Project**: https://vercel.com/oscarginette/soundcloud-brevo
-- **GitHub Repo**: https://github.com/oscarginette/soundcloud-brevo
+- **Vercel Project**: https://vercel.com/gee_beat/soundcloud-brevo
+- **GitHub Repo**: https://github.com/gee_beat/soundcloud-brevo
 - **Brevo Dashboard**: https://app.brevo.com
 
 ---

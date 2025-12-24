@@ -51,7 +51,7 @@ BREVO_API_KEY=xkeysib-TU_NUEVA_KEY_AQUI
 ```
 
 **Opción B - Vercel (Producción)**:
-1. Ve a https://vercel.com/oscarginette/soundcloud-brevo/settings/environment-variables
+1. Ve a https://vercel.com/gee_beat/soundcloud-brevo/settings/environment-variables
 2. Busca `BREVO_API_KEY`
 3. Click en los 3 puntos → "Edit"
 4. Pega la nueva key
