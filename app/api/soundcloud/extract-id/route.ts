@@ -1,0 +1,91 @@
+import { NextResponse } from 'next/server';
+
+export const dynamic = 'force-dynamic';
+export const maxDuration = 30;
+
+/**
+ * POST /api/soundcloud/extract-id
+ * Extracts SoundCloud user ID from profile URL
+ *
+ * Accepts either:
+ * - Full URL: https://soundcloud.com/username
+ * - Username: username
+ */
+export async function POST(request: Request) {
+  try {
+    const body = await request.json();
+    const { url } = body;
+
+    if (!url || typeof url !== 'string') {
+      return NextResponse.json(
+        { error: 'URL is required' },
+        { status: 400 }
+      );
+    }
+
+    // Extract username from URL or use as-is
+    let username = url.trim();
+
+    // If it's a full URL, extract the username
+    if (username.includes('soundcloud.com/')) {
+      const match = username.match(/soundcloud\.com\/([^/?]+)/);
+      if (!match) {
+        return NextResponse.json(
+          { error: 'Invalid SoundCloud URL format' },
+          { status: 400 }
+        );
+      }
+      username = match[1];
+    }
+
+    // Remove leading @ if present
+    username = username.replace(/^@/, '');
+
+    console.log('[SoundCloud Extract] Fetching profile for username:', username);
+
+    // Fetch the SoundCloud profile page
+    const profileUrl = `https://soundcloud.com/${username}`;
+    const response = await fetch(profileUrl, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (compatible; Backstage/1.0)',
+      },
+    });
+
+    if (!response.ok) {
+      return NextResponse.json(
+        { error: 'SoundCloud profile not found' },
+        { status: 404 }
+      );
+    }
+
+    const html = await response.text();
+
+    // Extract user ID from the HTML
+    // Pattern: soundcloud://users:1318247880
+    const match = html.match(/soundcloud:\/\/users:(\d+)/);
+
+    if (!match) {
+      console.error('[SoundCloud Extract] Could not find user ID in HTML');
+      return NextResponse.json(
+        { error: 'Could not extract user ID from profile' },
+        { status: 404 }
+      );
+    }
+
+    const userId = match[1];
+    console.log('[SoundCloud Extract] Extracted user ID:', userId);
+
+    return NextResponse.json({
+      userId,
+      username,
+      profileUrl,
+    });
+
+  } catch (error: any) {
+    console.error('[SoundCloud Extract] Error:', error);
+    return NextResponse.json(
+      { error: error.message || 'Failed to extract SoundCloud ID' },
+      { status: 500 }
+    );
+  }
+}
