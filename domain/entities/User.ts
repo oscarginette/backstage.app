@@ -16,6 +16,7 @@ export interface UserProps {
   id: number;
   email: string;
   passwordHash: string;
+  name?: string;
   role: UserRole;
   active: boolean;
   createdAt: Date;
@@ -58,6 +59,10 @@ export class User {
     return this.props.email;
   }
 
+  get name(): string | undefined {
+    return this.props.name;
+  }
+
   get passwordHash(): string {
     return this.props.passwordHash;
   }
@@ -97,10 +102,11 @@ export class User {
    * Return user data without sensitive information
    * SECURITY: Never expose password hash in API responses
    */
-  toPublic(): { id: number; email: string; role: UserRole; active: boolean; createdAt: Date } {
+  toPublic(): { id: number; email: string; name?: string; role: UserRole; active: boolean; createdAt: Date } {
     return {
       id: this.props.id,
       email: this.props.email,
+      name: this.props.name,
       role: this.props.role,
       active: this.props.active,
       createdAt: this.props.createdAt,
@@ -120,12 +126,14 @@ export class User {
     role: UserRole,
     active: boolean,
     createdAt: Date,
-    updatedAt: Date
+    updatedAt: Date,
+    name?: string
   ): User {
     return new User({
       id,
       email,
       passwordHash,
+      name,
       role,
       active,
       createdAt,

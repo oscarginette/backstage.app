@@ -80,6 +80,7 @@ export class PostgresUserRepository implements IUserRepository {
           id,
           email,
           password_hash,
+          name,
           role,
           active,
           created_at,
@@ -101,7 +102,8 @@ export class PostgresUserRepository implements IUserRepository {
         row.role,
         row.active,
         new Date(row.created_at),
-        new Date(row.updated_at)
+        new Date(row.updated_at),
+        row.name
       );
     } catch (error) {
       console.error('PostgresUserRepository.findByEmail error:', error);
@@ -121,6 +123,7 @@ export class PostgresUserRepository implements IUserRepository {
           id,
           email,
           password_hash,
+          name,
           role,
           active,
           created_at,
@@ -142,7 +145,8 @@ export class PostgresUserRepository implements IUserRepository {
         row.role,
         row.active,
         new Date(row.created_at),
-        new Date(row.updated_at)
+        new Date(row.updated_at),
+        row.name
       );
     } catch (error) {
       console.error('PostgresUserRepository.findById error:', error);
@@ -208,6 +212,7 @@ export class PostgresUserRepository implements IUserRepository {
           id,
           email,
           password_hash,
+          name,
           role,
           active,
           created_at,
@@ -224,7 +229,8 @@ export class PostgresUserRepository implements IUserRepository {
           row.role,
           row.active,
           new Date(row.created_at),
-          new Date(row.updated_at)
+          new Date(row.updated_at),
+          row.name
         )
       );
     } catch (error) {
