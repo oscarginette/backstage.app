@@ -16,12 +16,14 @@ import { Settings, Plus, Mail, Rocket, Users, ArrowRight, FileText, Settings as 
 import Link from 'next/link';
 import { useTranslations } from '@/lib/i18n/context';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 
 function DashboardContent() {
   const tNav = useTranslations('nav');
   const router = useRouter();
   const searchParams = useSearchParams();
   const activeTab = (searchParams.get('tab') as TabType) || 'overview';
+  const { data: session } = useSession();
 
   const setActiveTab = (tab: TabType) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -85,7 +87,13 @@ function DashboardContent() {
             <Header />
             <DashboardTabs activeTab={activeTab} onTabChange={setActiveTab} />
           </div>
-          <div className="flex flex-col items-end gap-4 min-w-[280px]">
+          <div className="flex flex-col items-end gap-3 min-w-[280px]">
+            {session?.user && (
+              <div className="text-right">
+                <div className="text-sm font-medium text-[#1c1c1c]">{session.user.email}</div>
+                <div className="text-[10px] text-gray-400 uppercase tracking-wide">{session.user.role}</div>
+              </div>
+            )}
             <Link
               href="/settings"
               className="group flex items-center gap-2.5 px-3 py-1.5 rounded-full bg-white/40 border border-[#E8E6DF]/60 hover:border-[#FF5500]/40 hover:bg-white/80 transition-all duration-500 backdrop-blur-md active:scale-95 shadow-sm"
