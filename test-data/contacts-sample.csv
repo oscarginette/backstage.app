@@ -1,0 +1,15 @@
+email,name,subscribed,country,source
+john.doe@example.com,John Doe,true,Spain,website
+jane.smith@example.com,Jane Smith,yes,USA,landing_page
+bob.jones@gmail.com,Bob Jones,1,UK,referral
+alice.wonder@yahoo.com,Alice Wonder,active,France,social_media
+charlie.brown@outlook.com,Charlie Brown,true,Germany,google_ads
+david.wilson@hotmail.com,David Wilson,false,Italy,organic
+emma.davis@proton.me,Emma Davis,no,Portugal,direct
+frank.miller@icloud.com,Frank Miller,0,Netherlands,email_campaign
+grace.taylor@mail.com,Grace Taylor,inactive,Belgium,partner
+henry.moore@fastmail.com,Henry Moore,subscribed,Sweden,event
+invalid-email,Test User,true,Spain,test
+,Missing Email,true,USA,test
+duplicate@test.com,First Duplicate,true,UK,test
+duplicate@test.com,Second Duplicate,yes,France,test

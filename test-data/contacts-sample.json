@@ -1,0 +1,26 @@
+[
+  {
+    "email": "json1@example.com",
+    "name": "JSON User One",
+    "subscribed": true,
+    "country": "Spain",
+    "campaign": "summer_2024"
+  },
+  {
+    "email": "json2@example.com",
+    "name": "JSON User Two",
+    "subscribed": false,
+    "country": "USA",
+    "campaign": "winter_2024"
+  },
+  {
+    "email": "json3@example.com",
+    "name": "JSON User Three",
+    "subscribed": true,
+    "country": "UK"
+  },
+  {
+    "email": "json4@example.com",
+    "subscribed": true
+  }
+]
