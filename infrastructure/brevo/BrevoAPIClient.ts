@@ -139,6 +139,9 @@ export class BrevoAPIClient implements IBrevoAPIClient {
 
       // Transform to our BrevoContact format
       for (const contact of page) {
+        // Skip contacts without email (invalid data)
+        if (!contact.email) continue;
+
         contacts.push({
           id: contact.id,
           email: contact.email,
