@@ -14,7 +14,7 @@ export interface ContactImportHistory {
   userId: number;
   originalFilename: string;
   fileSizeBytes: number | null;
-  fileType: 'csv' | 'json';
+  fileType: 'csv' | 'json' | 'brevo';
   rowsTotal: number;
   contactsInserted: number;
   contactsUpdated: number;
@@ -32,7 +32,7 @@ export interface CreateImportHistoryInput {
   userId: number;
   originalFilename: string;
   fileSizeBytes: number | null;
-  fileType: 'csv' | 'json';
+  fileType: 'csv' | 'json' | 'brevo';
   rowsTotal: number;
   columnMapping?: Record<string, any>;
 }

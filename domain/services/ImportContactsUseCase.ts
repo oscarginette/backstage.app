@@ -130,7 +130,7 @@ export class ImportContactsUseCase {
   private async processBatches(
     userId: number,
     contacts: ImportedContact[],
-    source: 'csv' | 'json'
+    source: 'csv' | 'json' | 'brevo'
   ): Promise<{
     inserted: number;
     updated: number;
