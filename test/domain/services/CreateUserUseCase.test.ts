@@ -13,6 +13,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { CreateUserUseCase } from '@/domain/services/CreateUserUseCase';
 import { IUserRepository } from '@/domain/repositories/IUserRepository';
 import { IQuotaTrackingRepository } from '@/domain/repositories/IQuotaTrackingRepository';
+import { QuotaTracking } from '@/domain/entities/QuotaTracking';
 import { User } from '@/domain/entities/User';
 
 // Mock implementations
@@ -55,21 +56,29 @@ class MockUserRepository implements IUserRepository {
 }
 
 class MockQuotaTrackingRepository implements IQuotaTrackingRepository {
-  private quotas: Map<number, any> = new Map();
+  private quotas: Map<number, QuotaTracking> = new Map();
 
-  async create(userId: number, monthlyQuota: number): Promise<void> {
-    this.quotas.set(userId, { userId, monthlyQuota });
+  async create(userId: number, monthlyLimit: number): Promise<QuotaTracking> {
+    const quota = QuotaTracking.createNew(userId, monthlyLimit);
+    this.quotas.set(userId, quota);
+    return quota;
   }
 
-  async findByUserId(userId: number): Promise<any> {
+  async getByUserId(userId: number): Promise<QuotaTracking | null> {
     return this.quotas.get(userId) || null;
   }
 
-  async incrementEmailCount(userId: number, count: number): Promise<void> {}
+  async incrementEmailCount(userId: number): Promise<void> {
+    // Mock implementation - no-op for tests
+  }
 
-  async resetMonthlyQuota(userId: number): Promise<void> {}
+  async resetDailyCount(userId: number): Promise<void> {
+    // Mock implementation - no-op for tests
+  }
 
-  async updateMonthlyQuota(userId: number, newQuota: number): Promise<void> {}
+  async updateMonthlyLimit(userId: number, newLimit: number): Promise<void> {
+    // Mock implementation - no-op for tests
+  }
 
   getQuotaCreated(userId: number): boolean {
     return this.quotas.has(userId);
