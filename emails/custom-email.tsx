@@ -26,7 +26,7 @@ export default function CustomEmail({
   unsubscribeUrl,
 }: CustomEmailProps) {
   // Logo hosted on GitHub (black version for white/light backgrounds in email)
-  const logoUrl = 'https://raw.githubusercontent.com/oscarginette/backstage/main/public/GEE_BEAT_LOGO_BLACK_HORIZONTAL.png';
+  const logoUrl = 'https://raw.githubusercontent.com/gee_beat/backstage/main/public/GEE_BEAT_LOGO_BLACK_HORIZONTAL.png';
 
   const signatureLines = signature.split('\n');
 
