@@ -1,6 +1,7 @@
 import { auth } from '@/lib/auth';
 import { redirect } from 'next/navigation';
-import { PostgresUserRepository } from '@/infrastructure/database/repositories/PostgresUserRepository';
+import { PostgresUserSettingsRepository } from '@/infrastructure/database/repositories/PostgresUserSettingsRepository';
+import { GetUserSettingsUseCase } from '@/domain/services/GetUserSettingsUseCase';
 import SettingsClient from './SettingsClient';
 
 export default async function SettingsPage() {
@@ -10,18 +11,18 @@ export default async function SettingsPage() {
     redirect('/login');
   }
 
-  // Fetch full user data including name
-  const userRepository = new PostgresUserRepository();
-  const user = await userRepository.findById(parseInt(session.user.id));
-
-  if (!user) {
-    redirect('/login');
-  }
+  // Fetch user settings using Clean Architecture
+  const repository = new PostgresUserSettingsRepository();
+  const useCase = new GetUserSettingsUseCase(repository);
+  const settings = await useCase.execute(parseInt(session.user.id));
 
   return (
     <SettingsClient
-      userName={user.name || ''}
-      userEmail={user.email}
+      userName={settings.name || ''}
+      userEmail={session.user.email || ''}
+      userId={session.user.id}
+      soundcloudId={settings.soundcloudId || ''}
+      spotifyId={settings.spotifyId || ''}
     />
   );
 }

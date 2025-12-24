@@ -6,18 +6,28 @@ import { ArrowLeft, Save, CheckCircle2, Info, ChevronDown, ChevronUp, LogOut } f
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslations } from "@/lib/i18n/context";
 import { signOut } from "next-auth/react";
+import BrevoIntegration from "./BrevoIntegration";
 
 interface SettingsClientProps {
   userName: string;
   userEmail: string;
+  userId: string;
+  soundcloudId: string;
+  spotifyId: string;
 }
 
-export default function SettingsClient({ userName: initialName, userEmail }: SettingsClientProps) {
+export default function SettingsClient({
+  userName: initialName,
+  userEmail,
+  userId,
+  soundcloudId: initialSoundcloudId,
+  spotifyId: initialSpotifyId
+}: SettingsClientProps) {
   const t = useTranslations("settings");
 
   const [name, setName] = useState(initialName);
-  const [soundcloudId, setSoundcloudId] = useState("");
-  const [spotifyId, setSpotifyId] = useState("");
+  const [soundcloudId, setSoundcloudId] = useState(initialSoundcloudId);
+  const [spotifyId, setSpotifyId] = useState(initialSpotifyId);
 
   const [isSaving, setIsSaving] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
@@ -29,11 +39,32 @@ export default function SettingsClient({ userName: initialName, userEmail }: Set
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSaving(true);
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1200));
-    setIsSaving(false);
-    setShowSuccess(true);
-    setTimeout(() => setShowSuccess(false), 3000);
+
+    try {
+      const res = await fetch('/api/user/settings', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: name.trim() || null,
+          soundcloudId: soundcloudId.trim() || null,
+          spotifyId: spotifyId.trim() || null
+        })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to save settings');
+      }
+
+      setShowSuccess(true);
+      setTimeout(() => setShowSuccess(false), 3000);
+    } catch (error: any) {
+      console.error('Error saving settings:', error);
+      alert(error.message || 'Failed to save settings');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleLogoutClick = () => {
@@ -111,110 +142,117 @@ export default function SettingsClient({ userName: initialName, userEmail }: Set
         </motion.div>
 
         <form onSubmit={handleSave} className="space-y-5">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            {/* Section: Personal Information */}
-            <motion.section
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-              className="bg-white/40 backdrop-blur-2xl border border-white/60 rounded-2xl p-6 shadow-sm"
-            >
-              <div className="mb-5">
-                <h2 className="text-base font-serif mb-1">{t("personalInfo")}</h2>
-                <p className="text-foreground/50 text-xs">{t("personalSubtitle")}</p>
+          {/* Section: Personal Information - Full Width */}
+          <motion.section
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="bg-white/40 backdrop-blur-2xl border border-white/60 rounded-2xl p-6 shadow-sm"
+          >
+            <div className="mb-5">
+              <h2 className="text-base font-serif mb-1">{t("personalInfo")}</h2>
+              <p className="text-foreground/50 text-xs">{t("personalSubtitle")}</p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-[9px] font-black uppercase tracking-[0.15em] text-foreground/40 ml-1">
+                  {t("fullName")}
+                </label>
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="w-full h-10 px-4 rounded-xl border border-border/60 bg-white/50 focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent/40 focus:bg-white transition-all text-sm font-medium"
+                  placeholder="John Doe"
+                />
               </div>
 
-              <div className="space-y-4">
-                <div className="space-y-2">
+              <div className="space-y-2">
+                <label className="text-[9px] font-black uppercase tracking-[0.15em] text-foreground/40 ml-1">
+                  {t("email")}
+                </label>
+                <div className="w-full h-10 px-4 rounded-xl border border-border/40 bg-black/5 flex items-center text-foreground/30 text-sm font-medium cursor-not-allowed select-none">
+                  {userEmail}
+                </div>
+                <p className="text-[8px] text-foreground/30 ml-1 italic">Cannot be modified</p>
+              </div>
+            </div>
+          </motion.section>
+
+          {/* Section: Platform Connections - Full Width */}
+          <motion.section
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="bg-white/40 backdrop-blur-2xl border border-white/60 rounded-2xl p-6 shadow-sm"
+          >
+            <div className="mb-5">
+              <h2 className="text-base font-serif mb-1">{t("platforms")}</h2>
+              <p className="text-foreground/50 text-xs">{t("platformsSubtitle")}</p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* SoundCloud ID */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
                   <label className="text-[9px] font-black uppercase tracking-[0.15em] text-foreground/40 ml-1">
-                    {t("fullName")}
+                    {t("soundcloud")}
                   </label>
-                  <input
-                    type="text"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    className="w-full h-10 px-4 rounded-xl border border-border/60 bg-white/50 focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent/40 focus:bg-white transition-all text-sm font-medium"
-                    placeholder="John Doe"
-                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowSoundCloudHelp(!showSoundCloudHelp)}
+                    className="inline-flex items-center gap-1 text-[9px] font-bold text-[#FF5500] hover:text-[#e64d00] transition-colors uppercase tracking-widest"
+                  >
+                    <Info className="w-3 h-3" />
+                    See how
+                    {showSoundCloudHelp ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                  </button>
                 </div>
+                <input
+                  type="text"
+                  value={soundcloudId}
+                  onChange={(e) => setSoundcloudId(e.target.value)}
+                  className="w-full h-10 px-4 rounded-xl border border-border/60 bg-white/50 focus:outline-none focus:ring-2 focus:ring-[#FF3300]/20 focus:border-[#FF3300]/40 focus:bg-white transition-all text-sm font-medium placeholder:text-foreground/20"
+                  placeholder="gee_beat"
+                />
+              </div>
 
-                <div className="space-y-2">
+              {/* Spotify ID */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
                   <label className="text-[9px] font-black uppercase tracking-[0.15em] text-foreground/40 ml-1">
-                    {t("email")}
+                    {t("spotify")}
                   </label>
-                  <div className="w-full h-10 px-4 rounded-xl border border-border/40 bg-black/5 flex items-center text-foreground/30 text-sm font-medium cursor-not-allowed select-none">
-                    {userEmail}
-                  </div>
-                  <p className="text-[8px] text-foreground/30 ml-1 italic">Cannot be modified</p>
+                  <button
+                    type="button"
+                    onClick={() => setShowSpotifyHelp(!showSpotifyHelp)}
+                    className="inline-flex items-center gap-1 text-[9px] font-bold text-[#1DB954] hover:text-[#1aa34a] transition-colors uppercase tracking-widest"
+                  >
+                    <Info className="w-3 h-3" />
+                    See how
+                    {showSpotifyHelp ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                  </button>
                 </div>
+                <input
+                  type="text"
+                  value={spotifyId}
+                  onChange={(e) => setSpotifyId(e.target.value)}
+                  className="w-full h-10 px-4 rounded-xl border border-border/60 bg-white/50 focus:outline-none focus:ring-2 focus:ring-[#1DB954]/20 focus:border-[#1DB954]/40 focus:bg-white transition-all text-sm font-medium placeholder:text-foreground/20"
+                  placeholder="123456789"
+                />
               </div>
-            </motion.section>
+            </div>
+          </motion.section>
 
-            {/* Section: Platform Connections */}
-            <motion.section
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              className="bg-white/40 backdrop-blur-2xl border border-white/60 rounded-2xl p-6 shadow-sm"
-            >
-              <div className="mb-5">
-                <h2 className="text-base font-serif mb-1">{t("platforms")}</h2>
-                <p className="text-foreground/50 text-xs">{t("platformsSubtitle")}</p>
-              </div>
-
-              <div className="space-y-4">
-                {/* SoundCloud ID */}
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <label className="text-[9px] font-black uppercase tracking-[0.15em] text-foreground/40 ml-1">
-                      {t("soundcloud")}
-                    </label>
-                    <button
-                      type="button"
-                      onClick={() => setShowSoundCloudHelp(!showSoundCloudHelp)}
-                      className="inline-flex items-center gap-1 text-[9px] font-bold text-[#FF5500] hover:text-[#e64d00] transition-colors uppercase tracking-widest"
-                    >
-                      <Info className="w-3 h-3" />
-                      See how
-                      {showSoundCloudHelp ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-                    </button>
-                  </div>
-                  <input
-                    type="text"
-                    value={soundcloudId}
-                    onChange={(e) => setSoundcloudId(e.target.value)}
-                    className="w-full h-10 px-4 rounded-xl border border-border/60 bg-white/50 focus:outline-none focus:ring-2 focus:ring-[#FF3300]/20 focus:border-[#FF3300]/40 focus:bg-white transition-all text-sm font-medium placeholder:text-foreground/20"
-                    placeholder="gee_beat"
-                  />
-                </div>
-
-                {/* Spotify ID */}
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <label className="text-[9px] font-black uppercase tracking-[0.15em] text-foreground/40 ml-1">
-                      {t("spotify")}
-                    </label>
-                    <button
-                      type="button"
-                      onClick={() => setShowSpotifyHelp(!showSpotifyHelp)}
-                      className="inline-flex items-center gap-1 text-[9px] font-bold text-[#1DB954] hover:text-[#1aa34a] transition-colors uppercase tracking-widest"
-                    >
-                      <Info className="w-3 h-3" />
-                      See how
-                      {showSpotifyHelp ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-                    </button>
-                  </div>
-                  <input
-                    type="text"
-                    value={spotifyId}
-                    onChange={(e) => setSpotifyId(e.target.value)}
-                    className="w-full h-10 px-4 rounded-xl border border-border/60 bg-white/50 focus:outline-none focus:ring-2 focus:ring-[#1DB954]/20 focus:border-[#1DB954]/40 focus:bg-white transition-all text-sm font-medium placeholder:text-foreground/20"
-                    placeholder="123456789"
-                  />
-                </div>
-              </div>
-            </motion.section>
-          </div>
+          {/* Brevo Integration Section - Full Width */}
+          <motion.section
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.25 }}
+          >
+            <BrevoIntegration userId={userId} />
+          </motion.section>
 
           {/* Save Button - Right below cards */}
           <motion.div
