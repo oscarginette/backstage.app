@@ -44,9 +44,9 @@ export default function GatePreview({ data }: GatePreviewProps) {
           </div>
 
           {/* Info */}
-          <div className="text-center mb-8">
-            <h2 className="text-xl font-bold truncate px-2">{data.title || 'Track Title'}</h2>
-            <p className="text-[#FF5500] text-sm font-medium mt-1 uppercase tracking-widest">{data.artistName || 'Artist Name'}</p>
+          <div className="text-center mb-8 w-full px-2">
+            <h2 className="text-lg font-bold line-clamp-2 break-words">{data.title || 'Track Title'}</h2>
+            <p className="text-[#FF5500] text-xs font-medium mt-1 uppercase tracking-widest truncate">{data.artistName || 'Artist Name'}</p>
           </div>
 
           {/* Social Stats Mockup */}

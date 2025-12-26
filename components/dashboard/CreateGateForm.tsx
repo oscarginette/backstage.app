@@ -1,18 +1,19 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { CreateGateFormData } from '@/types/download-gates';
-import { 
-  Music, 
-  FileAudio, 
-  Shield, 
-  Settings, 
-  ChevronRight, 
+import { SoundCloudTrack } from '@/types/dashboard';
+import {
+  Music,
+  FileAudio,
+  Shield,
+  Settings,
+  ChevronRight,
   ChevronDown,
-  ChevronLeft, 
-  Save, 
-  Loader2, 
+  ChevronLeft,
+  Save,
+  Loader2,
   RefreshCw,
   Layout,
   Tags,
@@ -21,11 +22,16 @@ import {
   Plus
 } from 'lucide-react';
 import GatePreview from './GatePreview';
+import GenreSelector from './GenreSelector';
 
 export default function CreateGateForm() {
   const router = useRouter();
   const [activeStep, setActiveStep] = useState(1);
   const [submitting, setSubmitting] = useState(false);
+  const [loadingTracks, setLoadingTracks] = useState(false);
+  const [soundcloudTracks, setSoundcloudTracks] = useState<SoundCloudTrack[]>([]);
+  const [selectedTrackId, setSelectedTrackId] = useState<string>('');
+  const [useManualUrl, setUseManualUrl] = useState(false);
   const [formData, setFormData] = useState<CreateGateFormData>({
     title: '',
     description: '',
@@ -43,6 +49,42 @@ export default function CreateGateForm() {
     expiresAt: '',
     slug: ''
   });
+
+  // Load SoundCloud tracks on mount
+  useEffect(() => {
+    loadSoundCloudTracks();
+  }, []);
+
+  const loadSoundCloudTracks = async () => {
+    setLoadingTracks(true);
+    try {
+      const res = await fetch('/api/soundcloud-tracks');
+      const data = await res.json();
+
+      if (!data.error) {
+        setSoundcloudTracks(data.tracks || []);
+      }
+    } catch (error) {
+      console.error('Error loading SoundCloud tracks:', error);
+    } finally {
+      setLoadingTracks(false);
+    }
+  };
+
+  const handleTrackSelect = (trackId: string) => {
+    setSelectedTrackId(trackId);
+    const track = soundcloudTracks.find(t => t.trackId === trackId);
+
+    if (track) {
+      setFormData(prev => ({
+        ...prev,
+        soundcloudTrackUrl: track.url,
+        title: track.title,
+        artworkUrl: track.coverImage || '',
+        description: track.description || ''
+      }));
+    }
+  };
 
   const steps = [
     { id: 1, name: 'Source', icon: ExternalLink, description: 'SoundCloud or Spotify URL' },
@@ -140,49 +182,148 @@ export default function CreateGateForm() {
                 <div className="p-5 pt-1 border-t border-[#E8E6DF] animate-in fade-in slide-in-from-top-2 duration-300">
                   {step.id === 1 && (
                     <div className="space-y-4">
-                      <label className="text-xs font-bold uppercase tracking-widest text-gray-400">Enter source track URL</label>
-                      <div className="flex gap-3">
-                         <input
-                          type="url"
-                          name="soundcloudTrackUrl"
-                          value={formData.soundcloudTrackUrl}
-                          onChange={handleChange}
-                          placeholder="https://soundcloud.com/..."
-                          className="flex-1 px-5 py-3 rounded-xl border border-[#E8E6DF] bg-white/50 focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#FF5500]/10 focus:border-[#FF5500] transition-all text-sm"
-                        />
-                        <button 
+                      {/* Toggle between track selector and manual URL */}
+                      <div className="flex items-center gap-3 mb-4">
+                        <button
                           type="button"
-                          onClick={() => setActiveStep(2)}
-                          className="px-6 py-3 rounded-xl bg-[#1c1c1c] text-white font-bold text-sm hover:bg-black transition-all active:scale-95"
+                          onClick={() => setUseManualUrl(false)}
+                          className={`flex-1 px-4 py-2 rounded-lg text-xs font-bold uppercase transition-all ${
+                            !useManualUrl
+                              ? 'bg-[#FF5500] text-white'
+                              : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                          }`}
                         >
-                          Next
+                          Select from your tracks
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setUseManualUrl(true)}
+                          className={`flex-1 px-4 py-2 rounded-lg text-xs font-bold uppercase transition-all ${
+                            useManualUrl
+                              ? 'bg-[#FF5500] text-white'
+                              : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                          }`}
+                        >
+                          Enter URL manually
                         </button>
                       </div>
-                      <div className="flex items-center gap-4 mt-2">
-                         <img src="https://upload.wikimedia.org/wikipedia/commons/a/a9/SoundCloud_logo.svg" className="h-4 opacity-50 grayscale hover:grayscale-0 transition-all cursor-pointer" />
-                         <img src="https://upload.wikimedia.org/wikipedia/commons/1/19/Spotify_logo_without_text.svg" className="h-4 opacity-50 grayscale hover:grayscale-0 transition-all cursor-pointer" />
-                      </div>
+
+                      {!useManualUrl ? (
+                        // Track Selector
+                        <div className="space-y-3">
+                          <label className="text-xs font-bold uppercase tracking-widest text-gray-400">
+                            Select a SoundCloud track
+                          </label>
+                          {loadingTracks ? (
+                            <div className="flex items-center justify-center py-8">
+                              <Loader2 className="w-6 h-6 animate-spin text-[#FF5500]" />
+                            </div>
+                          ) : soundcloudTracks.length === 0 ? (
+                            <div className="p-4 rounded-xl border border-dashed border-gray-300 bg-gray-50 text-center">
+                              <p className="text-sm text-gray-500">
+                                No tracks found. Make sure you've connected your SoundCloud account.
+                              </p>
+                            </div>
+                          ) : (
+                            <div className="max-h-64 overflow-y-auto space-y-2 pr-2 scrollbar-thin">
+                              {soundcloudTracks.map((track) => (
+                                <button
+                                  key={track.trackId}
+                                  type="button"
+                                  onClick={() => handleTrackSelect(track.trackId)}
+                                  className={`w-full p-3 rounded-xl border text-left transition-all flex items-center gap-3 ${
+                                    selectedTrackId === track.trackId
+                                      ? 'border-[#FF5500] bg-[#FF5500]/5 ring-2 ring-[#FF5500]/20'
+                                      : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                                  }`}
+                                >
+                                  {track.coverImage && (
+                                    <img
+                                      src={track.coverImage}
+                                      alt={track.title}
+                                      className="w-12 h-12 rounded-lg object-cover"
+                                    />
+                                  )}
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-sm font-bold text-gray-900 truncate">
+                                      {track.title}
+                                    </p>
+                                    <p className="text-xs text-gray-500 truncate">
+                                      {new Date(track.publishedAt).toLocaleDateString()}
+                                    </p>
+                                  </div>
+                                  {selectedTrackId === track.trackId && (
+                                    <CheckCircle2 className="w-5 h-5 text-[#FF5500] flex-shrink-0" />
+                                  )}
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                          <div className="flex justify-end pt-2">
+                            <button
+                              type="button"
+                              onClick={() => setActiveStep(2)}
+                              disabled={!selectedTrackId}
+                              className="px-6 py-3 rounded-xl bg-[#1c1c1c] text-white font-bold text-sm hover:bg-black transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              Next
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        // Manual URL Input
+                        <div className="space-y-3">
+                          <label className="text-xs font-bold uppercase tracking-widest text-gray-400">
+                            Enter source track URL
+                          </label>
+                          <div className="flex gap-3">
+                            <input
+                              type="url"
+                              name="soundcloudTrackUrl"
+                              value={formData.soundcloudTrackUrl}
+                              onChange={handleChange}
+                              placeholder="https://soundcloud.com/..."
+                              className="flex-1 px-5 py-3 rounded-xl border border-[#E8E6DF] bg-white/50 focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#FF5500]/10 focus:border-[#FF5500] transition-all text-sm"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setActiveStep(2)}
+                              className="px-6 py-3 rounded-xl bg-[#1c1c1c] text-white font-bold text-sm hover:bg-black transition-all active:scale-95"
+                            >
+                              Next
+                            </button>
+                          </div>
+                          <div className="flex items-center gap-4 mt-2">
+                            <img
+                              src="https://upload.wikimedia.org/wikipedia/commons/a/a9/SoundCloud_logo.svg"
+                              className="h-4 opacity-50 grayscale hover:grayscale-0 transition-all cursor-pointer"
+                            />
+                            <img
+                              src="https://upload.wikimedia.org/wikipedia/commons/1/19/Spotify_logo_without_text.svg"
+                              className="h-4 opacity-50 grayscale hover:grayscale-0 transition-all cursor-pointer"
+                            />
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )}
 
                   {step.id === 2 && (
                     <div className="space-y-4">
                       <label className="text-xs font-bold uppercase tracking-widest text-gray-400">What's the genre?</label>
-                      <select
-                        name="genre"
+                      <GenreSelector
                         value={formData.genre}
-                        onChange={handleChange}
-                        className="w-full px-5 py-3 rounded-xl border border-[#E8E6DF] bg-white/50 focus:bg-white focus:outline-none transition-all text-sm appearance-none"
-                      >
-                        <option value="">Selecciona género...</option>
-                        <option value="house">House</option>
-                        <option value="techno">Techno</option>
-                        <option value="melodic">Melodic</option>
-                        <option value="reggaeton">Reggaeton</option>
-                        <option value="other">Other</option>
-                      </select>
+                        onChange={(value) => setFormData(prev => ({ ...prev, genre: value }))}
+                      />
                       <div className="flex justify-end gap-3 mt-4">
-                        <button onClick={() => setActiveStep(3)} className="px-6 py-3 rounded-xl bg-[#1c1c1c] text-white font-bold text-sm">Continue</button>
+                        <button
+                          type="button"
+                          onClick={() => setActiveStep(3)}
+                          disabled={!formData.genre}
+                          className="px-6 py-3 rounded-xl bg-[#1c1c1c] text-white font-bold text-sm hover:bg-black transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          Continue
+                        </button>
                       </div>
                     </div>
                   )}
@@ -294,28 +435,31 @@ export default function CreateGateForm() {
 
                        <div className="grid grid-cols-1 gap-2">
                           {[
-                            { id: 'requireSoundcloudRepost', label: 'SoundCloud Repost', icon: RefreshCw },
-                            { id: 'requireSoundcloudFollow', label: 'SoundCloud Follow', icon: Plus },
-                            { id: 'requireSpotifyConnect', label: 'Spotify Connect', icon: Music },
-                          ].map((req) => (
-                             <div 
+                            { id: 'requireSoundcloudRepost' as const, label: 'SoundCloud Repost', icon: RefreshCw },
+                            { id: 'requireSoundcloudFollow' as const, label: 'SoundCloud Follow', icon: Plus },
+                            { id: 'requireSpotifyConnect' as const, label: 'Spotify Connect', icon: Music },
+                          ].map((req) => {
+                            const isChecked = formData[req.id];
+                            return (
+                             <div
                               key={req.id}
                               className={`p-3 rounded-xl border cursor-pointer flex items-center justify-between transition-all ${
-                                formData[req.id as keyof typeof formData] ? 'border-[#FF5500]/20 bg-[#FF5500]/5' : 'border-gray-100 hover:border-gray-200'
+                                isChecked ? 'border-[#FF5500]/20 bg-[#FF5500]/5' : 'border-gray-100 hover:border-gray-200'
                               }`}
-                              onClick={() => setFormData((p: CreateGateFormData) => ({ ...p, [req.id]: !p[req.id as keyof typeof formData] }))}
+                              onClick={() => setFormData((p: CreateGateFormData) => ({ ...p, [req.id]: !p[req.id] }))}
                              >
                                <div className="flex items-center gap-3">
                                   <div className={`w-7 h-7 rounded-lg flex items-center justify-center transition-colors ${
-                                    formData[req.id as keyof typeof formData] ? 'bg-[#FF5500] text-white' : 'bg-gray-100 text-gray-400'
+                                    isChecked ? 'bg-[#FF5500] text-white' : 'bg-gray-100 text-gray-400'
                                   }`}>
                                      <req.icon className="w-3.5 h-3.5" />
                                   </div>
                                   <span className="text-[10px] font-bold uppercase tracking-widest text-gray-600">{req.label}</span>
                                </div>
-                               <input type="checkbox" checked={!!formData[req.id as keyof typeof formData]} readOnly className="w-3.5 h-3.5 rounded text-[#FF5500] focus:ring-[#FF5500] border-gray-300" />
+                               <input type="checkbox" checked={isChecked} readOnly className="w-3.5 h-3.5 rounded text-[#FF5500] focus:ring-[#FF5500] border-gray-300" />
                              </div>
-                          ))}
+                            );
+                          })}
                        </div>
 
                        <div className="flex justify-end pt-4">

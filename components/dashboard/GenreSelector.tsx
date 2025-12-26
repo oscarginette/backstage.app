@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Search, X } from 'lucide-react';
 
 interface Genre {
@@ -78,8 +79,41 @@ interface GenreSelectorProps {
 export default function GenreSelector({ value, onChange }: GenreSelectorProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0, width: 0 });
+  const triggerRef = useRef<HTMLButtonElement>(null);
 
   const selectedGenre = GENRES.find(g => g.value === value);
+
+  useEffect(() => {
+    if (isOpen && triggerRef.current) {
+      const rect = triggerRef.current.getBoundingClientRect();
+      setDropdownPosition({
+        top: rect.bottom + 4, // Solo 4px de gap, sin scrollY porque usamos fixed
+        left: rect.left,
+        width: rect.width,
+      });
+    }
+
+    // Recalcular posición en scroll o resize
+    const handleUpdate = () => {
+      if (isOpen && triggerRef.current) {
+        const rect = triggerRef.current.getBoundingClientRect();
+        setDropdownPosition({
+          top: rect.bottom + 4,
+          left: rect.left,
+          width: rect.width,
+        });
+      }
+    };
+
+    window.addEventListener('scroll', handleUpdate, true);
+    window.addEventListener('resize', handleUpdate);
+
+    return () => {
+      window.removeEventListener('scroll', handleUpdate, true);
+      window.removeEventListener('resize', handleUpdate);
+    };
+  }, [isOpen]);
 
   const filteredGenres = useMemo(() => {
     if (!searchQuery) return GENRES;
@@ -110,9 +144,10 @@ export default function GenreSelector({ value, onChange }: GenreSelectorProps) {
   };
 
   return (
-    <div className="relative">
+    <>
       {/* Trigger Button */}
       <button
+        ref={triggerRef}
         type="button"
         onClick={() => setIsOpen(!isOpen)}
         className="w-full px-5 py-3 rounded-xl border border-[#E8E6DF] bg-white/50 hover:bg-white focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#FF5500]/10 focus:border-[#FF5500] transition-all text-sm text-left flex items-center justify-between"
@@ -123,12 +158,12 @@ export default function GenreSelector({ value, onChange }: GenreSelectorProps) {
         <Search className="w-4 h-4 text-gray-400" />
       </button>
 
-      {/* Dropdown */}
-      {isOpen && (
+      {/* Dropdown Portal */}
+      {isOpen && typeof document !== 'undefined' && createPortal(
         <>
           {/* Backdrop */}
           <div
-            className="fixed inset-0 z-10"
+            className="fixed inset-0 z-[100]"
             onClick={() => {
               setIsOpen(false);
               setSearchQuery('');
@@ -136,7 +171,14 @@ export default function GenreSelector({ value, onChange }: GenreSelectorProps) {
           />
 
           {/* Dropdown Content */}
-          <div className="absolute z-20 mt-2 w-full bg-white rounded-xl border border-[#E8E6DF] shadow-2xl overflow-hidden">
+          <div
+            className="fixed z-[101] bg-white rounded-xl border border-[#E8E6DF] shadow-2xl overflow-hidden"
+            style={{
+              top: `${dropdownPosition.top}px`,
+              left: `${dropdownPosition.left}px`,
+              width: `${dropdownPosition.width}px`,
+            }}
+          >
             {/* Search Input */}
             <div className="p-3 border-b border-[#E8E6DF] bg-gray-50">
               <div className="relative">
@@ -197,8 +239,9 @@ export default function GenreSelector({ value, onChange }: GenreSelectorProps) {
               )}
             </div>
           </div>
-        </>
+        </>,
+        document.body
       )}
-    </div>
+    </>
   );
 }
