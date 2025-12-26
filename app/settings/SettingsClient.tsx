@@ -26,8 +26,8 @@ export default function SettingsClient({
   const t = useTranslations("settings");
 
   const [name, setName] = useState(initialName);
-  const [soundcloudId, setSoundcloudId] = useState(initialSoundcloudId);
-  const [spotifyId, setSpotifyId] = useState(initialSpotifyId);
+  const [soundcloudUrl, setSoundcloudUrl] = useState(initialSoundcloudId ? `https://soundcloud.com/user/${initialSoundcloudId}` : '');
+  const [spotifyUrl, setSpotifyUrl] = useState(initialSpotifyId || '');
 
   const [isSaving, setIsSaving] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
@@ -46,8 +46,8 @@ export default function SettingsClient({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: name.trim() || null,
-          soundcloudId: soundcloudId.trim() || null,
-          spotifyId: spotifyId.trim() || null
+          soundcloudUrl: soundcloudUrl.trim() || null,
+          spotifyUrl: spotifyUrl.trim() || null
         })
       });
 
@@ -193,7 +193,7 @@ export default function SettingsClient({
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* SoundCloud ID */}
+              {/* SoundCloud URL */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <label className="text-[9px] font-black uppercase tracking-[0.15em] text-foreground/40 ml-1">
@@ -211,14 +211,17 @@ export default function SettingsClient({
                 </div>
                 <input
                   type="text"
-                  value={soundcloudId}
-                  onChange={(e) => setSoundcloudId(e.target.value)}
-                  className="w-full h-10 px-4 rounded-xl border border-border/60 bg-white/50 focus:outline-none focus:ring-2 focus:ring-[#FF3300]/20 focus:border-[#FF3300]/40 focus:bg-white transition-all text-sm font-medium placeholder:text-foreground/20"
-                  placeholder="gee_beat"
+                  value={soundcloudUrl}
+                  onChange={(e) => setSoundcloudUrl(e.target.value)}
+                  className="w-full h-10 px-4 rounded-xl border border-border/60 bg-white/50 focus:outline-none focus:ring-2 focus:ring-[#FF5500]/20 focus:border-[#FF5500]/40 focus:bg-white transition-all text-sm font-medium placeholder:text-foreground/20"
+                  placeholder="https://soundcloud.com/geebeatmusic"
                 />
+                <p className="text-[10px] text-foreground/40 ml-1">
+                  Paste your SoundCloud profile URL
+                </p>
               </div>
 
-              {/* Spotify ID */}
+              {/* Spotify URL */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <label className="text-[9px] font-black uppercase tracking-[0.15em] text-foreground/40 ml-1">
@@ -236,11 +239,14 @@ export default function SettingsClient({
                 </div>
                 <input
                   type="text"
-                  value={spotifyId}
-                  onChange={(e) => setSpotifyId(e.target.value)}
+                  value={spotifyUrl}
+                  onChange={(e) => setSpotifyUrl(e.target.value)}
                   className="w-full h-10 px-4 rounded-xl border border-border/60 bg-white/50 focus:outline-none focus:ring-2 focus:ring-[#1DB954]/20 focus:border-[#1DB954]/40 focus:bg-white transition-all text-sm font-medium placeholder:text-foreground/20"
-                  placeholder="123456789"
+                  placeholder="https://open.spotify.com/artist/..."
                 />
+                <p className="text-[10px] text-foreground/40 ml-1">
+                  Paste your Spotify artist URL
+                </p>
               </div>
             </div>
           </motion.section>

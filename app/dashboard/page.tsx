@@ -57,11 +57,11 @@ function DashboardContent() {
 
   const derivedStats = useMemo(() => {
     return {
-      totalContacts: stats?.total_contacts || 0,
+      totalContacts: stats?.totalContacts || 0,
       totalDownloads: gates.reduce((acc, gate) => acc + (gate.stats?.totalDownloads || 0), 0),
       activeCampaigns: history.length,
-      avgConversionRate: gates.length > 0 
-        ? gates.reduce((acc, gate) => acc + (gate.stats?.conversionRate || 0), 0) / gates.length 
+      avgConversionRate: gates.length > 0
+        ? gates.reduce((acc, gate) => acc + (gate.stats?.conversionRate || 0), 0) / gates.length
         : 0
     };
   }, [stats, gates, history]);

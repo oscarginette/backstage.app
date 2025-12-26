@@ -90,7 +90,7 @@ const ContactsList = forwardRef<ContactsListRef, Props>(({ onImportClick }, ref)
   }));
 
   const handleDelete = async () => {
-    if (!confirm(`Are you sure you want to delete ${selectedIds.length} contacts?`)) return;
+    if (!confirm(`Are you sure you want to delete ${selectedIds.length} contact${selectedIds.length !== 1 ? 's' : ''}?`)) return;
     setDeleting(true);
     try {
       const res = await fetch('/api/contacts/delete', {
@@ -99,11 +99,14 @@ const ContactsList = forwardRef<ContactsListRef, Props>(({ onImportClick }, ref)
         body: JSON.stringify({ ids: selectedIds })
       });
       if (res.ok) {
-        setContacts(contacts.filter(c => !selectedIds.includes(c.id)));
+        await fetchContacts(); // Refresh the full list
         setSelectedIds([]);
+      } else {
+        alert('Failed to delete contacts');
       }
     } catch (error) {
       console.error('Error deleting contacts:', error);
+      alert('Error deleting contacts. Please try again.');
     } finally {
       setDeleting(false);
     }
@@ -185,6 +188,10 @@ const ContactsList = forwardRef<ContactsListRef, Props>(({ onImportClick }, ref)
         searchFields={(c) => `${c.email} ${c.name} ${c.source}`}
         emptyMessage="No contacts found."
         emptyIcon={<Users className="w-16 h-16" />}
+        selectable={true}
+        getItemId={(c) => c.id}
+        selectedIds={selectedIds}
+        onSelectionChange={setSelectedIds}
         actions={
           <div className="flex gap-2">
             <ImportContactsButton onClick={onImportClick} />
@@ -199,10 +206,10 @@ const ContactsList = forwardRef<ContactsListRef, Props>(({ onImportClick }, ref)
               <button
                 onClick={handleDelete}
                 disabled={deleting}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-red-50 text-red-600 hover:bg-red-100 transition-all border border-red-200 text-xs font-bold active:scale-95"
+                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-red-50 text-red-600 hover:bg-red-100 transition-all border border-red-200 text-xs font-bold active:scale-95 disabled:opacity-50"
               >
                 <Trash2 className="w-4 h-4" />
-                Delete ({selectedIds.length})
+                {deleting ? 'Deleting...' : `Delete (${selectedIds.length})`}
               </button>
             )}
           </div>

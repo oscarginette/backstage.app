@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
-import { Search, Filter, Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
+import React, { useState, useMemo, useRef } from 'react';
+import { Search, Filter, Loader2 } from 'lucide-react';
+import { useVirtualizer } from '@tanstack/react-virtual';
 
 interface Column<T> {
   header: string;
@@ -20,7 +21,11 @@ interface DataTableProps<T> {
   actions?: React.ReactNode;
   rowClickable?: boolean;
   onRowClick?: (item: T) => void;
-  itemsPerPage?: number;
+  // Multiselect props
+  selectable?: boolean;
+  getItemId?: (item: T) => number;
+  selectedIds?: number[];
+  onSelectionChange?: (ids: number[]) => void;
 }
 
 export default function DataTable<T>({
@@ -34,10 +39,13 @@ export default function DataTable<T>({
   actions,
   rowClickable,
   onRowClick,
-  itemsPerPage = 10,
+  selectable = false,
+  getItemId,
+  selectedIds = [],
+  onSelectionChange,
 }: DataTableProps<T>) {
   const [searchQuery, setSearchQuery] = useState('');
-  const [currentPage, setCurrentPage] = useState(1);
+  const tableContainerRef = useRef<HTMLDivElement>(null);
 
   const filteredData = useMemo(() => {
     if (!searchQuery.trim()) return data;
@@ -45,15 +53,32 @@ export default function DataTable<T>({
     return data.filter((item) => searchFields(item).toLowerCase().includes(query));
   }, [data, searchQuery, searchFields]);
 
-  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
-  const currentData = filteredData.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
+  const handleSelectAll = () => {
+    if (!selectable || !getItemId || !onSelectionChange) return;
 
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
+    if (selectedIds.length === filteredData.length) {
+      onSelectionChange([]);
+    } else {
+      onSelectionChange(filteredData.map(getItemId));
+    }
   };
+
+  const handleSelectOne = (id: number) => {
+    if (!selectable || !onSelectionChange) return;
+
+    onSelectionChange(
+      selectedIds.includes(id)
+        ? selectedIds.filter(i => i !== id)
+        : [...selectedIds, id]
+    );
+  };
+
+  const rowVirtualizer = useVirtualizer({
+    count: filteredData.length,
+    getScrollElement: () => tableContainerRef.current,
+    estimateSize: () => 72, // Estimated row height in pixels
+    overscan: 10, // Render 10 extra rows above/below viewport
+  });
 
   if (loading) {
     return (
@@ -65,18 +90,15 @@ export default function DataTable<T>({
   }
 
   return (
-    <div className="w-full bg-white/40 backdrop-blur-xl rounded-[2.5rem] border border-[#E8E6DF]/50 overflow-hidden shadow-2xl shadow-black/[0.02]">
+    <div className="w-full bg-white/40 backdrop-blur-xl rounded-[2.5rem] border border-[#E8E6DF]/50 overflow-hidden shadow-2xl shadow-black/[0.02] flex flex-col">
       {/* Table Header / Toolbar */}
-      <div className="p-6 md:p-8 border-b border-[#E8E6DF]/40 space-y-6">
+      <div className="p-6 md:p-8 border-b border-[#E8E6DF]/40 space-y-6 flex-shrink-0">
         <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
           <div className="relative flex-1 max-w-md w-full">
             <input
               type="text"
               value={searchQuery}
-              onChange={(e) => {
-                setSearchQuery(e.target.value);
-                setCurrentPage(1);
-              }}
+              onChange={(e) => setSearchQuery(e.target.value)}
               placeholder={searchPlaceholder}
               className="w-full px-5 py-3 pl-12 rounded-2xl border border-[#E8E6DF]/60 bg-white/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#FF5500]/10 focus:border-[#FF5500]/40 transition-all text-sm outline-none"
             />
@@ -90,98 +112,102 @@ export default function DataTable<T>({
             </button>
           </div>
         </div>
+
+        {/* Total count */}
+        <div className="text-xs font-bold text-gray-400 uppercase tracking-widest">
+          {filteredData.length} {filteredData.length === 1 ? 'record' : 'records'}
+        </div>
       </div>
 
-      {/* Table Container */}
-      <div className="overflow-x-auto">
-        <table className="w-full text-left border-collapse">
-          <thead>
-            <tr className="bg-gray-50/50 border-b border-[#E8E6DF]/40">
+      {/* Virtual Scrolling Table Container */}
+      <div
+        ref={tableContainerRef}
+        className="flex-1 overflow-auto"
+        style={{ maxHeight: '600px' }}
+      >
+        {filteredData.length === 0 ? (
+          <div className="px-8 py-24 text-center">
+            <div className="flex flex-col items-center gap-4">
+              <div className="text-gray-200">
+                {emptyIcon || <Search className="w-16 h-16" />}
+              </div>
+              <p className="text-lg font-serif text-[#1c1c1c]">{emptyMessage}</p>
+            </div>
+          </div>
+        ) : (
+          <div className="w-full">
+            {/* Header */}
+            <div className="sticky top-0 bg-gray-50/90 backdrop-blur-sm z-10 border-b border-[#E8E6DF]/40 flex">
+              {selectable && (
+                <div className="px-6 py-5 flex-shrink-0" style={{ width: '60px' }}>
+                  <input
+                    type="checkbox"
+                    checked={filteredData.length > 0 && selectedIds.length === filteredData.length}
+                    onChange={handleSelectAll}
+                    className="w-4 h-4 rounded border-gray-300 text-[#FF5500] focus:ring-[#FF5500] cursor-pointer"
+                  />
+                </div>
+              )}
               {columns.map((col, i) => (
-                <th 
-                  key={i} 
-                  className={`px-8 py-5 text-[11px] font-black text-gray-400 uppercase tracking-[0.2em] ${col.className}`}
+                <div
+                  key={i}
+                  className={`px-8 py-5 text-[11px] font-black text-gray-400 uppercase tracking-[0.2em] flex-1 ${col.className}`}
                 >
                   {col.header}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-[#E8E6DF]/30">
-            {currentData.length === 0 ? (
-              <tr>
-                <td colSpan={columns.length} className="px-8 py-24 text-center">
-                  <div className="flex flex-col items-center gap-4">
-                    <div className="text-gray-200">
-                      {emptyIcon || <Search className="w-16 h-16" />}
-                    </div>
-                    <p className="text-lg font-serif text-[#1c1c1c]">{emptyMessage}</p>
-                  </div>
-                </td>
-              </tr>
-            ) : (
-              currentData.map((item, i) => (
-                <tr 
-                  key={i}
-                  onClick={() => onRowClick?.(item)}
-                  className={`
-                    group transition-colors duration-300
-                    hover:bg-[#F5F3ED]/40 
-                    ${rowClickable ? 'cursor-pointer' : ''}
-                  `}
-                >
-                  {columns.map((col, j) => (
-                    <td key={j} className={`px-8 py-5 ${col.className}`}>
-                      {col.accessor(item)}
-                    </td>
-                  ))}
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
-
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="p-6 md:p-8 border-t border-[#E8E6DF]/40 flex items-center justify-between">
-          <div className="text-xs font-bold text-gray-400 uppercase tracking-widest">
-            Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, filteredData.length)} of {filteredData.length} records
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => handlePageChange(currentPage - 1)}
-              disabled={currentPage === 1}
-              className="p-2 rounded-xl border border-[#E8E6DF]/60 bg-white/60 text-gray-400 hover:text-[#1c1c1c] disabled:opacity-30 disabled:hover:text-gray-400 transition-all active:scale-95"
-            >
-              <ChevronLeft className="w-5 h-5" />
-            </button>
-            <div className="flex items-center gap-1">
-              {[...Array(totalPages)].map((_, i) => (
-                <button
-                  key={i}
-                  onClick={() => handlePageChange(i + 1)}
-                  className={`
-                    w-10 h-10 rounded-xl text-xs font-bold transition-all active:scale-95
-                    ${currentPage === i + 1 
-                      ? 'bg-[#1c1c1c] text-white shadow-lg' 
-                      : 'text-gray-400 hover:text-[#1c1c1c] hover:bg-white'}
-                  `}
-                >
-                  {i + 1}
-                </button>
+                </div>
               ))}
             </div>
-            <button
-              onClick={() => handlePageChange(currentPage + 1)}
-              disabled={currentPage === totalPages}
-              className="p-2 rounded-xl border border-[#E8E6DF]/60 bg-white/60 text-gray-400 hover:text-[#1c1c1c] disabled:opacity-30 disabled:hover:text-gray-400 transition-all active:scale-95"
+
+            {/* Virtual Rows */}
+            <div
+              className="relative"
+              style={{
+                height: `${rowVirtualizer.getTotalSize()}px`,
+              }}
             >
-              <ChevronRight className="w-5 h-5" />
-            </button>
+              {rowVirtualizer.getVirtualItems().map((virtualRow) => {
+                const item = filteredData[virtualRow.index];
+                const itemId = selectable && getItemId ? getItemId(item) : -1;
+                const isSelected = selectable && selectedIds.includes(itemId);
+
+                return (
+                  <div
+                    key={virtualRow.index}
+                    onClick={() => onRowClick?.(item)}
+                    className={`
+                      group transition-colors duration-300 absolute w-full flex border-b border-[#E8E6DF]/30
+                      hover:bg-[#F5F3ED]/40
+                      ${rowClickable ? 'cursor-pointer' : ''}
+                      ${isSelected ? 'bg-[#FF5500]/5' : ''}
+                    `}
+                    style={{
+                      height: `${virtualRow.size}px`,
+                      transform: `translateY(${virtualRow.start}px)`,
+                    }}
+                  >
+                    {selectable && (
+                      <div className="px-6 py-5 flex-shrink-0 flex items-center" style={{ width: '60px' }}>
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={() => handleSelectOne(itemId)}
+                          onClick={(e) => e.stopPropagation()}
+                          className="w-4 h-4 rounded border-gray-300 text-[#FF5500] focus:ring-[#FF5500] cursor-pointer"
+                        />
+                      </div>
+                    )}
+                    {columns.map((col, j) => (
+                      <div key={j} className={`px-8 py-5 flex-1 ${col.className}`}>
+                        {col.accessor(item)}
+                      </div>
+                    ))}
+                  </div>
+                );
+              })}
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }

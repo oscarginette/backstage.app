@@ -58,25 +58,28 @@ export default function StatCards({ stats }: StatCardsProps) {
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 w-full">
       {cards.map((card) => (
-        <div 
+        <div
           key={card.label}
           className={`
-            relative overflow-hidden flex flex-col gap-2 p-4 
-            bg-white/60 backdrop-blur-xl border ${card.borderColor} 
-            rounded-2xl transition-all duration-500 
+            relative overflow-hidden flex items-center justify-between p-4
+            bg-white/60 backdrop-blur-xl border ${card.borderColor}
+            rounded-2xl transition-all duration-500
             hover:shadow-xl hover:shadow-black/5 hover:-translate-y-0.5 group
           `}
         >
           {/* Decorative Gradient Backdrop */}
           <div className={`absolute -right-2 -top-2 w-16 h-16 rounded-full blur-2xl opacity-0 group-hover:opacity-20 transition-opacity duration-1000 ${card.bgColor}`} />
-          
-          <div className={`w-8 h-8 flex shrink-0 items-center justify-center ${card.bgColor} rounded-xl transition-all duration-500 group-hover:scale-110 group-hover:rotate-3 shadow-sm`}>
-            <card.icon className={`w-4 h-4 ${card.color}`} />
+
+          {/* Icon and Title */}
+          <div className="flex items-center gap-2.5">
+            <div className={`w-9 h-9 flex shrink-0 items-center justify-center ${card.bgColor} rounded-xl transition-all duration-500 group-hover:scale-110 group-hover:rotate-3 shadow-sm`}>
+              <card.icon className={`w-4.5 h-4.5 ${card.color}`} />
+            </div>
+            <p className="text-[10px] uppercase tracking-[0.12em] text-gray-500 font-semibold leading-tight">{card.label}</p>
           </div>
-          <div>
-            <p className="text-[9px] uppercase tracking-[0.15em] text-gray-400 font-bold mb-0.5">{card.label}</p>
-            <h3 className="text-xl font-serif text-[#1c1c1c] tracking-tight">{card.value}</h3>
-          </div>
+
+          {/* Value */}
+          <h3 className="text-2xl font-serif text-[#1c1c1c] tracking-tight tabular-nums">{card.value}</h3>
         </div>
       ))}
     </div>
