@@ -89,7 +89,7 @@ export class TrackGateAnalyticsUseCase {
    * @param gateId - Gate ID
    * @returns True if gate exists
    */
-  private async validateGateExists(gateId: number): Promise<boolean> {
+  private async validateGateExists(gateId: string): Promise<boolean> {
     try {
       // Note: This is a simplified check
       // In production, we'd query the repository directly
@@ -105,7 +105,7 @@ export class TrackGateAnalyticsUseCase {
    * Increment view count for gate
    * @param gateId - Gate ID
    */
-  private async incrementViewCount(gateId: number): Promise<void> {
+  private async incrementViewCount(gateId: string): Promise<void> {
     try {
       await this.gateRepository.incrementViewCount(gateId.toString());
     } catch (error) {

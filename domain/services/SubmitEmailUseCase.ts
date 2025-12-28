@@ -80,7 +80,7 @@ export class SubmitEmailUseCase {
       // 4. Check if email already submitted for this gate
       const existingSubmission = await this.submissionRepository.findByEmailAndGate(
         input.email,
-        parseInt(gate.id)
+        gate.id
       );
 
       if (existingSubmission) {
@@ -93,7 +93,7 @@ export class SubmitEmailUseCase {
 
       // 5. Create submission
       const submissionData: CreateSubmissionInput = {
-        gateId: parseInt(gate.id),
+        gateId: gate.id,
         email: input.email,
         firstName: input.firstName,
         ipAddress: input.ipAddress,

@@ -12,7 +12,7 @@ import { CreateAnalyticsInput, EventType } from '../types/download-gates';
 
 export interface DownloadAnalyticsProps {
   id: number;
-  gateId: number;
+  gateId: string; // UUID
   eventType: EventType;
   sessionId: string | null;
   referrer: string | null;
@@ -50,7 +50,7 @@ export class DownloadAnalytics {
     return this.props.id;
   }
 
-  get gateId(): number {
+  get gateId(): string {
     return this.props.gateId;
   }
 

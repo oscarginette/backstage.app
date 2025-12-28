@@ -110,7 +110,7 @@ export class ProcessDownloadUseCase {
       }
 
       // 6. Mark download as completed
-      await this.submissionRepository.markDownloadComplete(parseInt(submission.id));
+      await this.submissionRepository.markDownloadComplete(submission.id);
 
       // 7. Increment gate download count
       await this.gateRepository.incrementDownloadCount(gate.id);

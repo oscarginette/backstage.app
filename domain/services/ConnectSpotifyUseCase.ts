@@ -50,12 +50,8 @@ export class ConnectSpotifyUseCase {
    */
   async execute(input: ConnectSpotifyInput): Promise<ConnectSpotifyResult> {
     try {
-      // Note: Repository interface expects number but implementation accepts UUID strings
-      // TypeScript cast needed due to interface/implementation mismatch
-      const submissionId = input.submissionId as unknown as number;
-
       // 1. Validate submission exists
-      const submission = await this.submissionRepository.findById(submissionId);
+      const submission = await this.submissionRepository.findById(input.submissionId);
       if (!submission) {
         return {
           success: false,
@@ -74,12 +70,12 @@ export class ConnectSpotifyUseCase {
 
       // 3. Update submission with Spotify profile data
       await this.submissionRepository.updateSpotifyProfile(
-        submissionId,
+        input.submissionId,
         input.spotifyProfile
       );
 
       // 4. Mark Spotify as connected
-      await this.submissionRepository.updateVerificationStatus(submissionId, {
+      await this.submissionRepository.updateVerificationStatus(input.submissionId, {
         spotifyConnected: true,
       });
 

@@ -24,7 +24,7 @@ import { randomBytes } from 'crypto';
 import { sql } from '@vercel/postgres';
 
 export interface GenerateDownloadTokenInput {
-  submissionId: number;
+  submissionId: string; // UUID
 }
 
 export interface GenerateDownloadTokenResult {

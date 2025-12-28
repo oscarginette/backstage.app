@@ -47,7 +47,7 @@ export async function POST(
 
     // Execute
     const result = await generateTokenUseCase.execute({
-      submissionId: parseInt(submissionId),
+      submissionId,
     });
 
     if (!result.success) {
