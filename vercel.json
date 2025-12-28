@@ -1,6 +1,6 @@
 {
   "crons": [{
-    "path": "/api/check-soundcloud",
+    "path": "/api/check-music-platforms",
     "schedule": "0 19 * * *"
   }]
 }
