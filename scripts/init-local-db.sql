@@ -80,6 +80,28 @@ CREATE INDEX IF NOT EXISTS idx_soundcloud_tracks_track_id ON soundcloud_tracks(t
 CREATE INDEX IF NOT EXISTS idx_soundcloud_tracks_user_id ON soundcloud_tracks(user_id);
 
 -- =====================================================
+-- 3B. SPOTIFY TRACKS
+-- =====================================================
+CREATE TABLE IF NOT EXISTS spotify_tracks (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+  track_id VARCHAR(500) NOT NULL,
+  title VARCHAR(500) NOT NULL,
+  url VARCHAR(1000) NOT NULL,
+  published_at TIMESTAMP NOT NULL,
+  cover_image VARCHAR(1000),
+  description TEXT,
+  album_type VARCHAR(50),
+  total_tracks INTEGER,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(user_id, track_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_spotify_tracks_track_id ON spotify_tracks(track_id);
+CREATE INDEX IF NOT EXISTS idx_spotify_tracks_user_id ON spotify_tracks(user_id);
+CREATE INDEX IF NOT EXISTS idx_spotify_tracks_published_at ON spotify_tracks(published_at DESC);
+
+-- =====================================================
 -- 4. CONTACTS
 -- =====================================================
 CREATE TABLE IF NOT EXISTS contacts (
