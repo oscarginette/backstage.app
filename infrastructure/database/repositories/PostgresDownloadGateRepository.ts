@@ -20,6 +20,11 @@ export class PostgresDownloadGateRepository implements IDownloadGateRepository {
     try {
       const id = randomUUID();
 
+      // Convert empty strings to null for optional fields
+      const expiresAt = input.expiresAt && input.expiresAt instanceof Date
+        ? input.expiresAt
+        : null;
+
       const result = await sql`
         INSERT INTO download_gates (
           id,
@@ -50,23 +55,23 @@ export class PostgresDownloadGateRepository implements IDownloadGateRepository {
           ${userId},
           ${input.slug},
           ${input.title},
-          ${input.artistName ?? null},
-          ${input.genre ?? null},
-          ${input.description ?? null},
-          ${input.artworkUrl ?? null},
-          ${input.soundcloudTrackId ?? null},
-          ${input.soundcloudTrackUrl ?? null},
-          ${input.soundcloudUserId ?? null},
+          ${input.artistName || null},
+          ${input.genre || null},
+          ${input.description || null},
+          ${input.artworkUrl || null},
+          ${input.soundcloudTrackId || null},
+          ${input.soundcloudTrackUrl || null},
+          ${input.soundcloudUserId || null},
           ${input.fileUrl},
           ${input.fileSizeMb ?? null},
-          ${input.fileType ?? null},
+          ${input.fileType || null},
           ${input.requireEmail ?? true},
           ${input.requireSoundcloudRepost ?? false},
           ${input.requireSoundcloudFollow ?? false},
           ${input.requireSpotifyConnect ?? false},
           ${input.active ?? true},
           ${input.maxDownloads ?? null},
-          ${input.expiresAt ?? null},
+          ${expiresAt},
           NOW(),
           NOW()
         )

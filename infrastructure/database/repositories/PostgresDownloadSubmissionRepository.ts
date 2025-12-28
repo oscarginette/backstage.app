@@ -59,11 +59,11 @@ export class PostgresDownloadSubmissionRepository implements IDownloadSubmission
     }
   }
 
-  async findById(id: number): Promise<DownloadSubmission | null> {
+  async findById(id: string): Promise<DownloadSubmission | null> {
     try {
       const result = await sql`
         SELECT * FROM download_submissions
-        WHERE id = ${id}
+        WHERE id = ${id}::uuid
         LIMIT 1
       `;
 
@@ -76,11 +76,11 @@ export class PostgresDownloadSubmissionRepository implements IDownloadSubmission
     }
   }
 
-  async findByEmailAndGate(email: string, gateId: number): Promise<DownloadSubmission | null> {
+  async findByEmailAndGate(email: string, gateId: string): Promise<DownloadSubmission | null> {
     try {
       const result = await sql`
         SELECT * FROM download_submissions
-        WHERE email = ${email} AND gate_id = ${gateId}
+        WHERE email = ${email} AND gate_id = ${gateId}::uuid
         LIMIT 1
       `;
 
@@ -110,11 +110,11 @@ export class PostgresDownloadSubmissionRepository implements IDownloadSubmission
     }
   }
 
-  async findAllByGate(gateId: number): Promise<DownloadSubmission[]> {
+  async findAllByGate(gateId: string): Promise<DownloadSubmission[]> {
     try {
       const result = await sql`
         SELECT * FROM download_submissions
-        WHERE gate_id = ${gateId}
+        WHERE gate_id = ${gateId}::uuid
         ORDER BY created_at DESC
       `;
 
@@ -126,7 +126,7 @@ export class PostgresDownloadSubmissionRepository implements IDownloadSubmission
   }
 
   async updateVerificationStatus(
-    id: number,
+    id: string,
     updates: VerificationStatusUpdate
   ): Promise<DownloadSubmission> {
     try {
@@ -212,7 +212,7 @@ export class PostgresDownloadSubmissionRepository implements IDownloadSubmission
           download_token_generated_at = NOW(),
           download_token_expires_at = ${expiresAt.toISOString()},
           updated_at = NOW()
-        WHERE id = ${id}
+        WHERE id = ${id}::uuid
         RETURNING download_token
       `;
 
@@ -235,7 +235,7 @@ export class PostgresDownloadSubmissionRepository implements IDownloadSubmission
           download_completed = true,
           download_completed_at = NOW(),
           updated_at = NOW()
-        WHERE id = ${id}
+        WHERE id = ${id}::uuid
         RETURNING id
       `;
 
@@ -257,7 +257,7 @@ export class PostgresDownloadSubmissionRepository implements IDownloadSubmission
           soundcloud_username = ${profile.username},
           soundcloud_permalink = ${profile.profileUrl ?? null},
           updated_at = NOW()
-        WHERE id = ${id}
+        WHERE id = ${id}::uuid
         RETURNING id
       `;
 
@@ -278,7 +278,7 @@ export class PostgresDownloadSubmissionRepository implements IDownloadSubmission
           spotify_user_id = ${profile.userId},
           spotify_display_name = ${profile.displayName ?? null},
           updated_at = NOW()
-        WHERE id = ${id}
+        WHERE id = ${id}::uuid
         RETURNING id
       `;
 

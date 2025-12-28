@@ -20,7 +20,7 @@ export class PostgresDownloadAnalyticsRepository implements IDownloadAnalyticsRe
   async track(input: CreateAnalyticsInput): Promise<void> {
     try {
       await sql`
-        INSERT INTO download_analytics (
+        INSERT INTO download_gate_analytics (
           gate_id,
           event_type,
           session_id,
@@ -50,13 +50,13 @@ export class PostgresDownloadAnalyticsRepository implements IDownloadAnalyticsRe
     }
   }
 
-  async getGateStats(gateId: number): Promise<GateStats> {
+  async getGateStats(gateId: string): Promise<GateStats> {
     try {
       // Get view count
       const viewResult = await sql`
         SELECT COUNT(*) as count
-        FROM download_analytics
-        WHERE gate_id = ${gateId} AND event_type = 'view'
+        FROM download_gate_analytics
+        WHERE gate_id = ${gateId}::uuid AND event_type = 'view'
       `;
 
       // Get submission and download counts from submissions table
@@ -68,15 +68,15 @@ export class PostgresDownloadAnalyticsRepository implements IDownloadAnalyticsRe
           SUM(CASE WHEN soundcloud_follow_verified = true THEN 1 ELSE 0 END) as soundcloud_follows,
           SUM(CASE WHEN spotify_connected = true THEN 1 ELSE 0 END) as spotify_connects
         FROM download_submissions
-        WHERE gate_id = ${gateId}
+        WHERE gate_id = ${gateId}::uuid
       `;
 
       const totalViews = parseInt(viewResult.rows[0].count, 10);
-      const totalSubmissions = parseInt(submissionResult.rows[0].total_submissions, 10);
-      const totalDownloads = parseInt(submissionResult.rows[0].total_downloads, 10);
-      const soundcloudReposts = parseInt(submissionResult.rows[0].soundcloud_reposts, 10);
-      const soundcloudFollows = parseInt(submissionResult.rows[0].soundcloud_follows, 10);
-      const spotifyConnects = parseInt(submissionResult.rows[0].spotify_connects, 10);
+      const totalSubmissions = parseInt(submissionResult.rows[0].total_submissions || '0', 10);
+      const totalDownloads = parseInt(submissionResult.rows[0].total_downloads || '0', 10);
+      const soundcloudReposts = parseInt(submissionResult.rows[0].soundcloud_reposts || '0', 10);
+      const soundcloudFollows = parseInt(submissionResult.rows[0].soundcloud_follows || '0', 10);
+      const spotifyConnects = parseInt(submissionResult.rows[0].spotify_connects || '0', 10);
 
       const conversionRate = totalViews > 0
         ? (totalDownloads / totalViews) * 100
@@ -99,7 +99,7 @@ export class PostgresDownloadAnalyticsRepository implements IDownloadAnalyticsRe
   }
 
   async getGateAnalytics(
-    gateId: number,
+    gateId: string,
     startDate?: Date,
     endDate?: Date
   ): Promise<AnalyticsEvent[]> {
@@ -109,8 +109,8 @@ export class PostgresDownloadAnalyticsRepository implements IDownloadAnalyticsRe
       if (startDate && endDate) {
         result = await sql`
           SELECT *
-          FROM download_analytics
-          WHERE gate_id = ${gateId}
+          FROM download_gate_analytics
+          WHERE gate_id = ${gateId}::uuid::uuid
             AND created_at >= ${startDate.toISOString()}
             AND created_at <= ${endDate.toISOString()}
           ORDER BY created_at DESC
@@ -118,24 +118,24 @@ export class PostgresDownloadAnalyticsRepository implements IDownloadAnalyticsRe
       } else if (startDate) {
         result = await sql`
           SELECT *
-          FROM download_analytics
-          WHERE gate_id = ${gateId}
+          FROM download_gate_analytics
+          WHERE gate_id = ${gateId}::uuid::uuid
             AND created_at >= ${startDate.toISOString()}
           ORDER BY created_at DESC
         `;
       } else if (endDate) {
         result = await sql`
           SELECT *
-          FROM download_analytics
-          WHERE gate_id = ${gateId}
+          FROM download_gate_analytics
+          WHERE gate_id = ${gateId}::uuid::uuid
             AND created_at <= ${endDate.toISOString()}
           ORDER BY created_at DESC
         `;
       } else {
         result = await sql`
           SELECT *
-          FROM download_analytics
-          WHERE gate_id = ${gateId}
+          FROM download_gate_analytics
+          WHERE gate_id = ${gateId}::uuid::uuid
           ORDER BY created_at DESC
         `;
       }
@@ -148,7 +148,7 @@ export class PostgresDownloadAnalyticsRepository implements IDownloadAnalyticsRe
   }
 
   async getConversionFunnel(
-    gateId: number,
+    gateId: string,
     startDate?: Date,
     endDate?: Date
   ): Promise<{
@@ -165,8 +165,8 @@ export class PostgresDownloadAnalyticsRepository implements IDownloadAnalyticsRe
       if (startDate && endDate) {
         viewResult = await sql`
           SELECT COUNT(*) as count
-          FROM download_analytics
-          WHERE gate_id = ${gateId}
+          FROM download_gate_analytics
+          WHERE gate_id = ${gateId}::uuid::uuid
             AND event_type = 'view'
             AND created_at >= ${startDate.toISOString()}
             AND created_at <= ${endDate.toISOString()}
@@ -174,24 +174,24 @@ export class PostgresDownloadAnalyticsRepository implements IDownloadAnalyticsRe
       } else if (startDate) {
         viewResult = await sql`
           SELECT COUNT(*) as count
-          FROM download_analytics
-          WHERE gate_id = ${gateId}
+          FROM download_gate_analytics
+          WHERE gate_id = ${gateId}::uuid::uuid
             AND event_type = 'view'
             AND created_at >= ${startDate.toISOString()}
         `;
       } else if (endDate) {
         viewResult = await sql`
           SELECT COUNT(*) as count
-          FROM download_analytics
-          WHERE gate_id = ${gateId}
+          FROM download_gate_analytics
+          WHERE gate_id = ${gateId}::uuid::uuid
             AND event_type = 'view'
             AND created_at <= ${endDate.toISOString()}
         `;
       } else {
         viewResult = await sql`
           SELECT COUNT(*) as count
-          FROM download_analytics
-          WHERE gate_id = ${gateId}
+          FROM download_gate_analytics
+          WHERE gate_id = ${gateId}::uuid::uuid
             AND event_type = 'view'
         `;
       }
@@ -204,7 +204,7 @@ export class PostgresDownloadAnalyticsRepository implements IDownloadAnalyticsRe
             COUNT(*) as submissions,
             SUM(CASE WHEN download_completed = true THEN 1 ELSE 0 END) as downloads
           FROM download_submissions
-          WHERE gate_id = ${gateId}
+          WHERE gate_id = ${gateId}::uuid
             AND created_at >= ${startDate.toISOString()}
             AND created_at <= ${endDate.toISOString()}
         `;
@@ -214,7 +214,7 @@ export class PostgresDownloadAnalyticsRepository implements IDownloadAnalyticsRe
             COUNT(*) as submissions,
             SUM(CASE WHEN download_completed = true THEN 1 ELSE 0 END) as downloads
           FROM download_submissions
-          WHERE gate_id = ${gateId}
+          WHERE gate_id = ${gateId}::uuid
             AND created_at >= ${startDate.toISOString()}
         `;
       } else if (endDate) {
@@ -223,7 +223,7 @@ export class PostgresDownloadAnalyticsRepository implements IDownloadAnalyticsRe
             COUNT(*) as submissions,
             SUM(CASE WHEN download_completed = true THEN 1 ELSE 0 END) as downloads
           FROM download_submissions
-          WHERE gate_id = ${gateId}
+          WHERE gate_id = ${gateId}::uuid
             AND created_at <= ${endDate.toISOString()}
         `;
       } else {
@@ -232,7 +232,7 @@ export class PostgresDownloadAnalyticsRepository implements IDownloadAnalyticsRe
             COUNT(*) as submissions,
             SUM(CASE WHEN download_completed = true THEN 1 ELSE 0 END) as downloads
           FROM download_submissions
-          WHERE gate_id = ${gateId}
+          WHERE gate_id = ${gateId}::uuid
         `;
       }
 
@@ -259,7 +259,7 @@ export class PostgresDownloadAnalyticsRepository implements IDownloadAnalyticsRe
   }
 
   async getTrafficSources(
-    gateId: number,
+    gateId: string,
     startDate?: Date,
     endDate?: Date
   ): Promise<
@@ -282,8 +282,8 @@ export class PostgresDownloadAnalyticsRepository implements IDownloadAnalyticsRe
             utm_medium,
             utm_campaign,
             COUNT(*) as count
-          FROM download_analytics
-          WHERE gate_id = ${gateId}
+          FROM download_gate_analytics
+          WHERE gate_id = ${gateId}::uuid::uuid
             AND event_type = 'view'
             AND created_at >= ${startDate.toISOString()}
             AND created_at <= ${endDate.toISOString()}
@@ -298,8 +298,8 @@ export class PostgresDownloadAnalyticsRepository implements IDownloadAnalyticsRe
             utm_medium,
             utm_campaign,
             COUNT(*) as count
-          FROM download_analytics
-          WHERE gate_id = ${gateId}
+          FROM download_gate_analytics
+          WHERE gate_id = ${gateId}::uuid::uuid
             AND event_type = 'view'
             AND created_at >= ${startDate.toISOString()}
           GROUP BY referrer, utm_source, utm_medium, utm_campaign
@@ -313,8 +313,8 @@ export class PostgresDownloadAnalyticsRepository implements IDownloadAnalyticsRe
             utm_medium,
             utm_campaign,
             COUNT(*) as count
-          FROM download_analytics
-          WHERE gate_id = ${gateId}
+          FROM download_gate_analytics
+          WHERE gate_id = ${gateId}::uuid::uuid
             AND event_type = 'view'
             AND created_at <= ${endDate.toISOString()}
           GROUP BY referrer, utm_source, utm_medium, utm_campaign
@@ -328,8 +328,8 @@ export class PostgresDownloadAnalyticsRepository implements IDownloadAnalyticsRe
             utm_medium,
             utm_campaign,
             COUNT(*) as count
-          FROM download_analytics
-          WHERE gate_id = ${gateId}
+          FROM download_gate_analytics
+          WHERE gate_id = ${gateId}::uuid::uuid
             AND event_type = 'view'
           GROUP BY referrer, utm_source, utm_medium, utm_campaign
           ORDER BY count DESC
@@ -350,7 +350,7 @@ export class PostgresDownloadAnalyticsRepository implements IDownloadAnalyticsRe
   }
 
   async getGeographicDistribution(
-    gateId: number,
+    gateId: string,
     startDate?: Date,
     endDate?: Date
   ): Promise<
@@ -368,8 +368,8 @@ export class PostgresDownloadAnalyticsRepository implements IDownloadAnalyticsRe
           SELECT
             country,
             COUNT(*) as views
-          FROM download_analytics
-          WHERE gate_id = ${gateId}
+          FROM download_gate_analytics
+          WHERE gate_id = ${gateId}::uuid::uuid
             AND event_type = 'view'
             AND created_at >= ${startDate.toISOString()}
             AND created_at <= ${endDate.toISOString()}
@@ -381,8 +381,8 @@ export class PostgresDownloadAnalyticsRepository implements IDownloadAnalyticsRe
           SELECT
             country,
             COUNT(*) as views
-          FROM download_analytics
-          WHERE gate_id = ${gateId}
+          FROM download_gate_analytics
+          WHERE gate_id = ${gateId}::uuid::uuid
             AND event_type = 'view'
             AND created_at >= ${startDate.toISOString()}
           GROUP BY country
@@ -393,8 +393,8 @@ export class PostgresDownloadAnalyticsRepository implements IDownloadAnalyticsRe
           SELECT
             country,
             COUNT(*) as views
-          FROM download_analytics
-          WHERE gate_id = ${gateId}
+          FROM download_gate_analytics
+          WHERE gate_id = ${gateId}::uuid::uuid
             AND event_type = 'view'
             AND created_at <= ${endDate.toISOString()}
           GROUP BY country
@@ -405,8 +405,8 @@ export class PostgresDownloadAnalyticsRepository implements IDownloadAnalyticsRe
           SELECT
             country,
             COUNT(*) as views
-          FROM download_analytics
-          WHERE gate_id = ${gateId}
+          FROM download_gate_analytics
+          WHERE gate_id = ${gateId}::uuid::uuid
             AND event_type = 'view'
           GROUP BY country
           ORDER BY views DESC
@@ -420,8 +420,8 @@ export class PostgresDownloadAnalyticsRepository implements IDownloadAnalyticsRe
           SELECT
             country,
             COUNT(*) as downloads
-          FROM download_analytics
-          WHERE gate_id = ${gateId}
+          FROM download_gate_analytics
+          WHERE gate_id = ${gateId}::uuid
             AND event_type = 'download'
             AND created_at >= ${startDate.toISOString()}
             AND created_at <= ${endDate.toISOString()}
@@ -432,8 +432,8 @@ export class PostgresDownloadAnalyticsRepository implements IDownloadAnalyticsRe
           SELECT
             country,
             COUNT(*) as downloads
-          FROM download_analytics
-          WHERE gate_id = ${gateId}
+          FROM download_gate_analytics
+          WHERE gate_id = ${gateId}::uuid
             AND event_type = 'download'
             AND created_at >= ${startDate.toISOString()}
           GROUP BY country
@@ -443,8 +443,8 @@ export class PostgresDownloadAnalyticsRepository implements IDownloadAnalyticsRe
           SELECT
             country,
             COUNT(*) as downloads
-          FROM download_analytics
-          WHERE gate_id = ${gateId}
+          FROM download_gate_analytics
+          WHERE gate_id = ${gateId}::uuid
             AND event_type = 'download'
             AND created_at <= ${endDate.toISOString()}
           GROUP BY country
@@ -454,8 +454,8 @@ export class PostgresDownloadAnalyticsRepository implements IDownloadAnalyticsRe
           SELECT
             country,
             COUNT(*) as downloads
-          FROM download_analytics
-          WHERE gate_id = ${gateId}
+          FROM download_gate_analytics
+          WHERE gate_id = ${gateId}::uuid
             AND event_type = 'download'
           GROUP BY country
         `;

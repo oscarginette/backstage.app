@@ -10,29 +10,27 @@
  */
 
 import { sql } from '@/lib/db';
-import { randomBytes } from 'crypto';
 import { IOAuthStateRepository } from '@/domain/repositories/IOAuthStateRepository';
 import { OAuthState, CreateOAuthStateInput } from '@/domain/types/download-gates';
 
 export class PostgresOAuthStateRepository implements IOAuthStateRepository {
   async create(input: CreateOAuthStateInput): Promise<OAuthState> {
     try {
-      // Generate secure state token (32 bytes = 64 hex characters)
-      const stateToken = randomBytes(32).toString('hex');
-
       const result = await sql`
         INSERT INTO oauth_states (
           state_token,
           provider,
           submission_id,
           gate_id,
+          code_verifier,
           used,
           expires_at
         ) VALUES (
-          ${stateToken},
+          ${input.stateToken},
           ${input.provider},
           ${input.submissionId},
           ${input.gateId},
+          ${input.codeVerifier ?? null},
           false,
           ${input.expiresAt.toISOString()}
         )
@@ -63,7 +61,7 @@ export class PostgresOAuthStateRepository implements IOAuthStateRepository {
     }
   }
 
-  async markAsUsed(id: number): Promise<void> {
+  async markAsUsed(id: string): Promise<void> {
     try {
       const result = await sql`
         UPDATE oauth_states
@@ -124,6 +122,7 @@ export class PostgresOAuthStateRepository implements IOAuthStateRepository {
       provider: row.provider,
       submissionId: row.submission_id,
       gateId: row.gate_id,
+      codeVerifier: row.code_verifier,
       used: row.used,
       expiresAt: new Date(row.expires_at),
       createdAt: new Date(row.created_at),
