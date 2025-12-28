@@ -1,8 +1,6 @@
 'use client';
 
 import { useState, useEffect, use } from 'react';
-import Header from '../../../../components/dashboard/Header';
-import Dock from '../../../../components/ui/Dock';
 import Link from 'next/link';
 import { ChevronLeft, BarChart2, Users, Settings, Loader2 } from 'lucide-react';
 import { DownloadGate } from '@/types/download-gates';
@@ -24,7 +22,7 @@ export default function GateDetailsPage({ params }: { params: Promise<{ id: stri
       const res = await fetch(`/api/download-gates/${id}`);
       if (res.ok) {
         const data = await res.json();
-        setGate(data);
+        setGate(data.gate);
       }
     } catch (error) {
       console.error('Error fetching gate:', error);
@@ -116,13 +114,13 @@ export default function GateDetailsPage({ params }: { params: Promise<{ id: stri
         </div>
 
         {/* Main Content */}
-        <div className="pb-32">
+        <div className="pb-12">
           {activeTab === 'overview' && <GateOverview gate={gate} />}
           {activeTab === 'submissions' && <GateSubmissions gateId={gate.id} />}
           {activeTab === 'edit' && (
              <div className="bg-white/70 backdrop-blur-xl rounded-3xl border border-[#E8E6DF] shadow-2xl p-12 text-center">
                 <p className="text-[#666]">Formulario de edición en construcción...</p>
-                <button 
+                <button
                   onClick={() => setActiveTab('overview')}
                   className="mt-4 text-[#FF5500] hover:underline"
                 >
@@ -131,8 +129,6 @@ export default function GateDetailsPage({ params }: { params: Promise<{ id: stri
              </div>
           )}
         </div>
-
-        <Dock />
       </div>
     </div>
   );

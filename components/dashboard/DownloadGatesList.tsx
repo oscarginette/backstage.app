@@ -43,6 +43,7 @@ export default function DownloadGatesList() {
   const columns = [
     {
       header: 'Gate / Title',
+      className: 'flex-[3] min-w-[200px]',
       accessor: (gate: DownloadGate) => (
         <div className="flex items-center gap-4">
           {gate.artworkUrl ? (
@@ -61,6 +62,7 @@ export default function DownloadGatesList() {
     },
     {
       header: 'Reach',
+      className: 'flex-1 min-w-[120px]',
       accessor: (gate: DownloadGate) => (
         <div className="flex items-center gap-4">
           <div className="flex flex-col text-center">
@@ -77,6 +79,7 @@ export default function DownloadGatesList() {
     },
     {
       header: 'Audience Growth',
+      className: 'flex-1 min-w-[140px]',
       accessor: (gate: DownloadGate) => (
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-lg bg-[#FF5500]/10 flex items-center justify-center text-[#FF5500]">
@@ -91,6 +94,7 @@ export default function DownloadGatesList() {
     },
     {
       header: 'Conversion',
+      className: 'w-40 flex-none',
       accessor: (gate: DownloadGate) => (
         <div className="flex flex-col gap-1">
           <div className="flex items-center justify-between gap-4">
@@ -107,6 +111,7 @@ export default function DownloadGatesList() {
     },
     {
       header: 'Status',
+      className: 'w-32 flex-none',
       accessor: (gate: DownloadGate) => (
         <div 
           className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest ${
@@ -121,7 +126,7 @@ export default function DownloadGatesList() {
     },
     {
       header: '',
-      className: 'text-right',
+      className: 'w-48 flex-none text-right',
       accessor: (gate: DownloadGate) => (
         <div className="flex items-center justify-end gap-2">
           <Link 

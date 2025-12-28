@@ -1,28 +1,65 @@
 'use client';
 
+import { useState } from 'react';
 import { DownloadGate } from '@/types/download-gates';
-import { Eye, User, Download, PieChart, Repeat, Music, Copy, QrCode, Share2 } from 'lucide-react';
+import { Eye, User, Download, PieChart, Repeat, Music, Copy, Share2, Check } from 'lucide-react';
 
 export default function GateOverview({ gate }: { gate: DownloadGate }) {
+  const [copied, setCopied] = useState(false);
+
   const stats = [
     { label: 'Total Views', value: gate.stats.views, icon: Eye, color: 'blue' },
     { label: 'Submissions', value: gate.stats.submissions, icon: User, color: 'purple' },
     { label: 'Downloads', value: gate.stats.downloads, icon: Download, color: 'emerald' },
-    { label: 'Conv. Rate', value: `${gate.stats.conversionRate}%`, icon: PieChart, color: 'orange' },
+    { label: 'Conv. Rate', value: `${gate.stats.conversionRate.toFixed(1)}%`, icon: PieChart, color: 'orange' },
     { label: 'SC Reposts', value: gate.stats.soundcloudReposts, icon: Repeat, color: 'orange' },
     { label: 'Spotify Conn.', value: gate.stats.spotifyConnections, icon: Music, color: 'emerald' },
   ];
 
+  // Fix: Don't show Views as 100% when it's 0
   const funnelSteps = [
-    { name: 'Views', count: gate.stats.views, percent: 100 },
-    { name: 'Email Submitted', count: gate.stats.submissions, percent: gate.stats.views > 0 ? (gate.stats.submissions / gate.stats.views * 100).toFixed(1) : 0 },
-    { name: 'Actions Completed', count: gate.stats.downloads, percent: gate.stats.submissions > 0 ? (gate.stats.downloads / gate.stats.submissions * 100).toFixed(1) : 0 },
+    {
+      name: 'Views',
+      count: gate.stats.views,
+      percent: gate.stats.views > 0 ? 100 : 0
+    },
+    {
+      name: 'Email Submitted',
+      count: gate.stats.submissions,
+      percent: gate.stats.views > 0 ? (gate.stats.submissions / gate.stats.views * 100) : 0
+    },
+    {
+      name: 'Actions Completed',
+      count: gate.stats.downloads,
+      percent: gate.stats.submissions > 0 ? (gate.stats.downloads / gate.stats.submissions * 100) : 0
+    },
   ];
 
   const copyLink = () => {
     const url = `${window.location.origin}/gate/${gate.slug}`;
     navigator.clipboard.writeText(url);
-    alert('Link copiado');
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const shareLink = async () => {
+    const url = `${window.location.origin}/gate/${gate.slug}`;
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: gate.title,
+          text: `Descarga mi track: ${gate.title}`,
+          url: url,
+        });
+      } catch (err) {
+        // User cancelled share or error occurred
+        console.log('Share cancelled or failed');
+      }
+    } else {
+      // Fallback: copy to clipboard
+      copyLink();
+    }
   };
 
   return (
@@ -60,25 +97,35 @@ export default function GateOverview({ gate }: { gate: DownloadGate }) {
                 <div className="flex-1 px-5 py-3 rounded-xl bg-[#F5F3ED] border border-[#E8E6DF] text-sm font-mono text-[#1c1c1c] truncate">
                   {window.location.origin}/gate/{gate.slug}
                 </div>
-                <button 
+                <button
                   onClick={copyLink}
-                  className="p-3 rounded-xl bg-[#1c1c1c] text-white hover:bg-black transition-all active:scale-95"
+                  className={`group relative px-4 py-3 rounded-xl transition-all active:scale-95 ${
+                    copied
+                      ? 'bg-emerald-500 text-white'
+                      : 'bg-[#1c1c1c] text-white hover:bg-black'
+                  }`}
                 >
-                  <Copy className="w-4 h-4" />
+                  {copied ? (
+                    <>
+                      <Check className="w-4 h-4" />
+                      <span className="absolute -top-8 left-1/2 -translate-x-1/2 px-2 py-1 bg-emerald-500 text-white text-xs rounded-lg whitespace-nowrap">
+                        ¡Copiado!
+                      </span>
+                    </>
+                  ) : (
+                    <Copy className="w-4 h-4" />
+                  )}
                 </button>
               </div>
             </div>
 
-            <div className="flex gap-4">
-              <button className="flex-1 flex items-center justify-center gap-2 px-6 py-3 rounded-xl border border-[#E8E6DF] hover:bg-[#F5F3ED] transition-all text-sm font-medium">
-                <QrCode className="w-4 h-4" />
-                <span>Generar QR</span>
-              </button>
-              <button className="flex-1 flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-[#FF5500] text-white hover:bg-[#e64d00] transition-all text-sm font-medium">
-                <Share2 className="w-4 h-4" />
-                <span>Compartir</span>
-              </button>
-            </div>
+            <button
+              onClick={shareLink}
+              className="w-full flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-[#FF5500] text-white hover:bg-[#e64d00] transition-all text-sm font-medium active:scale-95"
+            >
+              <Share2 className="w-4 h-4" />
+              <span>Compartir</span>
+            </button>
           </div>
         </div>
 
@@ -94,10 +141,10 @@ export default function GateOverview({ gate }: { gate: DownloadGate }) {
               <div key={step.name} className="relative">
                 <div className="flex justify-between items-end mb-2">
                    <div className="text-sm font-bold text-[#1c1c1c]">{step.name}</div>
-                   <div className="text-sm font-mono text-gray-500">{step.count} ({step.percent}%)</div>
+                   <div className="text-sm font-mono text-gray-500">{step.count} ({step.percent.toFixed(1)}%)</div>
                 </div>
                 <div className="w-full h-3 bg-gray-100 rounded-full overflow-hidden">
-                  <div 
+                  <div
                     className={`h-full rounded-full transition-all duration-1000 ${
                       i === 0 ? 'bg-blue-400' : i === 1 ? 'bg-purple-400' : 'bg-emerald-400'
                     }`}
