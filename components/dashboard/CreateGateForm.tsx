@@ -38,6 +38,7 @@ export default function CreateGateForm() {
     artistName: '',
     genre: '',
     soundcloudTrackUrl: '',
+    soundcloudTrackId: '',
     artworkUrl: '',
     fileUrl: '',
     fileSizeMb: undefined,
@@ -76,9 +77,19 @@ export default function CreateGateForm() {
     const track = soundcloudTracks.find(t => t.trackId === trackId);
 
     if (track) {
+      // Extract numeric ID from SoundCloud URN format
+      // Format: "tag:soundcloud,2010:tracks/2212048733" -> "2212048733"
+      const numericId = track.trackId.split('/').pop() || track.trackId;
+
+      console.log('[CreateGateForm] Track selected:', {
+        originalTrackId: track.trackId,
+        extractedNumericId: numericId
+      });
+
       setFormData(prev => ({
         ...prev,
         soundcloudTrackUrl: track.url,
+        soundcloudTrackId: numericId,
         title: track.title,
         artworkUrl: track.coverImage || '',
         description: track.description || ''
@@ -118,6 +129,9 @@ export default function CreateGateForm() {
     setSubmitting(true);
 
     try {
+      console.log('[CreateGateForm] Submitting formData:', formData);
+      console.log('[CreateGateForm] soundcloudTrackId:', formData.soundcloudTrackId);
+
       const response = await fetch('/api/download-gates', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

@@ -50,18 +50,20 @@ export async function GET(request: Request) {
 
     // Serialize dates to ISO strings
     const serializedGates = gatesWithStats.map(({ gate, stats }) => {
-      // Map the use case stats to GateStats format
+      // Map the use case stats to frontend format (without "total" prefix)
       const gateStats = {
-        gateId: parseInt(gate.id),
-        totalViews: stats.totalViews,
-        totalSubmissions: stats.totalSubmissions,
-        totalDownloads: stats.totalDownloads,
+        views: stats.totalViews,
+        submissions: stats.totalSubmissions,
+        downloads: stats.totalDownloads,
         conversionRate: stats.conversionRate,
-        soundcloudReposts: 0,
-        soundcloudFollows: 0,
-        spotifyConnects: 0,
+        soundcloudReposts: stats.soundcloudReposts || 0,
+        soundcloudFollows: stats.soundcloudFollows || 0,
+        spotifyConnections: stats.spotifyConnects || 0,
       };
-      return serializeGateWithStats(gate, gateStats);
+      return {
+        ...serializeGate(gate),
+        stats: gateStats
+      };
     });
 
     return NextResponse.json({ gates: serializedGates });

@@ -5,6 +5,7 @@ import { Users, Trash2, Mail, Filter, Search } from 'lucide-react';
 import DataTable from './DataTable';
 import ImportContactsButton from './ImportContactsButton';
 import BrevoImportWizardModal from './BrevoImportWizardModal';
+import Toast from '@/components/ui/Toast';
 
 interface Contact {
   id: number;
@@ -43,6 +44,7 @@ const ContactsList = forwardRef<ContactsListRef, Props>(({ onImportClick }, ref)
   const [deleting, setDeleting] = useState(false);
   const [showBrevoImport, setShowBrevoImport] = useState(false);
   const [brevoConnected, setBrevoConnected] = useState<boolean | null>(null);
+  const [showToast, setShowToast] = useState(false);
 
   useEffect(() => {
     fetchContacts();
@@ -77,10 +79,8 @@ const ContactsList = forwardRef<ContactsListRef, Props>(({ onImportClick }, ref)
     if (brevoConnected) {
       setShowBrevoImport(true);
     } else {
-      // Show dialog prompting to connect Brevo
-      if (confirm('You need to connect your Brevo account first. Go to Settings?')) {
-        window.location.href = '/settings';
-      }
+      // Show toast prompting to connect Brevo
+      setShowToast(true);
     }
   };
 
@@ -224,6 +224,21 @@ const ContactsList = forwardRef<ContactsListRef, Props>(({ onImportClick }, ref)
           setShowBrevoImport(false);
           fetchContacts(); // Refresh contacts list
         }}
+      />
+
+      {/* Toast for Brevo connection prompt */}
+      <Toast
+        message="You need to connect your Brevo account first."
+        type="warning"
+        isVisible={showToast}
+        onClose={() => setShowToast(false)}
+        action={{
+          label: 'Go to Settings',
+          onClick: () => {
+            window.location.href = '/settings';
+          }
+        }}
+        duration={0} // Manual dismiss only (because there's an action button)
       />
     </div>
   );

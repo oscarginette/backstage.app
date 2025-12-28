@@ -12,26 +12,31 @@ interface SocialActionStepProps {
   icon: 'soundcloud' | 'spotify';
   onAction: () => Promise<void>;
   isCompleted?: boolean;
+  isLoading?: boolean;
 }
 
-export function SocialActionStep({ 
-  title, 
-  description, 
-  buttonText, 
-  icon, 
+export function SocialActionStep({
+  title,
+  description,
+  buttonText,
+  icon,
   onAction,
-  isCompleted = false 
+  isCompleted = false,
+  isLoading = false
 }: SocialActionStepProps) {
-  const [loading, setLoading] = useState(false);
+  const [internalLoading, setInternalLoading] = useState(false);
 
   const handleAction = async () => {
-    setLoading(true);
+    setInternalLoading(true);
     try {
       await onAction();
     } finally {
-      setLoading(false);
+      // Don't reset loading state here since OAuth redirect will happen
+      // setInternalLoading(false);
     }
   };
+
+  const loading = isLoading || internalLoading;
 
   return (
     <motion.div
@@ -56,15 +61,18 @@ export function SocialActionStep({
         onClick={handleAction}
         disabled={loading || isCompleted}
         className={`w-full py-3 rounded-lg font-black uppercase text-sm transition-all ${
-          isCompleted 
-            ? 'bg-green-500/10 text-green-600' 
+          isCompleted
+            ? 'bg-green-500/10 text-green-600'
             : icon === 'soundcloud'
-              ? 'bg-[#ff5500] text-white hover:brightness-110'
-              : 'bg-[#1DB954] text-white hover:brightness-110'
-        }`}
+              ? 'bg-[#ff5500] text-white hover:brightness-110 active:scale-95'
+              : 'bg-[#1DB954] text-white hover:brightness-110 active:scale-95'
+        } ${loading ? 'cursor-wait' : ''}`}
       >
         {loading ? (
-          <Loader2 className="w-5 h-5 animate-spin mx-auto" />
+          <div className="flex items-center justify-center gap-2">
+            <Loader2 className="w-5 h-5 animate-spin" />
+            <span>Redirecting...</span>
+          </div>
         ) : isCompleted ? (
           "Completed"
         ) : (
