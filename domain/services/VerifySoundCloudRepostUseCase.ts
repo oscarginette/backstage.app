@@ -29,7 +29,7 @@ import { IDownloadAnalyticsRepository } from '../repositories/IDownloadAnalytics
 import { SoundCloudClient } from '@/lib/soundcloud-client';
 
 export interface VerifySoundCloudRepostInput {
-  submissionId: number;
+  submissionId: string;
   accessToken: string;
   soundcloudUserId: number;
   ipAddress?: string;

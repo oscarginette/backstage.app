@@ -62,7 +62,7 @@ export async function GET(
 
     // Track view event (async, non-blocking)
     trackAnalyticsUseCase.execute({
-      gateId: parseInt(gate.id),
+      gateId: gate.id,
       eventType: 'view',
       referrer,
       utmSource,

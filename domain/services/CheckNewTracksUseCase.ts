@@ -5,7 +5,7 @@ import { MusicTrack } from '../entities/MusicTrack';
 export interface CheckNewTracksInput {
   userId: number;
   artistIdentifier: string;
-  platform: 'soundcloud';
+  platform: 'soundcloud' | 'spotify';
 }
 
 export interface CheckNewTracksResult {

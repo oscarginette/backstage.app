@@ -200,7 +200,7 @@ export class PostgresDownloadSubmissionRepository implements IDownloadSubmission
     }
   }
 
-  async generateDownloadToken(id: number, expiresAt: Date): Promise<string> {
+  async generateDownloadToken(id: string, expiresAt: Date): Promise<string> {
     try {
       // Generate secure 32-byte token (64 hex characters)
       const token = randomBytes(32).toString('hex');
@@ -227,7 +227,7 @@ export class PostgresDownloadSubmissionRepository implements IDownloadSubmission
     }
   }
 
-  async markDownloadComplete(id: number): Promise<void> {
+  async markDownloadComplete(id: string): Promise<void> {
     try {
       const result = await sql`
         UPDATE download_submissions
@@ -248,7 +248,7 @@ export class PostgresDownloadSubmissionRepository implements IDownloadSubmission
     }
   }
 
-  async updateSoundCloudProfile(id: number, profile: SoundCloudProfile): Promise<void> {
+  async updateSoundCloudProfile(id: string, profile: SoundCloudProfile): Promise<void> {
     try {
       const result = await sql`
         UPDATE download_submissions
@@ -270,7 +270,7 @@ export class PostgresDownloadSubmissionRepository implements IDownloadSubmission
     }
   }
 
-  async updateSpotifyProfile(id: number, profile: SpotifyProfile): Promise<void> {
+  async updateSpotifyProfile(id: string, profile: SpotifyProfile): Promise<void> {
     try {
       const result = await sql`
         UPDATE download_submissions

@@ -25,7 +25,7 @@
  * - Access token never exposed to browser
  */
 
-import { NextResponse } from 'next/request';
+import { NextResponse } from 'next/server';
 import { PostgresOAuthStateRepository } from '@/infrastructure/database/repositories/PostgresOAuthStateRepository';
 import { PostgresDownloadSubmissionRepository } from '@/infrastructure/database/repositories/PostgresDownloadSubmissionRepository';
 import { PostgresDownloadGateRepository } from '@/infrastructure/database/repositories/PostgresDownloadGateRepository';

@@ -49,12 +49,12 @@ export async function GET(request: Request) {
       );
     }
 
-    const submissionIdNum = parseInt(submissionId, 10);
-    const gateIdNum = parseInt(gateId, 10);
-
-    if (isNaN(submissionIdNum) || isNaN(gateIdNum)) {
+    // UUIDs are strings, no need to parse
+    // Basic validation: check if they look like UUIDs
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(submissionId) || !uuidRegex.test(gateId)) {
       return NextResponse.json(
-        { error: 'Invalid submissionId or gateId' },
+        { error: 'Invalid submissionId or gateId format' },
         { status: 400 }
       );
     }
@@ -68,13 +68,18 @@ export async function GET(request: Request) {
       );
     }
 
+    // Generate state token for CSRF protection (32 bytes = 64 hex chars)
+    const { randomBytes } = await import('node:crypto');
+    const stateToken = randomBytes(32).toString('hex');
+
     // Create OAuth state token (CSRF protection)
     const expiresAt = new Date(Date.now() + STATE_EXPIRATION_MS);
 
     const oauthState = await oauthStateRepository.create({
+      stateToken,
       provider: 'soundcloud',
-      submissionId: submissionIdNum,
-      gateId: gateIdNum,
+      submissionId,
+      gateId,
       expiresAt,
     });
 

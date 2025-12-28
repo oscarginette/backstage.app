@@ -57,9 +57,8 @@ export async function GET() {
     });
 
     return NextResponse.json({
-      success: true,
-      message: 'Multi-platform check completed',
       ...result,
+      message: 'Multi-platform check completed',
     });
 
   } catch (error: any) {

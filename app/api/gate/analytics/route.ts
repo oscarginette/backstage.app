@@ -63,7 +63,7 @@ export async function POST(request: Request) {
 
     // Execute (fire and forget)
     const result = await trackAnalyticsUseCase.execute({
-      gateId: parseInt(gateId),
+      gateId: gateId,
       eventType,
       sessionId,
       referrer,
