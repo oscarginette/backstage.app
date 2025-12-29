@@ -71,14 +71,37 @@ export class SpotifyClient {
     const redirectUri = process.env.SPOTIFY_REDIRECT_URI;
 
     if (!clientId || !clientSecret || !redirectUri) {
+      // During build time, these vars might not be available
+      // We'll set them to empty strings and validate at runtime
+      console.warn('Spotify credentials not configured');
+      this.clientId = clientId || '';
+      this.clientSecret = clientSecret || '';
+      this.redirectUri = redirectUri || '';
+    } else {
+      this.clientId = clientId;
+      this.clientSecret = clientSecret;
+      this.redirectUri = redirectUri;
+    }
+  }
+
+  /**
+   * Check if Spotify is properly configured
+   * Call this before using any Spotify methods
+   */
+  public isConfigured(): boolean {
+    return !!(this.clientId && this.clientSecret && this.redirectUri);
+  }
+
+  /**
+   * Validate configuration and throw if not configured
+   * Call this at the start of any public method that needs config
+   */
+  private validateConfiguration(): void {
+    if (!this.isConfigured()) {
       throw new Error(
-        'Missing Spotify configuration. Set SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET, and SPOTIFY_REDIRECT_URI in .env'
+        'Spotify is not configured. Set SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET, and SPOTIFY_REDIRECT_URI environment variables.'
       );
     }
-
-    this.clientId = clientId;
-    this.clientSecret = clientSecret;
-    this.redirectUri = redirectUri;
   }
 
   /**
@@ -111,6 +134,8 @@ export class SpotifyClient {
    * @returns Authorization URL to redirect user to
    */
   public getAuthorizationUrl(state: string, codeChallenge: string): string {
+    this.validateConfiguration();
+
     const scopes = [
       'user-read-email',
       'user-read-private',
@@ -141,6 +166,8 @@ export class SpotifyClient {
     code: string,
     codeVerifier: string
   ): Promise<SpotifyTokenResponse> {
+    this.validateConfiguration();
+
     const params = new URLSearchParams({
       grant_type: 'authorization_code',
       code: code,
@@ -182,6 +209,8 @@ export class SpotifyClient {
    * @returns User profile data
    */
   public async getUserProfile(accessToken: string): Promise<SpotifyUserProfile> {
+    this.validateConfiguration();
+
     try {
       const response = await fetch(`${this.API_BASE_URL}/me`, {
         headers: {
