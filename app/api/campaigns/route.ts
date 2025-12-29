@@ -1,7 +1,9 @@
-import { NextResponse } from 'next/server';
 import { GetCampaignsUseCase } from '@/domain/services/campaigns/GetCampaignsUseCase';
-import { CreateCampaignUseCase, ValidationError } from '@/domain/services/campaigns/CreateCampaignUseCase';
+import { CreateCampaignUseCase } from '@/domain/services/campaigns/CreateCampaignUseCase';
 import { emailCampaignRepository } from '@/infrastructure/database/repositories';
+import { withErrorHandler, generateRequestId } from '@/lib/error-handler';
+import { successResponse, createdResponse } from '@/lib/api-response';
+import { CreateCampaignSchema } from '@/lib/validation-schemas';
 
 export const dynamic = 'force-dynamic';
 
@@ -15,31 +17,31 @@ export const dynamic = 'force-dynamic';
  * - templateId: string (optional) - Filter by template ID
  * - scheduledOnly: boolean (optional) - Only return scheduled campaigns
  */
-export async function GET(request: Request) {
-  try {
-    const { searchParams } = new URL(request.url);
-    const status = searchParams.get('status') as 'draft' | 'sent' | null;
-    const trackId = searchParams.get('trackId');
-    const templateId = searchParams.get('templateId');
-    const scheduledOnly = searchParams.get('scheduledOnly') === 'true';
+export const GET = withErrorHandler(async (request: Request) => {
+  const requestId = generateRequestId();
+  const { searchParams } = new URL(request.url);
+  const status = searchParams.get('status') as 'draft' | 'sent' | null;
+  const trackId = searchParams.get('trackId');
+  const templateId = searchParams.get('templateId');
+  const scheduledOnly = searchParams.get('scheduledOnly') === 'true';
 
-    const useCase = new GetCampaignsUseCase(emailCampaignRepository);
-    const result = await useCase.execute({
-      status: status || undefined,
-      trackId: trackId || undefined,
-      templateId: templateId || undefined,
-      scheduledOnly
-    });
+  const useCase = new GetCampaignsUseCase(emailCampaignRepository);
+  const result = await useCase.execute({
+    status: status || undefined,
+    trackId: trackId || undefined,
+    templateId: templateId || undefined,
+    scheduledOnly
+  });
 
-    return NextResponse.json({
+  return successResponse(
+    {
       campaigns: result.campaigns,
       count: result.count
-    });
-  } catch (error: any) {
-    console.error('Error fetching campaigns:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
-  }
-}
+    },
+    200,
+    requestId
+  );
+});
 
 /**
  * POST /api/campaigns
@@ -53,31 +55,33 @@ export async function GET(request: Request) {
  * - status: 'draft' | 'sent' (optional, default: 'draft') - Initial status
  * - scheduledAt: string (optional) - ISO date string for scheduled sending
  */
-export async function POST(request: Request) {
-  try {
-    const body = await request.json();
+export const POST = withErrorHandler(async (request: Request) => {
+  const requestId = generateRequestId();
+  const body = await request.json();
 
-    const useCase = new CreateCampaignUseCase(emailCampaignRepository);
-    const result = await useCase.execute({
-      templateId: body.templateId,
-      trackId: body.trackId,
-      subject: body.subject,
-      htmlContent: body.htmlContent,
-      status: body.status || 'draft',
-      scheduledAt: body.scheduledAt ? new Date(body.scheduledAt) : null
-    });
+  // Validate request body
+  const validation = CreateCampaignSchema.safeParse(body);
+  if (!validation.success) {
+    throw new Error(`Validation failed: ${JSON.stringify(validation.error.format())}`);
+  }
 
-    return NextResponse.json({
+  const validatedData = validation.data;
+
+  const useCase = new CreateCampaignUseCase(emailCampaignRepository);
+  const result = await useCase.execute({
+    templateId: validatedData.templateId,
+    trackId: validatedData.trackId,
+    subject: validatedData.subject,
+    htmlContent: validatedData.htmlContent,
+    status: validatedData.status,
+    scheduledAt: validatedData.scheduledAt ? new Date(validatedData.scheduledAt) : null
+  });
+
+  return createdResponse(
+    {
       campaign: result.campaign,
       success: result.success
-    }, { status: 201 });
-  } catch (error: any) {
-    console.error('Error creating campaign:', error);
-
-    if (error instanceof ValidationError) {
-      return NextResponse.json({ error: error.message }, { status: 400 });
-    }
-
-    return NextResponse.json({ error: error.message }, { status: 500 });
-  }
-}
+    },
+    requestId
+  );
+});

@@ -17,16 +17,17 @@ export async function GET(request: Request) {
     const result = await useCase.execute(trackId);
 
     return NextResponse.json(result);
-  } catch (error: any) {
-    console.error('Error fetching campaign stats:', error);
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error instanceof Error ? error.message : "Unknown error" : 'Failed to fetch campaign stats';
+    console.error('Error fetching campaign stats:', errorMessage);
 
-    if (error.message?.includes('does not exist')) {
+    if (errorMessage.includes('does not exist')) {
       return NextResponse.json({
         stats: [],
         message: 'Run migration first: /api/migrate'
       });
     }
 
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }

@@ -27,9 +27,10 @@ export async function GET(
     }
 
     return NextResponse.json({ campaign });
-  } catch (error: any) {
-    console.error('Error fetching campaign:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error instanceof Error ? error.message : "Unknown error" : 'Failed to fetch campaign';
+    console.error('Error fetching campaign:', errorMessage);
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }
 
@@ -67,18 +68,19 @@ export async function PUT(
       campaign: result.campaign,
       success: result.success
     });
-  } catch (error: any) {
-    console.error('Error updating campaign:', error);
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error instanceof Error ? error.message : "Unknown error" : 'Failed to update campaign';
+    console.error('Error updating campaign:', errorMessage);
 
     if (error instanceof UpdateNotFoundError) {
-      return NextResponse.json({ error: error.message }, { status: 404 });
+      return NextResponse.json({ error: error instanceof Error ? error.message : "Unknown error" }, { status: 404 });
     }
 
     if (error instanceof UpdateValidationError) {
-      return NextResponse.json({ error: error.message }, { status: 400 });
+      return NextResponse.json({ error: error instanceof Error ? error.message : "Unknown error" }, { status: 400 });
     }
 
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }
 
@@ -103,17 +105,18 @@ export async function DELETE(
       success: true,
       message: 'Campaign deleted successfully'
     });
-  } catch (error: any) {
-    console.error('Error deleting campaign:', error);
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error instanceof Error ? error.message : "Unknown error" : 'Failed to delete campaign';
+    console.error('Error deleting campaign:', errorMessage);
 
     if (error instanceof DeleteNotFoundError) {
-      return NextResponse.json({ error: error.message }, { status: 404 });
+      return NextResponse.json({ error: error instanceof Error ? error.message : "Unknown error" }, { status: 404 });
     }
 
     if (error instanceof DeleteValidationError) {
-      return NextResponse.json({ error: error.message }, { status: 400 });
+      return NextResponse.json({ error: error instanceof Error ? error.message : "Unknown error" }, { status: 400 });
     }
 
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }

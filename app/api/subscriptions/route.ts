@@ -14,6 +14,7 @@ import {
   priceRepository,
   productRepository,
 } from '@/infrastructure/database/repositories';
+import { isAppError } from '@/lib/errors';
 
 export async function POST(request: NextRequest) {
   try {
@@ -52,34 +53,18 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Error creating subscription:', error);
 
-    // Handle specific error types
-    if (error instanceof Error) {
-      if (error.message.includes('already has an active subscription')) {
-        return NextResponse.json(
-          { error: error.message },
-          { status: 409 } // Conflict
-        );
-      }
-
-      if (error.message.includes('not found')) {
-        return NextResponse.json(
-          { error: error.message },
-          { status: 404 }
-        );
-      }
-
-      if (error.message.includes('Invalid')) {
-        return NextResponse.json(
-          { error: error.message },
-          { status: 400 }
-        );
-      }
+    // Handle known AppError types with proper status codes
+    if (isAppError(error)) {
+      return NextResponse.json(
+        { error: error instanceof Error ? error.message : "Unknown error" },
+        { status: error.status }
+      );
     }
 
-    // Generic error
+    // Handle unexpected errors
     return NextResponse.json(
       {
-        error: error instanceof Error ? error.message : 'Failed to create subscription',
+        error: error instanceof Error ? error instanceof Error ? error.message : "Unknown error" : 'Failed to create subscription',
       },
       { status: 500 }
     );

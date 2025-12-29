@@ -7,6 +7,7 @@ import { CheckContactQuotaUseCase } from '@/domain/services/CheckContactQuotaUse
 import { PostgresContactRepository } from '@/infrastructure/database/repositories/PostgresContactRepository';
 import { PostgresContactImportHistoryRepository } from '@/infrastructure/database/repositories/PostgresContactImportHistoryRepository';
 import { PostgresUserRepository } from '@/infrastructure/database/repositories/PostgresUserRepository';
+import { ImportContactsSchema } from '@/lib/validation-schemas';
 
 export const maxDuration = 60; // Maximum duration for import (60 seconds)
 
@@ -40,37 +41,24 @@ export async function POST(request: Request) {
 
     const userId = parseInt(session.user.id);
 
-    // 2. Parse request body
+    // 2. Parse and validate request body
     const body = await request.json();
-    const { rawData, columnMapping, fileMetadata } = body;
 
-    // Validate request body
-    if (!rawData || !Array.isArray(rawData)) {
+    const validation = ImportContactsSchema.safeParse(body);
+    if (!validation.success) {
       return NextResponse.json(
-        { error: 'Invalid rawData - must be an array' },
+        { error: 'Validation failed', details: validation.error.format() },
         { status: 400 }
       );
     }
 
-    if (!columnMapping || !columnMapping.emailColumn) {
-      return NextResponse.json(
-        { error: 'Invalid columnMapping - emailColumn is required' },
-        { status: 400 }
-      );
-    }
-
-    if (!fileMetadata || !fileMetadata.filename) {
-      return NextResponse.json(
-        { error: 'Invalid fileMetadata' },
-        { status: 400 }
-      );
-    }
+    const { rawData, columnMapping, fileMetadata } = validation.data;
 
     // 3. Create ColumnMapping value object
     const mapping = new ColumnMapping(
       columnMapping.emailColumn,
-      columnMapping.nameColumn,
-      columnMapping.subscribedColumn,
+      columnMapping.nameColumn ?? null,
+      columnMapping.subscribedColumn ?? null,
       columnMapping.metadataColumns || []
     );
 
@@ -132,7 +120,7 @@ export async function POST(request: Request) {
       contacts: validationResult.validContacts,
       fileMetadata: {
         filename: fileMetadata.filename,
-        fileType: fileMetadata.fileType,
+        fileType: fileMetadata.fileType as 'json' | 'csv' | 'brevo',
         fileSizeBytes: fileMetadata.fileSizeBytes,
         totalRows: rawData.length
       },
@@ -158,13 +146,13 @@ export async function POST(request: Request) {
         validationErrors: validationResult.errors.slice(0, 10) // First 10 validation errors
       }
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error executing import:', error);
 
     return NextResponse.json(
       {
         error: 'Failed to execute import',
-        details: error.message
+        details: error instanceof Error ? error.message : "Unknown error"
       },
       { status: 500 }
     );

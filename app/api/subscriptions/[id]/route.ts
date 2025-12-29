@@ -11,6 +11,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { CancelSubscriptionUseCase } from '@/domain/services/CancelSubscriptionUseCase';
 import { subscriptionRepository } from '@/infrastructure/database/repositories';
+import { isAppError } from '@/lib/errors';
 
 interface RouteParams {
   params: Promise<{
@@ -54,7 +55,7 @@ export async function GET(
     console.error('Error fetching subscription:', error);
     return NextResponse.json(
       {
-        error: error instanceof Error ? error.message : 'Failed to fetch subscription',
+        error: error instanceof Error ? error instanceof Error ? error.message : "Unknown error" : 'Failed to fetch subscription',
       },
       { status: 500 }
     );
@@ -95,25 +96,18 @@ export async function DELETE(
   } catch (error) {
     console.error('Error canceling subscription:', error);
 
-    if (error instanceof Error) {
-      if (error.message.includes('Unauthorized')) {
-        return NextResponse.json(
-          { error: error.message },
-          { status: 403 }
-        );
-      }
-
-      if (error.message.includes('not found')) {
-        return NextResponse.json(
-          { error: error.message },
-          { status: 404 }
-        );
-      }
+    // Handle known AppError types with proper status codes
+    if (isAppError(error)) {
+      return NextResponse.json(
+        { error: error instanceof Error ? error.message : "Unknown error" },
+        { status: error.status }
+      );
     }
 
+    // Handle unexpected errors
     return NextResponse.json(
       {
-        error: error instanceof Error ? error.message : 'Failed to cancel subscription',
+        error: error instanceof Error ? error instanceof Error ? error.message : "Unknown error" : 'Failed to cancel subscription',
       },
       { status: 500 }
     );

@@ -1,7 +1,9 @@
-import { NextResponse } from 'next/server';
-import { DeleteContactsUseCase, ValidationError } from '@/domain/services/DeleteContactsUseCase';
-import { contactRepository } from '@/infrastructure/database/repositories';
+import { UseCaseFactory } from '@/lib/di-container';
 import { auth } from '@/lib/auth';
+import { DeleteContactsSchema } from '@/lib/validation-schemas';
+import { withErrorHandler, generateRequestId } from '@/lib/error-handler';
+import { successResponse } from '@/lib/api-response';
+import { UnauthorizedError, ValidationError } from '@/lib/errors';
 
 export const dynamic = 'force-dynamic';
 
@@ -13,40 +15,35 @@ export const dynamic = 'force-dynamic';
  * Business logic delegated to DeleteContactsUseCase
  * Multi-tenant: Only deletes contacts belonging to authenticated user
  */
-export async function POST(request: Request) {
-  try {
-    // Authenticate user
-    const session = await auth();
-    if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
+export const POST = withErrorHandler(async (request: Request) => {
+  const requestId = generateRequestId();
 
-    const userId = parseInt(session.user.id);
+  // Authenticate user
+  const session = await auth();
+  if (!session?.user?.id) {
+    throw new UnauthorizedError();
+  }
 
-    const { ids } = await request.json();
+  const userId = parseInt(session.user.id);
 
-    // Use DeleteContactsUseCase for business logic
-    const useCase = new DeleteContactsUseCase(contactRepository);
-    const result = await useCase.execute({ ids, userId });
+  const body = await request.json();
 
-    return NextResponse.json({
+  // Validate request body
+  const validation = DeleteContactsSchema.safeParse(body);
+  if (!validation.success) {
+    throw new ValidationError('Validation failed', validation.error.format());
+  }
+
+  // Get use case from factory (DI)
+  const useCase = UseCaseFactory.createDeleteContactsUseCase();
+  const result = await useCase.execute({ ids: validation.data.ids, userId });
+
+  return successResponse(
+    {
       success: result.success,
       deleted: result.deleted,
-    });
-  } catch (error: any) {
-    // Handle validation errors
-    if (error instanceof ValidationError) {
-      return NextResponse.json({ error: error.message }, { status: 400 });
-    }
-
-    // Handle unexpected errors
-    console.error('Error deleting contacts:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
-  }
-}
+    },
+    200,
+    requestId
+  );
+});

@@ -1,7 +1,8 @@
-import { NextResponse } from 'next/server';
-import { GetContactsWithStatsUseCase } from '@/domain/services/GetContactsWithStatsUseCase';
-import { PostgresContactRepository } from '@/infrastructure/database/repositories/PostgresContactRepository';
+import { UseCaseFactory } from '@/lib/di-container';
 import { auth } from '@/lib/auth';
+import { withErrorHandler, generateRequestId } from '@/lib/error-handler';
+import { successResponse } from '@/lib/api-response';
+import { UnauthorizedError } from '@/lib/errors';
 
 export const dynamic = 'force-dynamic';
 
@@ -12,31 +13,21 @@ export const dynamic = 'force-dynamic';
  * Clean Architecture: Only HTTP orchestration, no business logic
  * Multi-tenant: Returns only contacts belonging to authenticated user
  */
-export async function GET() {
-  try {
-    // Authenticate user
-    const session = await auth();
-    if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
+export const GET = withErrorHandler(async () => {
+  const requestId = generateRequestId();
 
-    const userId = parseInt(session.user.id);
-
-    const contactRepository = new PostgresContactRepository();
-    const useCase = new GetContactsWithStatsUseCase(contactRepository);
-
-    const result = await useCase.execute(userId);
-
-    return NextResponse.json(result);
-
-  } catch (error: any) {
-    console.error('Error fetching contacts:', error);
-    return NextResponse.json(
-      { error: error.message },
-      { status: 500 }
-    );
+  // Authenticate user
+  const session = await auth();
+  if (!session?.user?.id) {
+    throw new UnauthorizedError();
   }
-}
+
+  const userId = parseInt(session.user.id);
+
+  // Get use case from factory (DI)
+  const useCase = UseCaseFactory.createGetContactsWithStatsUseCase();
+
+  const result = await useCase.execute(userId);
+
+  return successResponse(result, 200, requestId);
+});

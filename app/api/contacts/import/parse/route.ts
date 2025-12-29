@@ -89,13 +89,13 @@ export async function POST(request: Request) {
         rawData: preview.rawData // Needed for execute step
       }
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error parsing import file:', error);
 
     return NextResponse.json(
       {
         error: 'Failed to parse file',
-        details: error.message
+        details: error instanceof Error ? error.message : "Unknown error"
       },
       { status: 500 }
     );
