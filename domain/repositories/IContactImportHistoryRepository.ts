@@ -9,6 +9,8 @@
  * - Infrastructure layer implements with PostgreSQL
  */
 
+import type { ColumnMappingMetadata } from '../types/metadata';
+
 export interface ContactImportHistory {
   id: number;
   userId: number;
@@ -19,7 +21,7 @@ export interface ContactImportHistory {
   contactsInserted: number;
   contactsUpdated: number;
   contactsSkipped: number;
-  columnMapping: Record<string, any> | null;
+  columnMapping: ColumnMappingMetadata | null;
   status: 'pending' | 'parsing' | 'importing' | 'completed' | 'failed';
   startedAt: Date;
   completedAt: Date | null;
@@ -34,7 +36,7 @@ export interface CreateImportHistoryInput {
   fileSizeBytes: number | null;
   fileType: 'csv' | 'json' | 'brevo';
   rowsTotal: number;
-  columnMapping?: Record<string, any>;
+  columnMapping?: ColumnMappingMetadata;
 }
 
 export interface ImportResults {

@@ -9,6 +9,7 @@
  */
 
 import { ISubscriptionRepository } from '../repositories/ISubscriptionRepository';
+import { ValidationError, NotFoundError, AccessDeniedError } from '@/lib/errors';
 
 export interface CancelSubscriptionInput {
   subscriptionId: string;
@@ -38,12 +39,12 @@ export class CancelSubscriptionUseCase {
     // Step 2: Fetch subscription
     const subscription = await this.subscriptionRepository.findById(input.subscriptionId);
     if (!subscription) {
-      throw new Error(`Subscription ${input.subscriptionId} not found`);
+      throw new NotFoundError(`Subscription ${input.subscriptionId} not found`);
     }
 
     // Step 3: Verify ownership
     if (subscription.customerId !== input.userId) {
-      throw new Error('Unauthorized: You can only cancel your own subscriptions');
+      throw new AccessDeniedError('Unauthorized: You can only cancel your own subscriptions');
     }
 
     // Step 4: Check if already canceled
@@ -88,11 +89,11 @@ export class CancelSubscriptionUseCase {
 
   private validateInput(input: CancelSubscriptionInput): void {
     if (!input.subscriptionId || !input.subscriptionId.startsWith('sub_')) {
-      throw new Error('Invalid subscription ID format');
+      throw new ValidationError('Invalid subscription ID format');
     }
 
     if (!input.userId || input.userId <= 0) {
-      throw new Error('Invalid user ID');
+      throw new ValidationError('Invalid user ID');
     }
   }
 }

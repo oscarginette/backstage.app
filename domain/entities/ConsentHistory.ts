@@ -4,6 +4,8 @@
  * Domain entity representing a consent change event (GDPR compliance)
  */
 
+import type { ConsentHistoryMetadata } from '../types/metadata';
+
 export type ConsentAction =
   | 'subscribe'
   | 'unsubscribe'
@@ -20,12 +22,8 @@ export type ConsentSource =
   | 'hypedit_signup'
   | 'manual_import';
 
-export interface ConsentMetadata {
-  reason?: string;
-  campaign_id?: string;
-  track_id?: string;
-  [key: string]: any;
-}
+// Re-export for backward compatibility
+export type ConsentMetadata = ConsentHistoryMetadata;
 
 export class ConsentHistory {
   constructor(

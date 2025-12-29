@@ -14,6 +14,7 @@ import { IUserRepository } from '../repositories/IUserRepository';
 import { IQuotaTrackingRepository } from '../repositories/IQuotaTrackingRepository';
 import { IEmailProvider } from '../providers/IEmailProvider';
 import { SubscriptionActivatedEmail } from '@/infrastructure/email/templates/SubscriptionActivatedEmail';
+import { env, getAppUrl, getBaseUrl } from '@/lib/env';
 
 export interface SendSubscriptionActivatedEmailInput {
   userId: number;
@@ -36,7 +37,7 @@ export class SendSubscriptionActivatedEmailUseCase {
     }
   ) {
     this.baseUrl =
-      process.env.NEXT_PUBLIC_APP_URL ||
+      getAppUrl() ||
       config?.baseUrl ||
       'https://backstage.app';
   }
@@ -105,8 +106,8 @@ export class SendSubscriptionActivatedEmailUseCase {
         to: user.email,
         subject,
         html,
-        from: process.env.SENDER_EMAIL
-          ? `Backstage <${process.env.SENDER_EMAIL}>`
+        from: env.SENDER_EMAIL
+          ? `Backstage <${env.SENDER_EMAIL}>`
           : undefined,
       });
 

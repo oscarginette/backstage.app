@@ -16,7 +16,7 @@ export type OAuthProvider = 'soundcloud' | 'spotify';
 // Input types for creating entities
 
 export interface CreateGateInput {
-  slug: string;
+  slug?: string;
   title: string;
   artistName?: string;
   genre?: string;

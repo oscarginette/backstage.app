@@ -12,6 +12,7 @@
 
 import { IBrevoAPIClient, BrevoContact, BrevoList } from '@/domain/repositories/IBrevoAPIClient';
 import { ImportedContact } from '@/domain/entities/ImportedContact';
+import type { ContactMetadata } from '@/domain/types/metadata';
 
 export interface FetchBrevoContactsInput {
   userId: number;
@@ -73,12 +74,14 @@ export class FetchBrevoContactsUseCase {
     const subscribed = !contact.emailBlacklisted;
 
     // Metadata: Preserve all Brevo data for audit trail
-    const metadata: Record<string, any> = {
-      brevo_id: contact.id.toString(),
-      brevo_list_ids: contact.listIds,
-      attributes: attrs,
-      imported_from_brevo: true,
-      imported_at: new Date().toISOString()
+    const metadata: ContactMetadata = {
+      externalId: contact.id.toString(),
+      source: 'brevo',
+      importedAt: new Date().toISOString(),
+      originalData: {
+        brevo_list_ids: contact.listIds,
+        attributes: attrs
+      }
     };
 
     return ImportedContact.create(

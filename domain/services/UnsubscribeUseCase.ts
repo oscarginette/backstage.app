@@ -8,6 +8,7 @@
 import { IContactRepository } from '../repositories/IContactRepository';
 import { IConsentHistoryRepository } from '../repositories/IConsentHistoryRepository';
 import { ConsentHistory } from '../entities/ConsentHistory';
+import { ValidationError } from '@/lib/errors';
 
 export interface UnsubscribeInput {
   token: string;
@@ -85,17 +86,17 @@ export class UnsubscribeUseCase {
    */
   private validateInput(input: UnsubscribeInput): void {
     if (!input.token || input.token.trim() === '') {
-      throw new Error('Unsubscribe token is required');
+      throw new ValidationError('Unsubscribe token is required');
     }
 
     // Token should be 64 characters (32 bytes hex encoded)
     if (input.token.length !== 64) {
-      throw new Error('Invalid token format');
+      throw new ValidationError('Invalid token format');
     }
 
     // Token should only contain hex characters
     if (!/^[a-f0-9]{64}$/i.test(input.token)) {
-      throw new Error('Invalid token format');
+      throw new ValidationError('Invalid token format');
     }
   }
 }

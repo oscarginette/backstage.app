@@ -11,7 +11,7 @@
 
 import { IEmailProvider } from '../providers/IEmailProvider';
 import { IQuotaTrackingRepository } from '../repositories/IQuotaTrackingRepository';
-import { QuotaExceededError } from './CheckQuotaUseCase';
+import { QuotaExceededError, ValidationError, NotFoundError } from '@/lib/errors';
 
 export interface SendTrackEmailInput {
   userId: number;
@@ -44,7 +44,7 @@ export class SendTrackEmailUseCase {
     const quota = await this.quotaRepository.getByUserId(input.userId);
 
     if (!quota) {
-      throw new Error(`Quota tracking not found for user ${input.userId}`);
+      throw new NotFoundError(`Quota tracking not found for user ${input.userId}`);
     }
 
     // Reset if new day
@@ -88,19 +88,19 @@ export class SendTrackEmailUseCase {
 
   private validateInput(input: SendTrackEmailInput): void {
     if (!input.userId || input.userId <= 0) {
-      throw new Error('Invalid userId');
+      throw new ValidationError('Invalid userId');
     }
 
     if (!input.to || !this.isValidEmail(input.to)) {
-      throw new Error('Invalid recipient email address');
+      throw new ValidationError('Invalid recipient email address');
     }
 
     if (!input.subject || input.subject.trim().length === 0) {
-      throw new Error('Subject cannot be empty');
+      throw new ValidationError('Subject cannot be empty');
     }
 
     if (!input.html || input.html.trim().length === 0) {
-      throw new Error('Email body cannot be empty');
+      throw new ValidationError('Email body cannot be empty');
     }
   }
 

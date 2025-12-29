@@ -15,8 +15,13 @@ import { IEmailTemplateRepository } from '../../repositories/IEmailTemplateRepos
 export interface CreateEmailTemplateInput {
   name: string;
   description?: string;
-  mjmlContent: object;
-  htmlSnapshot: string;
+  subject: string;
+  htmlContent: string;
+  jsonContent?: Record<string, unknown>;
+  isPublic?: boolean;
+  category?: string;
+  mjmlContent?: object;
+  htmlSnapshot?: string;
   isDefault?: boolean;
 }
 

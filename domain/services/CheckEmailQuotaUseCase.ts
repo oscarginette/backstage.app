@@ -9,6 +9,7 @@
  */
 
 import { IUserRepository } from '../repositories/IUserRepository';
+import { ValidationError } from '@/lib/errors';
 
 export interface CheckEmailQuotaInput {
   userId: number;
@@ -25,12 +26,8 @@ export interface CheckEmailQuotaResult {
   message?: string;
 }
 
-export class EmailQuotaExceededError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = 'EmailQuotaExceededError';
-  }
-}
+// Re-export EmailQuotaExceededError from lib/errors for backward compatibility
+export { EmailQuotaExceededError } from '@/lib/errors';
 
 export class CheckEmailQuotaUseCase {
   constructor(private readonly userRepository: IUserRepository) {}
@@ -38,13 +35,13 @@ export class CheckEmailQuotaUseCase {
   async execute(input: CheckEmailQuotaInput): Promise<CheckEmailQuotaResult> {
     // Validate input
     if (!input.userId || input.userId <= 0) {
-      throw new Error('Invalid userId');
+      throw new ValidationError('Invalid userId');
     }
 
     const emailCount = input.emailCount || 1;
 
     if (emailCount < 0) {
-      throw new Error('emailCount must be non-negative');
+      throw new ValidationError('emailCount must be non-negative');
     }
 
     // Get user quota information

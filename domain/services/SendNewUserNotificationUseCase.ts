@@ -13,6 +13,7 @@
 import { IUserRepository } from '../repositories/IUserRepository';
 import { IEmailProvider } from '../providers/IEmailProvider';
 import { NewUserSignupEmail } from '@/infrastructure/email/templates/NewUserSignupEmail';
+import { env, getAppUrl, getBaseUrl } from '@/lib/env';
 
 export interface SendNewUserNotificationInput {
   userId: number;
@@ -37,12 +38,12 @@ export class SendNewUserNotificationUseCase {
   ) {
     // Use environment variable or fallback to config parameter
     this.adminEmail =
-      process.env.ADMIN_EMAIL ||
+      env.ADMIN_EMAIL ||
       config?.adminEmail ||
       'admin@backstage.app';
 
     this.baseUrl =
-      process.env.NEXT_PUBLIC_APP_URL ||
+      getAppUrl() ||
       config?.baseUrl ||
       'https://backstage.app';
   }
@@ -91,8 +92,8 @@ export class SendNewUserNotificationUseCase {
         to: this.adminEmail,
         subject,
         html,
-        from: process.env.SENDER_EMAIL
-          ? `Backstage <${process.env.SENDER_EMAIL}>`
+        from: env.SENDER_EMAIL
+          ? `Backstage <${env.SENDER_EMAIL}>`
           : undefined,
       });
 

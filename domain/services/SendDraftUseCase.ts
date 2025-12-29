@@ -13,6 +13,7 @@ import { IContactRepository } from '@/domain/repositories/IContactRepository';
 import { IEmailProvider } from '@/infrastructure/email/IEmailProvider';
 import { IExecutionLogRepository } from '@/domain/repositories/IExecutionLogRepository';
 import { IEmailCampaignRepository } from '@/domain/repositories/IEmailCampaignRepository';
+import { env, getAppUrl, getBaseUrl } from '@/lib/env';
 
 export interface SendDraftInput {
   userId: number;
@@ -88,9 +89,10 @@ export class SendDraftUseCase {
         duration: Date.now() - startTime,
         failures: results.emailsFailed.length > 0 ? results.emailsFailed : undefined
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       // Log error
-      await this.logError(error, startTime);
+      const errorToLog = error instanceof Error ? error : new Error('Unknown error occurred');
+      await this.logError(errorToLog, startTime);
       throw error;
     }
   }
@@ -102,7 +104,7 @@ export class SendDraftUseCase {
     const emailsSent: Array<{ email: string; id?: string }> = [];
     const emailsFailed: Array<{ email: string; error: string }> = [];
 
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://backstage-art.vercel.app';
+    const baseUrl = getAppUrl();
 
     for (const contact of contacts) {
       try {
@@ -129,9 +131,10 @@ export class SendDraftUseCase {
         } else {
           emailsFailed.push({ email: contact.email, error: result.error || 'Unknown error' });
         }
-      } catch (error: any) {
-        console.error(`Error procesando ${contact.email}:`, error);
-        emailsFailed.push({ email: contact.email, error: error.message });
+      } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        console.error(`Error procesando ${contact.email}:`, errorMessage);
+        emailsFailed.push({ email: contact.email, error: errorMessage });
       }
     }
 

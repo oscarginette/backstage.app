@@ -12,6 +12,7 @@
 import { IEmailCampaignRepository } from '@/domain/repositories/IEmailCampaignRepository';
 import { render } from '@react-email/components';
 import CustomEmail from '@/emails/custom-email';
+import { env, getAppUrl, getBaseUrl } from '@/lib/env';
 
 export interface SaveDraftInput {
   id?: string; // If provided, update existing draft
@@ -82,7 +83,7 @@ export class SaveDraftUseCase {
 
   private async buildHtmlContent(input: SaveDraftInput): Promise<string> {
     // Build a temporary unsubscribe URL for preview
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://backstage-art.vercel.app';
+    const baseUrl = getAppUrl();
     const tempUnsubscribeUrl = `${baseUrl}/unsubscribe?token=TEMP_TOKEN`;
 
     return await render(

@@ -75,10 +75,11 @@ export class BulkActivateUsersUseCase {
         await this.userRepository.updateSubscription(userId, subscriptionInput);
 
         successCount++;
-      } catch (error: any) {
+      } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         errors.push({
           userId,
-          error: error.message || 'Unknown error',
+          error: errorMessage,
         });
       }
     }

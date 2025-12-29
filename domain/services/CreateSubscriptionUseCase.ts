@@ -12,6 +12,7 @@ import { ISubscriptionRepository } from '../repositories/ISubscriptionRepository
 import { IPriceRepository } from '../repositories/IPriceRepository';
 import { IProductRepository } from '../repositories/IProductRepository';
 import { Subscription } from '../entities/Subscription';
+import { ValidationError, NotFoundError, ConflictError } from '@/lib/errors';
 import { Price } from '../entities/Price';
 import { Product } from '../entities/Product';
 import type { BillingPeriod } from '../types/stripe';
@@ -57,21 +58,21 @@ export class CreateSubscriptionUseCase {
     // Step 2: Fetch price and validate it exists
     const price = await this.priceRepository.findById(input.priceId);
     if (!price) {
-      throw new Error(`Price with ID ${input.priceId} not found`);
+      throw new NotFoundError(`Price with ID ${input.priceId} not found`);
     }
 
     if (!price.active) {
-      throw new Error(`Price ${input.priceId} is not active`);
+      throw new ValidationError(`Price ${input.priceId} is not active`);
     }
 
     // Step 3: Fetch product
     const product = await this.productRepository.findById(price.productId);
     if (!product) {
-      throw new Error(`Product ${price.productId} not found`);
+      throw new NotFoundError(`Product ${price.productId} not found`);
     }
 
     if (!product.active) {
-      throw new Error(`Product ${price.productId} is not active`);
+      throw new ValidationError(`Product ${price.productId} is not active`);
     }
 
     // Step 4: Check if user already has an active subscription
@@ -80,7 +81,7 @@ export class CreateSubscriptionUseCase {
     );
 
     if (existingSubscription) {
-      throw new Error(
+      throw new ConflictError(
         'User already has an active subscription. Cancel the existing subscription first.'
       );
     }
@@ -152,15 +153,15 @@ export class CreateSubscriptionUseCase {
 
   private validateInput(input: CreateSubscriptionInput): void {
     if (!input.userId || input.userId <= 0) {
-      throw new Error('Invalid userId');
+      throw new ValidationError('Invalid userId');
     }
 
     if (!input.priceId || !input.priceId.startsWith('price_')) {
-      throw new Error('Invalid priceId format. Must start with "price_"');
+      throw new ValidationError('Invalid priceId format. Must start with "price_"');
     }
 
     if (input.trialDays && (input.trialDays < 0 || input.trialDays > 365)) {
-      throw new Error('Trial days must be between 0 and 365');
+      throw new ValidationError('Trial days must be between 0 and 365');
     }
   }
 

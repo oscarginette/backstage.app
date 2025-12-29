@@ -1,9 +1,11 @@
+import type { EmailEventMetadata } from '../types/metadata';
+
 export interface EmailEventRecord {
   emailLogId: number;
   contactId: number;
   trackId: string;
   eventType: string;
-  eventData: any;
+  eventData: EmailEventMetadata;
   resendEmailId: string;
 }
 

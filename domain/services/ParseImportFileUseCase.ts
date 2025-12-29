@@ -1,5 +1,6 @@
 import Papa from 'papaparse';
 import { ImportPreview, DetectedColumn } from '@/domain/entities/ImportPreview';
+import { ValidationError } from '@/lib/errors';
 
 /**
  * ParseImportFileUseCase
@@ -50,11 +51,11 @@ export class ParseImportFileUseCase {
     });
 
     if (parsed.errors.length > 0) {
-      throw new Error(`CSV parsing error: ${parsed.errors[0].message}`);
+      throw new ValidationError(`CSV parsing error: ${parsed.errors[0].message}`);
     }
 
     if (parsed.data.length === 0) {
-      throw new Error('CSV file is empty');
+      throw new ValidationError('CSV file is empty');
     }
 
     const rawData = parsed.data as any[];
@@ -78,16 +79,17 @@ export class ParseImportFileUseCase {
 
       // Ensure it's an array
       if (!Array.isArray(parsed)) {
-        throw new Error('JSON must be an array of contact objects');
+        throw new ValidationError('JSON must be an array of contact objects');
       }
 
       rawData = parsed;
-    } catch (error: any) {
-      throw new Error(`JSON parsing error: ${error.message}`);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Invalid JSON format';
+      throw new ValidationError(`JSON parsing error: ${errorMessage}`);
     }
 
     if (rawData.length === 0) {
-      throw new Error('JSON file is empty');
+      throw new ValidationError('JSON file is empty');
     }
 
     const columnNames = Object.keys(rawData[0]);

@@ -1,3 +1,5 @@
+import type { ContactMetadata } from '../types/metadata';
+
 export interface Contact {
   id: number;
   email: string;
@@ -7,7 +9,7 @@ export interface Contact {
   createdAt: string;
   source?: string | null;
   unsubscribedAt?: string | null;
-  metadata?: any;
+  metadata?: ContactMetadata;
   userId?: number;
 }
 
@@ -27,7 +29,7 @@ export interface BulkImportContactInput {
   name: string | null;
   subscribed: boolean;
   source: string;
-  metadata: Record<string, any>;
+  metadata: ContactMetadata;
 }
 
 export interface BulkImportResult {

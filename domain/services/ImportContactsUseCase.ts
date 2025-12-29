@@ -106,8 +106,9 @@ export class ImportContactsUseCase {
         hasErrors: errors.length > 0,
         errors: errors.length > 0 ? errors.slice(0, 10) : undefined
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       const duration = Date.now() - startTime;
+      const errorMessage = error instanceof Error ? error.message : 'Import failed with unknown error';
 
       // Update import history with failure
       await this.importHistoryRepository.updateWithResults(importHistory.id, {
@@ -116,7 +117,7 @@ export class ImportContactsUseCase {
         contactsSkipped: 0,
         status: 'failed',
         durationMs: duration,
-        errorMessage: error.message
+        errorMessage
       });
 
       throw error;

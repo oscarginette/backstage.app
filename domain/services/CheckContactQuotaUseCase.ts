@@ -10,6 +10,7 @@
 
 import { IUserRepository } from '../repositories/IUserRepository';
 import { IContactRepository } from '../repositories/IContactRepository';
+import { ValidationError } from '@/lib/errors';
 
 export interface CheckContactQuotaInput {
   userId: number;
@@ -25,12 +26,8 @@ export interface CheckContactQuotaResult {
   message?: string;
 }
 
-export class QuotaExceededError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = 'QuotaExceededError';
-  }
-}
+// Re-export QuotaExceededError from lib/errors for backward compatibility
+export { QuotaExceededError } from '@/lib/errors';
 
 export class CheckContactQuotaUseCase {
   constructor(
@@ -41,13 +38,13 @@ export class CheckContactQuotaUseCase {
   async execute(input: CheckContactQuotaInput): Promise<CheckContactQuotaResult> {
     // Validate input
     if (!input.userId || input.userId <= 0) {
-      throw new Error('Invalid userId');
+      throw new ValidationError('Invalid userId');
     }
 
     const additionalContacts = input.additionalContacts || 1;
 
     if (additionalContacts < 0) {
-      throw new Error('additionalContacts must be non-negative');
+      throw new ValidationError('additionalContacts must be non-negative');
     }
 
     // Get user quota information

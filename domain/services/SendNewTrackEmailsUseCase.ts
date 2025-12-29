@@ -79,8 +79,9 @@ export class SendNewTrackEmailsUseCase {
       try {
         const result = await this.emailProvider.send(emailParams);
         return { success: result.success, email: contact.email };
-      } catch (error: any) {
-        console.error(`Failed to send email to ${contact.email}:`, error);
+      } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        console.error(`Failed to send email to ${contact.email}:`, errorMessage);
         return { success: false, email: contact.email };
       }
     });

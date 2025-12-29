@@ -1,5 +1,6 @@
 import { ImportedContact, ValidationError } from '@/domain/entities/ImportedContact';
 import { ColumnMapping } from '@/domain/value-objects/ColumnMapping';
+import type { ContactMetadata } from '@/domain/types/metadata';
 
 /**
  * ValidateImportDataUseCase
@@ -80,7 +81,7 @@ export class ValidateImportDataUseCase {
         );
 
         validContacts.push(contact);
-      } catch (error: any) {
+      } catch (error: unknown) {
         // Validation error - collect for user feedback
         if (error instanceof ValidationError) {
           errors.push({
@@ -89,10 +90,11 @@ export class ValidateImportDataUseCase {
             message: error.message
           });
         } else {
+          const errorMessage = error instanceof Error ? error.message : 'Unknown validation error';
           errors.push({
             row: rowNumber,
             email: '',
-            message: error.message || 'Unknown validation error'
+            message: errorMessage
           });
         }
       }
@@ -177,8 +179,8 @@ export class ValidateImportDataUseCase {
    * Extract metadata from unmapped columns
    * Creates JSONB-compatible object
    */
-  private extractMetadata(row: any, mapping: ColumnMapping): Record<string, any> {
-    const metadata: Record<string, any> = {};
+  private extractMetadata(row: any, mapping: ColumnMapping): ContactMetadata {
+    const metadata: ContactMetadata = {};
 
     // Get all unmapped columns (not email, name, or subscribed)
     for (const columnName of mapping.metadataColumns) {

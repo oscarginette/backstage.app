@@ -269,14 +269,15 @@ export class CheckAllMusicPlatformsUseCase {
         newTracksFound: checkResult.newTracksFound,
       };
 
-    } catch (error: any) {
-      console.error(`[User ${user.id}] Error checking ${platform}:`, error);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      console.error(`[User ${user.id}] Error checking ${platform}:`, errorMessage);
       return {
         userId: user.id,
         email: user.email,
         platform,
         success: false,
-        error: error.message,
+        error: errorMessage,
       };
     }
   }

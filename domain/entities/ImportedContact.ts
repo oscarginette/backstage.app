@@ -1,4 +1,5 @@
 import { Email } from '@/domain/value-objects/Email';
+import type { ContactMetadata } from '@/domain/types/metadata';
 
 /**
  * ImportedContact Entity
@@ -16,7 +17,7 @@ export class ImportedContact {
     public readonly email: string,
     public readonly name: string | null,
     public readonly subscribed: boolean,
-    public readonly metadata: Record<string, any>,
+    public readonly metadata: ContactMetadata,
     public readonly rowNumber: number
   ) {
     this.validate();
@@ -52,7 +53,7 @@ export class ImportedContact {
     email: string,
     name: string | null,
     subscribed: boolean,
-    metadata: Record<string, any>,
+    metadata: ContactMetadata,
     rowNumber: number
   ): ImportedContact {
     return new ImportedContact(

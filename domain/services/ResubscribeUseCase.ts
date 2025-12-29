@@ -8,6 +8,7 @@
 import { IContactRepository } from '../repositories/IContactRepository';
 import { IConsentHistoryRepository } from '../repositories/IConsentHistoryRepository';
 import { ConsentHistory } from '../entities/ConsentHistory';
+import { ValidationError, InternalServerError } from '@/lib/errors';
 
 export interface ResubscribeInput {
   token: string;
@@ -50,7 +51,7 @@ export class ResubscribeUseCase {
     // 4. If not already subscribed, update status
     if (!alreadySubscribed) {
       if (!contact.userId) {
-        throw new Error('Contact has no associated user');
+        throw new InternalServerError('Contact has no associated user');
       }
       await this.contactRepository.resubscribe(contact.id, contact.userId);
     }
@@ -86,17 +87,17 @@ export class ResubscribeUseCase {
    */
   private validateInput(input: ResubscribeInput): void {
     if (!input.token || input.token.trim() === '') {
-      throw new Error('Token is required');
+      throw new ValidationError('Token is required');
     }
 
     // Token should be 64 characters (32 bytes hex encoded)
     if (input.token.length !== 64) {
-      throw new Error('Invalid token format');
+      throw new ValidationError('Invalid token format');
     }
 
     // Token should only contain hex characters
     if (!/^[a-f0-9]{64}$/i.test(input.token)) {
-      throw new Error('Invalid token format');
+      throw new ValidationError('Invalid token format');
     }
   }
 }

@@ -9,6 +9,7 @@
  */
 
 import { IQuotaTrackingRepository } from '../repositories/IQuotaTrackingRepository';
+import { ValidationError, NotFoundError } from '@/lib/errors';
 
 export interface CheckQuotaInput {
   userId: number;
@@ -22,12 +23,8 @@ export interface CheckQuotaResult {
   resetDate: Date;
 }
 
-export class QuotaExceededError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = 'QuotaExceededError';
-  }
-}
+// Re-export QuotaExceededError from lib/errors for backward compatibility
+export { QuotaExceededError } from '@/lib/errors';
 
 export class CheckQuotaUseCase {
   constructor(private readonly quotaRepository: IQuotaTrackingRepository) {}
@@ -35,14 +32,14 @@ export class CheckQuotaUseCase {
   async execute(input: CheckQuotaInput): Promise<CheckQuotaResult> {
     // Validate input
     if (!input.userId || input.userId <= 0) {
-      throw new Error('Invalid userId');
+      throw new ValidationError('Invalid userId');
     }
 
     // Get quota tracking
     const quota = await this.quotaRepository.getByUserId(input.userId);
 
     if (!quota) {
-      throw new Error(`Quota tracking not found for user ${input.userId}`);
+      throw new NotFoundError(`Quota tracking not found for user ${input.userId}`);
     }
 
     // Check if daily reset is needed

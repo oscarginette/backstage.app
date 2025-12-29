@@ -5,6 +5,7 @@
  */
 
 import { ConsentHistory, ConsentAction, ConsentSource } from '../entities/ConsentHistory';
+import type { ConsentHistoryMetadata } from '../types/metadata';
 
 export interface CreateConsentHistoryInput {
   contactId: number;
@@ -13,7 +14,7 @@ export interface CreateConsentHistoryInput {
   source: ConsentSource;
   ipAddress: string | null;
   userAgent: string | null;
-  metadata?: Record<string, any> | null;
+  metadata?: ConsentHistoryMetadata | null;
 }
 
 export interface IConsentHistoryRepository {

@@ -114,7 +114,12 @@ export class ColumnMapping {
   /**
    * Serialize to JSON for storage
    */
-  toJSON(): Record<string, any> {
+  toJSON(): {
+    emailColumn: string;
+    nameColumn: string | null;
+    subscribedColumn: string | null;
+    metadataColumns: string[];
+  } {
     return {
       emailColumn: this.emailColumn,
       nameColumn: this.nameColumn,
