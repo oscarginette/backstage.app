@@ -23,14 +23,15 @@ async function setupDatabase() {
     try {
       await sql.query(schema);
       console.log('✅ Schema ejecutado correctamente');
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       // Ignorar errores de "ya existe"
-      if (error.message.includes('already exists') ||
-          error.message.includes('duplicate') ||
-          error.message.includes('does not exist')) {
+      if (errorMessage.includes('already exists') ||
+          errorMessage.includes('duplicate') ||
+          errorMessage.includes('does not exist')) {
         console.log('⚠️  Algunas tablas ya existen o hubo warnings (normal)');
       } else {
-        console.error('Error ejecutando schema:', error.message);
+        console.error('Error ejecutando schema:', errorMessage);
       }
     }
 
@@ -50,8 +51,9 @@ async function setupDatabase() {
 
     console.log('\n✨ Base de datos lista para migración');
 
-  } catch (error: any) {
-    console.error('❌ Error:', error.message);
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    console.error('❌ Error:', errorMessage);
     process.exit(1);
   }
 }

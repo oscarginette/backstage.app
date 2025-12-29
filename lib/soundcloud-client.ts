@@ -14,6 +14,8 @@
  * - Access tokens stored server-side only
  */
 
+import { env } from '@/lib/env';
+
 const SOUNDCLOUD_API_BASE = 'https://api.soundcloud.com';
 const SOUNDCLOUD_API_V2_BASE = 'https://api-v2.soundcloud.com';
 
@@ -59,8 +61,9 @@ export class SoundCloudClient {
   private clientSecret: string;
 
   constructor() {
-    this.clientId = process.env.SOUNDCLOUD_CLIENT_ID || '';
-    this.clientSecret = process.env.SOUNDCLOUD_CLIENT_SECRET || '';
+    // Use validated environment variables (optional, so we use empty strings as fallback)
+    this.clientId = env.SOUNDCLOUD_CLIENT_ID || '';
+    this.clientSecret = env.SOUNDCLOUD_CLIENT_SECRET || '';
 
     if (!this.clientId || !this.clientSecret) {
       console.warn('SoundCloud credentials not configured');

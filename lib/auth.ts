@@ -15,6 +15,7 @@ import NextAuth from 'next-auth';
 import Credentials from 'next-auth/providers/credentials';
 import { PostgresUserRepository } from '@/infrastructure/database/repositories/PostgresUserRepository';
 import type { User } from '@/domain/entities/User';
+import { isDevelopment } from '@/lib/env';
 
 const userRepository = new PostgresUserRepository();
 
@@ -127,7 +128,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       return session;
     },
   },
-  debug: process.env.NODE_ENV === 'development',
+  debug: isDevelopment,
 });
 
 /**

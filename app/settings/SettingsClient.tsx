@@ -60,9 +60,10 @@ export default function SettingsClient({
 
       setShowSuccess(true);
       setTimeout(() => setShowSuccess(false), 3000);
-    } catch (error: any) {
-      console.error('Error saving settings:', error);
-      alert(error.message || 'Failed to save settings');
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to save settings';
+      console.error('Error saving settings:', errorMessage);
+      alert(errorMessage);
     } finally {
       setIsSaving(false);
     }

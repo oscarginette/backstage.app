@@ -39,7 +39,8 @@
     "react-email": "^5.1.0",
     "react-final-form": "^7.0.0",
     "resend": "^6.6.0",
-    "rss-parser": "^3.13.0"
+    "rss-parser": "^3.13.0",
+    "zod": "^4.2.1"
   },
   "devDependencies": {
     "@biomejs/biome": "2.2.0",

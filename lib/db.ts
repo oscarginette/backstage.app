@@ -5,11 +5,13 @@
 
 import { sql as vercelSql } from '@vercel/postgres';
 import { Pool } from 'pg';
+import { env, isLocalPostgres as checkIsLocalPostgres } from '@/lib/env';
 
-const POSTGRES_URL = process.env.POSTGRES_URL;
+// Use validated environment variable
+const POSTGRES_URL = env.POSTGRES_URL;
 
-// Check if we're using local PostgreSQL (no password in URL)
-const isLocalPostgres = POSTGRES_URL && !POSTGRES_URL.includes(':@') && !POSTGRES_URL.includes('neon.tech');
+// Check if we're using local PostgreSQL
+const isLocalPostgres = checkIsLocalPostgres();
 
 let localPool: Pool | null = null;
 

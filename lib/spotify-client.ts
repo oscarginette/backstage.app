@@ -17,6 +17,7 @@
  */
 
 import { randomBytes, createHash } from 'crypto';
+import { env } from '@/lib/env';
 
 /**
  * Spotify user profile data
@@ -66,21 +67,13 @@ export class SpotifyClient {
   private readonly API_BASE_URL = 'https://api.spotify.com/v1';
 
   constructor() {
-    const clientId = process.env.SPOTIFY_CLIENT_ID;
-    const clientSecret = process.env.SPOTIFY_CLIENT_SECRET;
-    const redirectUri = process.env.SPOTIFY_REDIRECT_URI;
+    // Use validated environment variables (optional, so we use empty strings as fallback)
+    this.clientId = env.SPOTIFY_CLIENT_ID || '';
+    this.clientSecret = env.SPOTIFY_CLIENT_SECRET || '';
+    this.redirectUri = env.SPOTIFY_REDIRECT_URI || '';
 
-    if (!clientId || !clientSecret || !redirectUri) {
-      // During build time, these vars might not be available
-      // We'll set them to empty strings and validate at runtime
+    if (!this.isConfigured()) {
       console.warn('Spotify credentials not configured');
-      this.clientId = clientId || '';
-      this.clientSecret = clientSecret || '';
-      this.redirectUri = redirectUri || '';
-    } else {
-      this.clientId = clientId;
-      this.clientSecret = clientSecret;
-      this.redirectUri = redirectUri;
     }
   }
 

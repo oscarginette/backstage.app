@@ -46,8 +46,9 @@ export function useDashboardData() {
       if (!historyData.error) {
         setHistory(historyData.history || []);
       }
-    } catch (error: any) {
-      setMessage({ type: 'error', text: error.message });
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to load data';
+      setMessage({ type: 'error', text: errorMessage });
     } finally {
       setLoading(false);
     }
@@ -104,8 +105,9 @@ export function useDashboardData() {
 
       setAllTracks(data.tracks || []);
       setShowAllTracks(true);
-    } catch (error: any) {
-      setMessage({ type: 'error', text: error.message });
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to load tracks';
+      setMessage({ type: 'error', text: errorMessage });
     } finally {
       setLoadingTracks(false);
     }
@@ -145,8 +147,9 @@ export function useDashboardData() {
       if (showAllTracks) {
         loadAllTracks();
       }
-    } catch (error: any) {
-      setMessage({ type: 'error', text: error.message });
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to send track';
+      setMessage({ type: 'error', text: errorMessage });
     } finally {
       setSendingTrackId(null);
     }
@@ -181,8 +184,9 @@ export function useDashboardData() {
 
       // Recargar datos
       loadData();
-    } catch (error: any) {
-      setMessage({ type: 'error', text: error.message });
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to send custom email';
+      setMessage({ type: 'error', text: errorMessage });
     } finally {
       setSendingCustomEmail(false);
     }
@@ -213,8 +217,9 @@ export function useDashboardData() {
       });
 
       setShowEmailEditor(false);
-    } catch (error: any) {
-      setMessage({ type: 'error', text: error.message });
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to save draft';
+      setMessage({ type: 'error', text: errorMessage });
     }
   };
 
