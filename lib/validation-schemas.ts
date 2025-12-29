@@ -25,7 +25,7 @@ export const SendTrackSchema = z.object({
   html: z.string().min(1, 'HTML content is required'),
   from: z.string().email('Invalid sender email address').optional(),
   replyTo: z.string().email('Invalid reply-to email address').optional(),
-  headers: z.record(z.string()).optional(),
+  headers: z.record(z.string(), z.string()).optional(),
 });
 
 export type SendTrackInput = z.infer<typeof SendTrackSchema>;
@@ -56,7 +56,7 @@ export type SendCustomEmailInput = z.infer<typeof SendCustomEmailSchema>;
  * Executes contact import with column mapping
  */
 export const ImportContactsSchema = z.object({
-  rawData: z.array(z.record(z.any())).min(1, 'No data provided'),
+  rawData: z.array(z.record(z.string(), z.any())).min(1, 'No data provided'),
   columnMapping: z.object({
     emailColumn: z.string().min(1, 'Email column is required'),
     nameColumn: z.string().optional(),
@@ -137,7 +137,7 @@ export type UpdateDownloadGateInput = z.infer<typeof UpdateDownloadGateSchema>;
 export const SubmitDownloadGateSchema = z.object({
   email: z.string().email('Invalid email address'),
   firstName: z.string().max(100, 'First name too long').optional(),
-  consentMarketing: z.boolean({ required_error: 'Marketing consent is required' }),
+  consentMarketing: z.boolean({ message: 'Marketing consent is required' }),
 });
 
 export type SubmitDownloadGateInput = z.infer<typeof SubmitDownloadGateSchema>;
@@ -155,7 +155,7 @@ export const CreateEmailTemplateSchema = z.object({
   description: z.string().max(1000, 'Description too long').optional(),
   subject: z.string().min(1, 'Subject is required').max(500, 'Subject too long'),
   htmlContent: z.string().min(1, 'HTML content is required'),
-  jsonContent: z.record(z.any()).optional(),
+  jsonContent: z.record(z.string(), z.any()).optional(),
   isPublic: z.boolean().default(false),
   category: z.string().max(50, 'Category too long').optional(),
 });
@@ -171,7 +171,7 @@ export const UpdateEmailTemplateSchema = z.object({
   description: z.string().max(1000, 'Description too long').optional(),
   subject: z.string().min(1, 'Subject is required').max(500, 'Subject too long').optional(),
   htmlContent: z.string().min(1, 'HTML content is required').optional(),
-  jsonContent: z.record(z.any()).optional(),
+  jsonContent: z.record(z.string(), z.any()).optional(),
   isPublic: z.boolean().optional(),
   category: z.string().max(50, 'Category too long').optional(),
 });
@@ -246,7 +246,7 @@ export const ResendWebhookSchema = z.object({
     'email.opened',
     'email.clicked',
   ]),
-  data: z.record(z.any()),
+  data: z.record(z.string(), z.any()),
 });
 
 export type ResendWebhookInput = z.infer<typeof ResendWebhookSchema>;

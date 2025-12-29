@@ -663,9 +663,7 @@ export class UseCaseFactory {
 
   static createBulkActivateUsersUseCase(): BulkActivateUsersUseCase {
     return new BulkActivateUsersUseCase(
-      RepositoryFactory.createUserRepository(),
-      RepositoryFactory.createQuotaTrackingRepository(),
-      RepositoryFactory.createSubscriptionHistoryRepository()
+      UseCaseFactory.createActivateUserSubscriptionUseCase()
     );
   }
 
@@ -679,7 +677,7 @@ export class UseCaseFactory {
   static createCreateSubscriptionUseCase(): CreateSubscriptionUseCase {
     return new CreateSubscriptionUseCase(
       RepositoryFactory.createSubscriptionRepository(),
-      RepositoryFactory.createUserRepository(),
+      RepositoryFactory.createPriceRepository(),
       RepositoryFactory.createProductRepository()
     );
   }

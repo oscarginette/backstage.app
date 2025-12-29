@@ -22,9 +22,6 @@ const sentryWebpackPluginOptions = {
     enabled: true,
   },
 
-  // Disables automatic upload of source maps in development
-  disableLogger: process.env.NODE_ENV !== 'production',
-
   // Hides Sentry-specific frames from stack traces
   hideSourceMaps: true,
 
