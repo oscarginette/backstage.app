@@ -99,7 +99,7 @@ export default function ProductShowcase() {
                       { label: "AUDIENCE", value: "2,840", icon: <Users className="w-4 h-4 text-blue-500" /> },
                       { label: "DOWNLOADS", value: "15.2k", icon: <CheckCircle2 className="w-4 h-4 text-accent" /> },
                       { label: "ENGAGEMENT", value: "1,204", icon: <BarChart3 className="w-4 h-4 text-purple-500" /> },
-                      { label: "CONVERSION", value: "18.5%", icon: <ArrowUpRight className="w-4 h-4 text-green-500" /> },
+                      { label: "CONVERSION", value: "33.2%", icon: <ArrowUpRight className="w-4 h-4 text-green-500" /> },
                     ].map((stat, i) => (
                       <AnimatedStat
                         key={i}
