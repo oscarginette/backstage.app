@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useTranslations } from '@/lib/i18n/context';
+import { PATHS } from '@/lib/paths';
 
 export default function LandingFooter() {
   const t = useTranslations('footer');
@@ -13,7 +14,7 @@ export default function LandingFooter() {
         </h2>
 
         <Link
-          href="/login"
+          href={PATHS.LOGIN}
           className="inline-flex h-14 items-center justify-center gap-2 rounded-full bg-foreground px-10 text-lg font-medium text-background transition-all hover:scale-105 active:scale-95 mb-12 shadow-xl hover:shadow-2xl"
         >
           Start for Free

@@ -4,6 +4,7 @@ import React from 'react';
 import { DownloadGate } from '@/types/download-gates';
 import { BarChart2, Eye, Download, Users as UsersIcon, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
+import { PATHS } from '@/lib/paths';
 
 interface CompactGatesListProps {
   gates: DownloadGate[];
@@ -27,8 +28,8 @@ export default function CompactGatesList({ gates, loading }: CompactGatesListPro
     return (
       <div className="text-center py-10 bg-white/40 border border-[#E8E6DF] rounded-3xl border-dashed">
         <p className="text-gray-500 text-sm">No download gates created yet.</p>
-        <Link 
-          href="/dashboard/download-gates/new"
+        <Link
+          href={PATHS.DASHBOARD.DOWNLOAD_GATES.NEW}
           className="text-[#FF5500] text-sm font-bold hover:underline mt-2 inline-block"
         >
           Create your first gate →
@@ -75,8 +76,8 @@ export default function CompactGatesList({ gates, loading }: CompactGatesListPro
                 </div>
               </div>
           </div>
-          <Link 
-            href={`/dashboard/download-gates/${gate.id}`}
+          <Link
+            href={PATHS.DASHBOARD.DOWNLOAD_GATES.DETAILS(gate.id)}
             className="w-8 h-8 flex items-center justify-center rounded-xl bg-white border border-[#E8E6DF]/60 text-gray-400 hover:text-[#1c1c1c] hover:border-[#1c1c1c]/20 hover:shadow-md transition-all active:scale-95"
           >
             <ArrowRight className="w-3.5 h-3.5" />

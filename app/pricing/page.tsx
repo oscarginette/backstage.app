@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { PATHS } from '@/lib/paths';
 
 interface Price {
   id: string;
@@ -257,7 +258,7 @@ function PricingCard({
 
       {/* CTA Button */}
       <Link
-        href="/signup"
+        href={PATHS.SIGNUP}
         className={`block w-full text-center px-4 py-3 rounded-lg font-medium transition-colors ${
           isPopular
             ? 'bg-blue-600 text-white hover:bg-blue-700'

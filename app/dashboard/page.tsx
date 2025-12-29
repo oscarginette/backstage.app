@@ -19,6 +19,7 @@ import Link from 'next/link';
 import { useTranslations } from '@/lib/i18n/context';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
+import { PATHS } from '@/lib/paths';
 
 function DashboardContent() {
   const tNav = useTranslations('nav');
@@ -129,7 +130,7 @@ function DashboardContent() {
               </div>
             )}
             <Link
-              href="/settings"
+              href={PATHS.SETTINGS}
               className="group flex items-center gap-2.5 px-3 py-1.5 rounded-full bg-white/40 border border-[#E8E6DF]/60 hover:border-[#FF5500]/40 hover:bg-white/80 transition-all duration-500 backdrop-blur-md active:scale-95 shadow-sm"
             >
               <SettingsIcon className="w-3.5 h-3.5 text-gray-400 group-hover:text-[#FF5500] group-hover:rotate-90 transition-all duration-700" />
@@ -175,7 +176,7 @@ function DashboardContent() {
                        </div>
                        Active Gates
                     </h3>
-                    <Link href="/dashboard/download-gates/new" className="group flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#1c1c1c] text-white text-[10px] font-bold hover:bg-black transition-all active:scale-95">
+                    <Link href={PATHS.DASHBOARD.DOWNLOAD_GATES.NEW} className="group flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#1c1c1c] text-white text-[10px] font-bold hover:bg-black transition-all active:scale-95">
                       <Plus className="w-3 h-3" /> Create New
                     </Link>
                   </div>
@@ -217,8 +218,8 @@ function DashboardContent() {
                     <h2 className="text-2xl font-serif text-[#1c1c1c] mb-1">Growth Engine</h2>
                     <p className="text-gray-500 text-sm">Create high-converting download gates to grow your audience.</p>
                   </div>
-                  <Link 
-                    href="/dashboard/download-gates/new"
+                  <Link
+                    href={PATHS.DASHBOARD.DOWNLOAD_GATES.NEW}
                     className="flex items-center gap-2 px-6 py-3 rounded-xl bg-[#FF5500] text-white hover:bg-[#e64d00] transition-all shadow-lg shadow-[#FF5500]/10 font-bold active:scale-95 text-sm"
                   >
                     <Plus className="w-4 h-4 border-2 border-white/30 rounded-md" />

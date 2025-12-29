@@ -6,6 +6,7 @@ import { ChevronLeft, BarChart2, Users, Settings, Loader2 } from 'lucide-react';
 import { DownloadGate } from '@/types/download-gates';
 import GateOverview from '@/components/dashboard/GateOverview';
 import GateSubmissions from '@/components/dashboard/GateSubmissions';
+import { PATHS } from '@/lib/paths';
 
 export default function GateDetailsPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -44,7 +45,7 @@ export default function GateDetailsPage({ params }: { params: Promise<{ id: stri
       <div className="min-h-screen flex items-center justify-center bg-[#FDFCF8]">
          <div className="text-center">
             <h1 className="text-2xl font-serif text-[#1c1c1c] mb-4">Gate no encontrado</h1>
-            <Link href="/dashboard" className="text-[#FF5500] hover:underline">Volver al Dashboard</Link>
+            <Link href={PATHS.DASHBOARD.ROOT} className="text-[#FF5500] hover:underline">Volver al Dashboard</Link>
          </div>
       </div>
     );
@@ -68,7 +69,7 @@ export default function GateDetailsPage({ params }: { params: Promise<{ id: stri
         {/* Navigation Breadcrumb */}
         <div className="mb-8">
           <Link
-            href="/dashboard"
+            href={PATHS.DASHBOARD.ROOT}
             className="flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-[#FF5500] transition-colors group"
           >
             <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />

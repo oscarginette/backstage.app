@@ -9,6 +9,7 @@ import { SocialActionStep } from '@/components/download-gate/SocialActionStep';
 import { DownloadUnlockStep } from '@/components/download-gate/DownloadUnlockStep';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Instagram, Youtube } from 'lucide-react';
+import { PATHS } from '@/lib/paths';
 
 export default function DownloadGatePage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = use(params);
@@ -206,7 +207,7 @@ export default function DownloadGatePage({ params }: { params: Promise<{ slug: s
   if (!gate) return (
     <div className="h-screen w-screen flex flex-col items-center justify-center bg-[#FDFCF8] px-4 text-center">
       <h1 className="text-4xl font-black uppercase mb-4 tracking-tighter">Gate Not Found</h1>
-      <a href="/" className="px-8 py-4 bg-foreground text-background rounded-lg font-black uppercase tracking-widest text-xs hover:brightness-110 active:scale-95 transition-all">Back to Home</a>
+      <a href={PATHS.HOME} className="px-8 py-4 bg-foreground text-background rounded-lg font-black uppercase tracking-widest text-xs hover:brightness-110 active:scale-95 transition-all">Back to Home</a>
     </div>
   );
 
@@ -225,9 +226,9 @@ export default function DownloadGatePage({ params }: { params: Promise<{ slug: s
 
       {/* Top Left Brand Logo (Global) */}
       <div className="absolute top-8 left-8 z-40">
-        <a 
-          href="/" 
-          target="_blank" 
+        <a
+          href={PATHS.HOME}
+          target="_blank"
           className="font-serif italic text-3xl text-white hover:text-accent transition-colors duration-300 tracking-tight"
         >
           Backstage
@@ -336,7 +337,7 @@ export default function DownloadGatePage({ params }: { params: Promise<{ slug: s
                 <span>|</span>
                 <a href="#" className="hover:text-white transition-colors">DMCA Policy</a>
                 <span>|</span>
-                <a href="/" target="_blank" className="text-white/40 hover:text-white transition-colors font-black">Backstage.art</a>
+                <a href={PATHS.HOME} target="_blank" className="text-white/40 hover:text-white transition-colors font-black">Backstage.art</a>
               </footer>
             </div>
           </div>

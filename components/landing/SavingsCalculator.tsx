@@ -4,6 +4,7 @@ import { useState, useMemo } from "react";
 import { ArrowRight, Info } from "lucide-react";
 import Link from "next/link";
 import { useTranslations } from '@/lib/i18n/context';
+import { PATHS } from '@/lib/paths';
 
 export default function SavingsCalculator() {
   const t = useTranslations('savings.calculator');
@@ -155,7 +156,7 @@ export default function SavingsCalculator() {
 
           <div className="mt-12 space-y-4">
             <Link
-              href="/login"
+              href={PATHS.LOGIN}
               className="group w-full flex h-14 items-center justify-center gap-2 rounded-2xl bg-foreground text-background font-bold text-lg transition-all hover:bg-foreground/90 active:scale-[0.98] shadow-xl"
             >
               {t('startSaving')}

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { useTranslations } from '@/lib/i18n/context';
+import { PATHS } from '@/lib/paths';
 
 export default function LandingHero() {
   const t = useTranslations('hero');
@@ -31,7 +32,7 @@ export default function LandingHero() {
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
           <Link
-            href="/login"
+            href={PATHS.LOGIN}
             className="group relative inline-flex h-14 items-center justify-center gap-2 rounded-full bg-foreground px-8 text-lg font-medium text-background transition-all hover:bg-foreground/90 active:scale-95"
           >
             {t('startFree')}

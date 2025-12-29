@@ -3,6 +3,7 @@ import { SoundCloudTrack } from '../../types/dashboard';
 import EmailPreviewModal from './EmailPreviewModal';
 import Link from 'next/link';
 import { Settings } from 'lucide-react';
+import { PATHS } from '@/lib/paths';
 
 interface TrackListProps {
   tracks: SoundCloudTrack[];
@@ -61,7 +62,7 @@ export default function TrackList({
               Para ver tus tracks y enviar campañas automáticas, necesitas configurar tu SoundCloud ID en Settings.
             </p>
             <Link
-              href="/settings"
+              href={PATHS.SETTINGS}
               className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#FF5500] text-white rounded-full text-sm font-bold hover:bg-[#e64d00] transition-all shadow-lg shadow-[#FF5500]/20 active:scale-95"
             >
               <Settings className="w-4 h-4" />

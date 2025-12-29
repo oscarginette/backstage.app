@@ -19,6 +19,7 @@ import { useState } from 'react';
 import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { PATHS, buildUrl } from '@/lib/paths';
 
 export default function SignupPage() {
   const router = useRouter();
@@ -84,12 +85,12 @@ export default function SignupPage() {
 
       if (signInResult?.error) {
         // Account created but login failed - redirect to login page
-        router.push('/login?message=Account created. Please login.');
+        router.push(buildUrl(PATHS.LOGIN, { message: 'Account created. Please login.' }));
         return;
       }
 
       // Success - redirect to dashboard
-      router.push('/dashboard');
+      router.push(PATHS.DASHBOARD.ROOT);
       router.refresh();
     } catch (err) {
       console.error('Signup error:', err);
@@ -109,7 +110,7 @@ export default function SignupPage() {
           <p className="mt-2 text-center text-sm text-gray-600">
             Or{' '}
             <Link
-              href="/login"
+              href={PATHS.LOGIN}
               className="font-medium text-blue-600 hover:text-blue-500"
             >
               sign in to existing account

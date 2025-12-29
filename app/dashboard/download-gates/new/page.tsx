@@ -3,6 +3,7 @@
 import CreateGateForm from '@/components/dashboard/CreateGateForm';
 import Link from 'next/link';
 import { ChevronLeft } from 'lucide-react';
+import { PATHS } from '@/lib/paths';
 
 export default function NewDownloadGatePage() {
   return (
@@ -17,7 +18,7 @@ export default function NewDownloadGatePage() {
         {/* Navigation Breadcrumb */}
         <div className="mb-8">
           <Link
-            href="/dashboard"
+            href={PATHS.DASHBOARD.ROOT}
             className="flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-[#FF5500] transition-colors group"
           >
             <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />

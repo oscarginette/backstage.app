@@ -11,6 +11,7 @@
 
 import { AlertTriangle, TrendingUp, Mail, Users } from 'lucide-react';
 import Link from 'next/link';
+import { PATHS } from '@/lib/paths';
 
 interface QuotaWarningProps {
   contactsUsed: number;
@@ -221,7 +222,7 @@ export default function QuotaWarning({
 
           {/* CTA Button */}
           <Link
-            href="/pricing"
+            href={PATHS.PRICING}
             className={`inline-flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-white transition-all hover:scale-105 shadow-lg ${
               isExceeded
                 ? 'bg-red-600 hover:bg-red-700'

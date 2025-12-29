@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { PATHS } from '@/lib/paths';
 
 interface Template {
   id: string;
@@ -95,7 +96,7 @@ export default function TemplatesPage() {
             <p className="text-gray-600 mt-2">Gestiona tus plantillas de email</p>
           </div>
           <Link
-            href="/dashboard/templates/new"
+            href={PATHS.DASHBOARD.TEMPLATES.NEW}
             className="px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors"
           >
             + Crear Template
@@ -106,7 +107,7 @@ export default function TemplatesPage() {
           <div className="bg-white rounded-lg shadow p-12 text-center">
             <p className="text-gray-600 mb-4">No hay templates creados todavía</p>
             <Link
-              href="/dashboard/templates/new"
+              href={PATHS.DASHBOARD.TEMPLATES.NEW}
               className="inline-block px-6 py-3 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors"
             >
               Crear tu primer template
@@ -137,7 +138,7 @@ export default function TemplatesPage() {
 
                   <div className="flex gap-2">
                     <Link
-                      href={`/dashboard/templates/${template.id}/edit`}
+                      href={PATHS.DASHBOARD.TEMPLATES.EDIT(template.id)}
                       className="flex-1 px-3 py-2 text-sm bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition-colors text-center"
                     >
                       Editar

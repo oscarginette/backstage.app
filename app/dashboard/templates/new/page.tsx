@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { PATHS } from '@/lib/paths';
 
 export default function NewTemplatePage() {
   const router = useRouter();
@@ -76,7 +77,7 @@ export default function NewTemplatePage() {
 
       if (!res.ok) throw new Error(data.error);
 
-      router.push('/dashboard/templates');
+      router.push(PATHS.DASHBOARD.TEMPLATES.ROOT);
     } catch (err: any) {
       alert(err.message);
     } finally {

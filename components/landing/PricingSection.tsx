@@ -4,6 +4,7 @@ import { Check, X, Trophy } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { useTranslations } from '@/lib/i18n/context';
+import { PATHS } from '@/lib/paths';
 
 export default function PricingSection() {
   const t = useTranslations('pricing');
@@ -193,7 +194,7 @@ export default function PricingSection() {
               </div>
 
               <Link
-                href="/login"
+                href={PATHS.LOGIN}
                 className={`w-full flex h-10 items-center justify-center rounded-xl text-sm font-bold transition-all active:scale-95 ${
                   plan.highlight
                     ? "bg-foreground text-background hover:bg-foreground/90 shadow-xl"

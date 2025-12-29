@@ -7,12 +7,13 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { signIn } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { PATHS } from '@/lib/paths';
 
 export default function LoginPage() {
   const t = useTranslations("login");
   const router = useRouter();
   const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get('callbackUrl') || '/dashboard';
+  const callbackUrl = searchParams.get('callbackUrl') || PATHS.DASHBOARD.ROOT;
 
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
@@ -99,7 +100,7 @@ export default function LoginPage() {
 
       {/* Back to Home */}
       <Link
-        href="/"
+        href={PATHS.HOME}
         className="absolute top-8 left-8 inline-flex items-center gap-2 text-sm font-medium text-foreground/60 hover:text-foreground transition-all group"
       >
         <div className="w-8 h-8 rounded-full border border-border/50 flex items-center justify-center bg-white/50 backdrop-blur-sm group-hover:border-accent group-hover:bg-accent/5 transition-all">
@@ -110,7 +111,7 @@ export default function LoginPage() {
 
       <div className="w-full max-w-[440px]">
         <div className="text-center mb-10">
-          <Link href="/" className="font-serif italic text-4xl text-foreground mb-8 inline-block hover:opacity-80 transition-opacity text-center w-full">
+          <Link href={PATHS.HOME} className="font-serif italic text-4xl text-foreground mb-8 inline-block hover:opacity-80 transition-opacity text-center w-full">
             Backstage
           </Link>
           

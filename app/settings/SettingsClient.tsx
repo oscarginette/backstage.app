@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useTranslations } from "@/lib/i18n/context";
 import { signOut } from "next-auth/react";
 import BrevoIntegration from "./BrevoIntegration";
+import { PATHS } from '@/lib/paths';
 
 interface SettingsClientProps {
   userName: string;
@@ -73,7 +74,7 @@ export default function SettingsClient({
 
   const handleConfirmLogout = async () => {
     setIsLoggingOut(true);
-    await signOut({ callbackUrl: '/login' });
+    await signOut({ callbackUrl: PATHS.LOGIN });
   };
 
   const handleCancelLogout = () => {
@@ -91,7 +92,7 @@ export default function SettingsClient({
       {/* Header Navigation */}
       <nav className="relative z-20 w-full max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 py-6 flex items-center justify-between">
         <Link
-          href="/dashboard"
+          href={PATHS.DASHBOARD.ROOT}
           className="group inline-flex items-center gap-2 text-sm font-bold text-foreground/40 hover:text-foreground transition-all"
         >
           <div className="w-8 h-8 rounded-full border border-border/40 flex items-center justify-center bg-white/40 backdrop-blur-md group-hover:border-accent group-hover:bg-accent/5 transition-all shadow-sm">

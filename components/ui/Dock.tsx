@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { useRef, useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
+import { PATHS, buildUrl } from '@/lib/paths';
 
 // Configuration for the items in the dock
 const DOCK_ITEMS = [
@@ -99,9 +100,9 @@ export default function Dock() {
 
     const targetTab = tabMapping[id];
 
-    if (pathname === '/dashboard' && targetTab) {
+    if (pathname === PATHS.DASHBOARD.ROOT && targetTab) {
       // If we are on dashboard, update the tab in URL
-      router.push(`/dashboard?tab=${targetTab}`, { scroll: false });
+      router.push(buildUrl(PATHS.DASHBOARD.ROOT, { tab: targetTab }), { scroll: false });
       
       // Wait for tab transition, then scroll
       setTimeout(() => {
@@ -128,10 +129,11 @@ export default function Dock() {
       });
     } else {
       // Navigation logic
-      if (id === 'gates' && pathname !== '/dashboard/download-gates') {
-        router.push('/dashboard?tab=growth');
-      } else if (pathname !== '/dashboard') {
-        const url = targetTab ? `/dashboard?tab=${targetTab}#${id}` : `/dashboard#${id}`;
+      if (id === 'gates' && pathname !== PATHS.DASHBOARD.DOWNLOAD_GATES.ROOT) {
+        router.push(buildUrl(PATHS.DASHBOARD.ROOT, { tab: 'growth' }));
+      } else if (pathname !== PATHS.DASHBOARD.ROOT) {
+        const baseUrl = targetTab ? buildUrl(PATHS.DASHBOARD.ROOT, { tab: targetTab }) : PATHS.DASHBOARD.ROOT;
+        const url = `${baseUrl}#${id}`;
         router.push(url);
       }
     }
