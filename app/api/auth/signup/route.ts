@@ -21,6 +21,7 @@ import { SendNewUserNotificationUseCase } from '@/domain/services/SendNewUserNot
 import { PostgresUserRepository } from '@/infrastructure/database/repositories/PostgresUserRepository';
 import { PostgresQuotaTrackingRepository } from '@/infrastructure/database/repositories/PostgresQuotaTrackingRepository';
 import { ResendEmailProvider } from '@/infrastructure/email/ResendEmailProvider';
+import { env, getAppUrl, getBaseUrl } from '@/lib/env';
 
 // Instantiate repositories
 const userRepository = new PostgresUserRepository();
@@ -29,8 +30,8 @@ const quotaRepository = new PostgresQuotaTrackingRepository();
 // Instantiate email provider (lazy initialization to avoid errors if RESEND_API_KEY not set)
 let emailProvider: ResendEmailProvider | null = null;
 function getEmailProvider(): ResendEmailProvider | null {
-  if (!emailProvider && process.env.RESEND_API_KEY) {
-    emailProvider = new ResendEmailProvider(process.env.RESEND_API_KEY);
+  if (!emailProvider && env.RESEND_API_KEY) {
+    emailProvider = new ResendEmailProvider(env.RESEND_API_KEY);
   }
   return emailProvider;
 }

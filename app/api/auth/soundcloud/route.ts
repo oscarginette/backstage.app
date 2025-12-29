@@ -22,6 +22,7 @@
 import { NextResponse } from 'next/server';
 import { PostgresOAuthStateRepository } from '@/infrastructure/database/repositories/PostgresOAuthStateRepository';
 import { soundCloudClient } from '@/lib/soundcloud-client';
+import { env, getAppUrl, getBaseUrl } from '@/lib/env';
 
 // Singleton repository instance
 const oauthStateRepository = new PostgresOAuthStateRepository();
@@ -85,8 +86,8 @@ export async function GET(request: Request) {
 
     // Get redirect URI from environment
     const redirectUri =
-      process.env.SOUNDCLOUD_REDIRECT_URI ||
-      `${process.env.NEXT_PUBLIC_APP_URL}/api/auth/soundcloud/callback`;
+      env.SOUNDCLOUD_REDIRECT_URI ||
+      `${getAppUrl()}/api/auth/soundcloud/callback`;
 
     // Generate SoundCloud authorization URL
     const authUrl = soundCloudClient.getAuthorizationUrl(

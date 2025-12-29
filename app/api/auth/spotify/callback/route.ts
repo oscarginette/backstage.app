@@ -219,7 +219,9 @@ export async function GET(request: Request) {
     console.error('GET /api/auth/spotify/callback error:', error);
 
     if (error instanceof Error) {
-      if (error.message.includes('Missing Spotify configuration')) {
+      const errorMessage = error.message;
+
+      if (errorMessage.includes('Missing Spotify configuration')) {
         return NextResponse.redirect(
           new URL(
             '/gate?error=config_error&message=Spotify OAuth is not configured',

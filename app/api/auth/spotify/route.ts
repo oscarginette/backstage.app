@@ -88,16 +88,18 @@ export async function GET(request: Request) {
     console.error('GET /api/auth/spotify error:', error);
 
     if (error instanceof Error) {
-      if (error.message.includes('Missing Spotify configuration')) {
+      const errorMessage = error.message;
+
+      if (errorMessage.includes('Missing Spotify configuration')) {
         return NextResponse.json(
           { error: 'Spotify OAuth is not configured on this server' },
           { status: 503 }
         );
       }
 
-      if (error.message.includes('Invalid') || error.message.includes('required')) {
+      if (errorMessage.includes('Invalid') || errorMessage.includes('required')) {
         return NextResponse.json(
-          { error: error.message },
+          { error: errorMessage },
           { status: 400 }
         );
       }

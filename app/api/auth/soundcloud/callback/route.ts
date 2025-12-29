@@ -33,6 +33,7 @@ import { PostgresDownloadAnalyticsRepository } from '@/infrastructure/database/r
 import { soundCloudClient } from '@/lib/soundcloud-client';
 import { VerifySoundCloudRepostUseCase } from '@/domain/services/VerifySoundCloudRepostUseCase';
 import { VerifySoundCloudFollowUseCase } from '@/domain/services/VerifySoundCloudFollowUseCase';
+import { env, getAppUrl, getBaseUrl } from '@/lib/env';
 
 // Singleton repository instances
 const oauthStateRepository = new PostgresOAuthStateRepository();
@@ -99,8 +100,8 @@ export async function GET(request: Request) {
     try {
       // 2. Exchange code for access token
       const redirectUri =
-        process.env.SOUNDCLOUD_REDIRECT_URI ||
-        `${process.env.NEXT_PUBLIC_APP_URL}/api/auth/soundcloud/callback`;
+        env.SOUNDCLOUD_REDIRECT_URI ||
+        `${getAppUrl()}/api/auth/soundcloud/callback`;
 
       const tokenResponse = await soundCloudClient.exchangeCodeForToken(
         code,
@@ -184,7 +185,7 @@ export async function GET(request: Request) {
       await oauthStateRepository.markAsUsed(oauthState.id);
 
       // 8. Redirect back to gate page with success
-      const gateUrl = `${process.env.NEXT_PUBLIC_APP_URL}/gate/${gate.slug}?soundcloud=success`;
+      const gateUrl = `${getAppUrl()}/gate/${gate.slug}?soundcloud=success`;
       return NextResponse.redirect(gateUrl);
     } catch (error) {
       console.error('SoundCloud callback processing error:', error);
@@ -194,7 +195,7 @@ export async function GET(request: Request) {
 
       return redirectToGateWithError(
         error instanceof Error
-          ? error.message
+          ? error instanceof Error ? error.message : "Unknown error"
           : 'Failed to complete SoundCloud authentication',
         gate.slug
       );
@@ -219,7 +220,7 @@ function redirectToGateWithError(
   errorMessage: string,
   gateSlug: string | null
 ): NextResponse {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+  const baseUrl = getAppUrl();
 
   if (gateSlug) {
     const url = `${baseUrl}/gate/${gateSlug}?soundcloud=error&error=${encodeURIComponent(errorMessage)}`;

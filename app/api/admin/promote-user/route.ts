@@ -7,6 +7,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { sql } from '@/lib/db';
+import { env, getAppUrl, getBaseUrl } from '@/lib/env';
 
 /**
  * POST /api/admin/promote-user
@@ -25,7 +26,7 @@ export async function POST(request: NextRequest) {
 
     // Simple secret check (in dev, we'll use a hardcoded secret)
     const secret = body.secret;
-    const expectedSecret = process.env.ADMIN_SECRET || 'dev-secret-123';
+    const expectedSecret = env.ADMIN_SECRET || 'dev-secret-123';
 
     if (secret !== expectedSecret) {
       return NextResponse.json(
