@@ -118,6 +118,19 @@ export default function PaymentInstructions({ selectedPlan }: PaymentInstruction
                 </button>
               </div>
             </div>
+
+            {/* PayPal Button */}
+            <a
+              href="https://www.paypal.com/signin"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full px-3 py-2 bg-[#0070BA] text-white rounded-lg text-xs font-medium hover:bg-[#005EA6] transition-colors flex items-center justify-center gap-2"
+            >
+              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M20.067 8.478c.492.88.556 2.014.3 3.327-.74 3.806-3.276 5.12-6.514 5.12h-.5a.805.805 0 0 0-.794.68l-.04.22-.63 3.993-.032.17a.804.804 0 0 1-.794.679H7.72a.483.483 0 0 1-.477-.558L7.418 21h1.518l.95-6.02h1.385c4.678 0 7.75-2.203 8.796-6.502zm-2.96-5.09c.762.868.983 2.058.617 3.528-.74 3.806-3.276 5.12-6.514 5.12h-.5a.805.805 0 0 0-.794.68l-.04.22-.63 3.993-.032.17a.804.804 0 0 1-.794.679H3.5a.5.5 0 0 1-.493-.577l2.644-16.774A.956.956 0 0 1 6.59 0h7.295c1.99 0 3.575.43 4.582 1.388z"/>
+              </svg>
+              Abrir PayPal
+            </a>
           </div>
         </div>
 
