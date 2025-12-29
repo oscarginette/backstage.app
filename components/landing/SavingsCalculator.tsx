@@ -8,10 +8,10 @@ import { useTranslations } from '@/lib/i18n/context';
 export default function SavingsCalculator() {
   const t = useTranslations('savings.calculator');
   const sliderValues = [
-    100, 200, 300, 400, 500, 600, 800, 1000, 1500, 2000, 2500, 3000, 4000, 5000, 
+    100, 200, 300, 400, 500, 600, 800, 1000, 1500, 2000, 2500, 3000, 4000, 5000,
     7500, 10000, 12500, 15000, 20000, 30000, 40000, 50000
   ];
-  const [sliderIdx, setSliderIdx] = useState(7); // Start at 1000
+  const [sliderIdx, setSliderIdx] = useState(4); // Start at 500
   const subscribers = sliderValues[sliderIdx];
 
   const costs = useMemo(() => {
