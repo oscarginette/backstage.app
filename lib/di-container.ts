@@ -656,7 +656,7 @@ export class UseCaseFactory {
   static createActivateUserSubscriptionUseCase(): ActivateUserSubscriptionUseCase {
     return new ActivateUserSubscriptionUseCase(
       RepositoryFactory.createUserRepository(),
-      RepositoryFactory.createQuotaTrackingRepository(),
+      RepositoryFactory.createPricingPlanRepository(),
       RepositoryFactory.createSubscriptionHistoryRepository()
     );
   }
