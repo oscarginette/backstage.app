@@ -7,6 +7,7 @@ import {
 } from '@/infrastructure/database/repositories';
 import { soundCloudRepository, spotifyRepository } from '@/infrastructure/music-platforms';
 import { resendEmailProvider } from '@/infrastructure/email';
+import { env, getAppUrl, getBaseUrl } from '@/lib/env';
 
 export const maxDuration = 60;
 export const dynamic = 'force-dynamic';
@@ -31,7 +32,7 @@ export const dynamic = 'force-dynamic';
 export async function GET() {
   try {
     const baseUrl =
-      process.env.NEXT_PUBLIC_APP_URL || 'https://backstage-art.vercel.app';
+      getAppUrl();
 
     console.log('[API] Starting unified music platforms check...');
 
@@ -61,13 +62,13 @@ export async function GET() {
       message: 'Multi-platform check completed',
     });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[API] Error in check-music-platforms:', error);
 
     return NextResponse.json(
       {
         success: false,
-        error: error.message,
+        error: error instanceof Error ? error.message : 'Unknown error',
         message: 'Failed to check music platforms',
       },
       { status: 500 }

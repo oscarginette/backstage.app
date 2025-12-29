@@ -11,6 +11,7 @@ import {
 import { soundCloudRepository } from '@/infrastructure/music-platforms';
 import { resendEmailProvider } from '@/infrastructure/email';
 import { sql } from '@/lib/db';
+import { env, getAppUrl, getBaseUrl } from '@/lib/env';
 
 // Permitir hasta 60s de ejecución
 export const maxDuration = 60;
@@ -28,7 +29,7 @@ export const dynamic = 'force-dynamic';
 export async function GET() {
   try {
     const baseUrl =
-      process.env.NEXT_PUBLIC_APP_URL || 'https://backstage-art.vercel.app';
+      getAppUrl();
 
     // 1. Get all active users with SoundCloud configured
     const usersResult = await sql`
@@ -163,11 +164,11 @@ export async function GET() {
       totalNewTracks,
       results,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error in check-soundcloud:', error);
 
     return NextResponse.json(
-      { error: error.message },
+      { error: error instanceof Error ? error.message : "Unknown error" },
       { status: 500 }
     );
   }

@@ -81,10 +81,10 @@ export async function POST(request: Request) {
       profileUrl,
     });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[SoundCloud Extract] Error:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to extract SoundCloud ID' },
+      { error: (error instanceof Error ? error.message : "Unknown error") || 'Failed to extract SoundCloud ID' },
       { status: 500 }
     );
   }

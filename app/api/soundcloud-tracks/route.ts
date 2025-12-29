@@ -55,10 +55,10 @@ export async function GET() {
 
     return NextResponse.json({ tracks });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error fetching SoundCloud tracks:', error);
     return NextResponse.json(
-      { error: error.message },
+      { error: error instanceof Error ? error.message : "Unknown error" },
       { status: 500 }
     );
   }
