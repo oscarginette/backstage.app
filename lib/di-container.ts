@@ -74,7 +74,7 @@ import type { ISubscriptionHistoryRepository } from '@/domain/repositories/ISubs
 // ============================================================================
 import { resendEmailProvider } from '@/infrastructure/email';
 import type { IEmailProvider } from '@/infrastructure/email/IEmailProvider';
-import type { IImageStorageProvider } from '@/domain/providers/IImageStorageProvider';
+import type { IImageStorageProvider } from '@/infrastructure/storage/IImageStorageProvider';
 
 // ============================================================================
 // Use Case Imports
@@ -333,23 +333,26 @@ export class UseCaseFactory {
       RepositoryFactory.createContactRepository(),
       ProviderFactory.createEmailProvider(),
       RepositoryFactory.createEmailLogRepository(),
-      RepositoryFactory.createQuotaTrackingRepository()
+      RepositoryFactory.createExecutionLogRepository(),
+      RepositoryFactory.createEmailCampaignRepository()
     );
   }
 
   static createSendTestEmailUseCase(): SendTestEmailUseCase {
     return new SendTestEmailUseCase(
+      RepositoryFactory.createContactRepository(),
       ProviderFactory.createEmailProvider(),
-      RepositoryFactory.createEmailTemplateRepository()
+      RepositoryFactory.createTrackRepository(),
+      RepositoryFactory.createEmailLogRepository()
     );
   }
 
   static createSendDraftUseCase(): SendDraftUseCase {
     return new SendDraftUseCase(
-      RepositoryFactory.createEmailCampaignRepository(),
       RepositoryFactory.createContactRepository(),
       ProviderFactory.createEmailProvider(),
-      RepositoryFactory.createEmailLogRepository()
+      RepositoryFactory.createExecutionLogRepository(),
+      RepositoryFactory.createEmailCampaignRepository()
     );
   }
 
@@ -365,14 +368,14 @@ export class UseCaseFactory {
 
   static createUpdateDownloadGateUseCase(): UpdateDownloadGateUseCase {
     return new UpdateDownloadGateUseCase(
-      RepositoryFactory.createDownloadGateRepository()
+      RepositoryFactory.createDownloadGateRepository(),
+      RepositoryFactory.createDownloadSubmissionRepository()
     );
   }
 
   static createDeleteDownloadGateUseCase(): DeleteDownloadGateUseCase {
     return new DeleteDownloadGateUseCase(
-      RepositoryFactory.createDownloadGateRepository(),
-      RepositoryFactory.createDownloadSubmissionRepository()
+      RepositoryFactory.createDownloadGateRepository()
     );
   }
 
@@ -398,6 +401,7 @@ export class UseCaseFactory {
 
   static createListGateSubmissionsUseCase(): ListGateSubmissionsUseCase {
     return new ListGateSubmissionsUseCase(
+      RepositoryFactory.createDownloadGateRepository(),
       RepositoryFactory.createDownloadSubmissionRepository()
     );
   }
@@ -406,6 +410,7 @@ export class UseCaseFactory {
     return new SubmitEmailUseCase(
       RepositoryFactory.createDownloadGateRepository(),
       RepositoryFactory.createDownloadSubmissionRepository(),
+      RepositoryFactory.createDownloadAnalyticsRepository(),
       RepositoryFactory.createContactRepository()
     );
   }

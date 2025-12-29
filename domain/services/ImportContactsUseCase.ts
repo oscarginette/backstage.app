@@ -65,7 +65,13 @@ export class ImportContactsUseCase {
       fileSizeBytes: input.fileMetadata.fileSizeBytes || null,
       fileType: input.fileMetadata.fileType,
       rowsTotal: input.fileMetadata.totalRows,
-      columnMapping: input.columnMapping.toJSON()
+      columnMapping: {
+        sourceFormat: input.fileMetadata.fileType,
+        fileName: input.fileMetadata.filename,
+        fileSize: input.fileMetadata.fileSizeBytes || undefined,
+        hasHeaders: true,
+        rowCount: input.fileMetadata.totalRows
+      }
     });
 
     try {

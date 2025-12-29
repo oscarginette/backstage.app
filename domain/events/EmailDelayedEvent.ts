@@ -7,15 +7,13 @@ export class EmailDelayedEvent implements IEmailEvent {
   constructor(private readonly repository: IEmailEventRepository) {}
 
   async process(data: WebhookEventData): Promise<void> {
-    const reason = data.data?.reason;
-
-    // Record event with delay reason
+    // Record event (delay events don't have specific metadata fields in EmailEventMetadata)
     await this.repository.create({
       emailLogId: data.emailLogId,
       contactId: data.contactId,
       trackId: data.trackId,
       eventType: this.type,
-      eventData: { reason },
+      eventData: {},
       resendEmailId: data.emailId
     });
   }

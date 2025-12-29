@@ -18,7 +18,7 @@ export class EmailClickedEvent implements IEmailEvent {
       contactId: data.contactId,
       trackId: data.trackId,
       eventType: this.type,
-      eventData: { url: clickedUrl },
+      eventData: { clickedUrl },
       resendEmailId: data.emailId
     });
   }

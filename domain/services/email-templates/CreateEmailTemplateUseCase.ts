@@ -52,8 +52,10 @@ export class CreateEmailTemplateUseCase {
     // 1. Validate input
     this.validateInput(input);
 
-    // 2. Validate MJML structure
-    this.validateMJMLStructure(input.mjmlContent);
+    // 2. Validate MJML structure (if provided)
+    if (input.mjmlContent) {
+      this.validateMJMLStructure(input.mjmlContent);
+    }
 
     // 3. Check for duplicate name
     const existingTemplates = await this.templateRepository.findByName(input.name);
@@ -74,8 +76,8 @@ export class CreateEmailTemplateUseCase {
     const template = EmailTemplate.create({
       name: input.name,
       description: input.description,
-      mjmlContent: input.mjmlContent,
-      htmlSnapshot: input.htmlSnapshot,
+      mjmlContent: input.mjmlContent || { tagName: 'mjml', children: [] },
+      htmlSnapshot: input.htmlSnapshot || '',
       isDefault: input.isDefault
     });
 

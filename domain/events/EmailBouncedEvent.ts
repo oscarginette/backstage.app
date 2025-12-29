@@ -20,8 +20,8 @@ export class EmailBouncedEvent implements IEmailEvent {
       trackId: data.trackId,
       eventType: this.type,
       eventData: {
-        bounce_type: bounceType,
-        reason: reason
+        bounceType: bounceType as 'hard' | 'soft' | 'spam',
+        bounceReason: reason
       },
       resendEmailId: data.emailId
     });
