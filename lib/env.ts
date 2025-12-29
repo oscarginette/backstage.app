@@ -81,6 +81,10 @@ const envSchema = z.object({
   ENABLE_ANALYTICS: z.string().transform(val => val === 'true').optional(),
   ENABLE_EMAIL_TRACKING: z.string().transform(val => val === 'true').optional(),
 
+  // Upstash Redis (Rate Limiting)
+  UPSTASH_REDIS_REST_URL: z.string().url('Invalid UPSTASH_REDIS_REST_URL - must be a valid URL').optional(),
+  UPSTASH_REDIS_REST_TOKEN: z.string().optional(),
+
   // Legacy/Deprecated (for backward compatibility)
   BREVO_API_KEY: z.string().optional(),
   BREVO_TEMPLATE_ID: z.string().optional(),

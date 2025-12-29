@@ -40,6 +40,11 @@ import { PostgresOAuthStateRepository } from '@/infrastructure/database/reposito
 import { PostgresPricingPlanRepository } from '@/infrastructure/database/repositories/PostgresPricingPlanRepository';
 import { PostgresProductRepository } from '@/infrastructure/database/repositories/PostgresProductRepository';
 import { PostgresPriceRepository } from '@/infrastructure/database/repositories/PostgresPriceRepository';
+import { SoundCloudRepository } from '@/infrastructure/music-platforms/SoundCloudRepository';
+import { SpotifyRepository } from '@/infrastructure/music-platforms/SpotifyRepository';
+import type { IMusicPlatformRepository } from '@/domain/repositories/IMusicPlatformRepository';
+import { SoundCloudClient as SoundCloudRSSClient } from '@/infrastructure/music-platforms/SoundCloudClient';
+import { SpotifyClient } from '@/infrastructure/music-platforms/SpotifyClient';
 import { PostgresSubscriptionRepository } from '@/infrastructure/database/repositories/PostgresSubscriptionRepository';
 import { PostgresSubscriptionHistoryRepository } from '@/infrastructure/database/repositories/PostgresSubscriptionHistoryRepository';
 
@@ -75,10 +80,17 @@ import type { ISubscriptionHistoryRepository } from '@/domain/repositories/ISubs
 import { resendEmailProvider } from '@/infrastructure/email';
 import type { IEmailProvider } from '@/infrastructure/email/IEmailProvider';
 import type { IImageStorageProvider } from '@/infrastructure/storage/IImageStorageProvider';
+import { SoundCloudClient } from '@/lib/soundcloud-client';
 
 // ============================================================================
 // Use Case Imports
 // ============================================================================
+import { EmailSentEvent } from '@/domain/events/EmailSentEvent';
+import { EmailDeliveredEvent } from '@/domain/events/EmailDeliveredEvent';
+import { EmailBouncedEvent } from '@/domain/events/EmailBouncedEvent';
+import { EmailOpenedEvent } from '@/domain/events/EmailOpenedEvent';
+import { EmailClickedEvent } from '@/domain/events/EmailClickedEvent';
+import { EmailDelayedEvent } from '@/domain/events/EmailDelayedEvent';
 import { UnsubscribeUseCase } from '@/domain/services/UnsubscribeUseCase';
 import { ResubscribeUseCase } from '@/domain/services/ResubscribeUseCase';
 import { SendTrackEmailUseCase } from '@/domain/services/SendTrackEmailUseCase';
@@ -234,6 +246,14 @@ export class RepositoryFactory {
   static createSubscriptionHistoryRepository(): ISubscriptionHistoryRepository {
     return new PostgresSubscriptionHistoryRepository();
   }
+
+  static createMusicPlatformRepository(platform: 'soundcloud' | 'spotify'): IMusicPlatformRepository {
+    if (platform === 'soundcloud') {
+      return new SoundCloudRepository(new SoundCloudRSSClient());
+    } else {
+      return new SpotifyRepository(new SpotifyClient());
+    }
+  }
 }
 
 // ============================================================================
@@ -248,6 +268,10 @@ export class RepositoryFactory {
 export class ProviderFactory {
   static createEmailProvider(): IEmailProvider {
     return resendEmailProvider;
+  }
+
+  static createSoundCloudClient(): SoundCloudClient {
+    return new SoundCloudClient();
   }
 
   // Note: Image storage provider would be instantiated here when needed
@@ -432,7 +456,8 @@ export class UseCaseFactory {
 
   static createTrackGateAnalyticsUseCase(): TrackGateAnalyticsUseCase {
     return new TrackGateAnalyticsUseCase(
-      RepositoryFactory.createDownloadAnalyticsRepository()
+      RepositoryFactory.createDownloadAnalyticsRepository(),
+      RepositoryFactory.createDownloadGateRepository()
     );
   }
 
@@ -442,39 +467,54 @@ export class UseCaseFactory {
 
   static createVerifySoundCloudRepostUseCase(): VerifySoundCloudRepostUseCase {
     return new VerifySoundCloudRepostUseCase(
-      RepositoryFactory.createUserSettingsRepository()
+      RepositoryFactory.createDownloadSubmissionRepository(),
+      RepositoryFactory.createDownloadGateRepository(),
+      RepositoryFactory.createDownloadAnalyticsRepository(),
+      ProviderFactory.createSoundCloudClient()
     );
   }
 
   static createVerifySoundCloudFollowUseCase(): VerifySoundCloudFollowUseCase {
     return new VerifySoundCloudFollowUseCase(
-      RepositoryFactory.createUserSettingsRepository()
+      RepositoryFactory.createDownloadSubmissionRepository(),
+      RepositoryFactory.createDownloadGateRepository(),
+      RepositoryFactory.createDownloadAnalyticsRepository(),
+      ProviderFactory.createSoundCloudClient()
     );
   }
 
   static createCheckAllMusicPlatformsUseCase(): CheckAllMusicPlatformsUseCase {
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
     return new CheckAllMusicPlatformsUseCase(
-      RepositoryFactory.createUserSettingsRepository()
+      RepositoryFactory.createMusicPlatformRepository('soundcloud'),
+      RepositoryFactory.createMusicPlatformRepository('spotify'),
+      RepositoryFactory.createContactRepository(),
+      ProviderFactory.createEmailProvider(),
+      RepositoryFactory.createTrackRepository(),
+      RepositoryFactory.createExecutionLogRepository(),
+      baseUrl
     );
   }
 
   static createGetSoundCloudTracksUseCase(): GetSoundCloudTracksUseCase {
     return new GetSoundCloudTracksUseCase(
-      RepositoryFactory.createUserSettingsRepository()
+      RepositoryFactory.createTrackRepository(),
+      new SoundCloudRSSClient()
     );
   }
 
   static createCheckNewTracksUseCase(): CheckNewTracksUseCase {
+    // Defaults to SoundCloud - would need to be made configurable per user
     return new CheckNewTracksUseCase(
-      RepositoryFactory.createTrackRepository(),
-      RepositoryFactory.createUserSettingsRepository()
+      RepositoryFactory.createMusicPlatformRepository('soundcloud'),
+      RepositoryFactory.createTrackRepository()
     );
   }
 
   static createConnectSpotifyUseCase(): ConnectSpotifyUseCase {
     return new ConnectSpotifyUseCase(
-      RepositoryFactory.createOAuthStateRepository(),
-      RepositoryFactory.createUserSettingsRepository()
+      RepositoryFactory.createDownloadSubmissionRepository(),
+      RepositoryFactory.createDownloadAnalyticsRepository()
     );
   }
 
@@ -550,9 +590,18 @@ export class UseCaseFactory {
   }
 
   static createProcessEmailEventUseCase(): ProcessEmailEventUseCase {
-    return new ProcessEmailEventUseCase(
-      RepositoryFactory.createEmailEventRepository()
-    );
+    const emailEventRepo = RepositoryFactory.createEmailEventRepository();
+
+    // Create event handler map
+    const eventHandlers = new Map();
+    eventHandlers.set('email.sent', new EmailSentEvent(emailEventRepo));
+    eventHandlers.set('email.delivered', new EmailDeliveredEvent(emailEventRepo));
+    eventHandlers.set('email.bounced', new EmailBouncedEvent(emailEventRepo));
+    eventHandlers.set('email.opened', new EmailOpenedEvent(emailEventRepo));
+    eventHandlers.set('email.clicked', new EmailClickedEvent(emailEventRepo));
+    eventHandlers.set('email.delivery_delayed', new EmailDelayedEvent(emailEventRepo));
+
+    return new ProcessEmailEventUseCase(emailEventRepo, eventHandlers);
   }
 
   // ============================================================================
@@ -574,7 +623,6 @@ export class UseCaseFactory {
   static createCreateUserUseCase(): CreateUserUseCase {
     return new CreateUserUseCase(
       RepositoryFactory.createUserRepository(),
-      RepositoryFactory.createUserSettingsRepository(),
       RepositoryFactory.createQuotaTrackingRepository()
     );
   }

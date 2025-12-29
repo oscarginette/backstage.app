@@ -18,7 +18,7 @@
  * - OWASP Webhook Security: https://cheatsheetseries.owasp.org/cheatsheets/Webhook_Security_Cheat_Sheet.html
  */
 
-import crypto from 'crypto';
+import * as crypto from 'crypto';
 
 /**
  * Configuration for webhook signature verification

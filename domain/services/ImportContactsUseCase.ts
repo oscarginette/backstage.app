@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/nextjs';
 import { ImportedContact } from '@/domain/entities/ImportedContact';
 import { ColumnMapping } from '@/domain/value-objects/ColumnMapping';
 import { IContactRepository, BulkImportContactInput } from '@/domain/repositories/IContactRepository';
@@ -57,9 +58,20 @@ export class ImportContactsUseCase {
    */
   async execute(input: ImportInput): Promise<ImportResult> {
     const startTime = Date.now();
+    let importHistory: any = null;
 
-    // 1. Create import history record (status: pending)
-    const importHistory = await this.importHistoryRepository.create({
+    try {
+      // Add context for debugging (without PII)
+      Sentry.setContext('import_contacts', {
+        userId: input.userId,
+        contactCount: input.contacts.length,
+        fileType: input.fileMetadata.fileType,
+        totalRows: input.fileMetadata.totalRows,
+        timestamp: new Date().toISOString(),
+      });
+
+      // 1. Create import history record (status: pending)
+      importHistory = await this.importHistoryRepository.create({
       userId: input.userId,
       originalFilename: input.fileMetadata.filename,
       fileSizeBytes: input.fileMetadata.fileSizeBytes || null,
@@ -74,7 +86,6 @@ export class ImportContactsUseCase {
       }
     });
 
-    try {
       // 2. Update status to importing
       await this.importHistoryRepository.updateStatus(importHistory.id, 'importing');
 
@@ -116,14 +127,31 @@ export class ImportContactsUseCase {
       const duration = Date.now() - startTime;
       const errorMessage = error instanceof Error ? error.message : 'Import failed with unknown error';
 
-      // Update import history with failure
-      await this.importHistoryRepository.updateWithResults(importHistory.id, {
-        contactsInserted: 0,
-        contactsUpdated: 0,
-        contactsSkipped: 0,
-        status: 'failed',
-        durationMs: duration,
-        errorMessage
+      // Update import history with failure (if it was created)
+      if (importHistory) {
+        await this.importHistoryRepository.updateWithResults(importHistory.id, {
+          contactsInserted: 0,
+          contactsUpdated: 0,
+          contactsSkipped: 0,
+          status: 'failed',
+          durationMs: duration,
+          errorMessage
+        });
+      }
+
+      // Capture error to Sentry
+      Sentry.captureException(error, {
+        tags: {
+          useCase: 'ImportContacts',
+          userId: input.userId.toString(),
+          fileType: input.fileMetadata.fileType,
+        },
+        extra: {
+          contactCount: input.contacts.length,
+          totalRows: input.fileMetadata.totalRows,
+          duration,
+          importId: importHistory.id,
+        },
       });
 
       throw error;

@@ -9,7 +9,6 @@
  */
 
 import { sql } from '@/lib/db';
-import { db } from '@vercel/postgres';
 import { randomBytes } from 'crypto';
 import { IDownloadSubmissionRepository } from '@/domain/repositories/IDownloadSubmissionRepository';
 import { DownloadSubmission } from '@/domain/entities/DownloadSubmission';
@@ -180,24 +179,19 @@ export class PostgresDownloadSubmissionRepository implements IDownloadSubmission
       // Add WHERE clause id
       values.push(id);
 
-      const client = await db.connect();
-      try {
-        const result = await client.query(
-          `UPDATE download_submissions
-           SET ${setFields.join(', ')}
-           WHERE id = $${values.length}
-           RETURNING *`,
-          values
-        );
+      const result = await sql.query(
+        `UPDATE download_submissions
+         SET ${setFields.join(', ')}
+         WHERE id = $${values.length}
+         RETURNING *`,
+        values
+      );
 
-        if (result.rowCount === 0 || result.rows.length === 0) {
-          throw new Error('Submission not found');
-        }
-
-        return this.mapToEntity(result.rows[0]);
-      } finally {
-        client.release();
+      if (result.rowCount === 0 || result.rows.length === 0) {
+        throw new Error('Submission not found');
       }
+
+      return this.mapToEntity(result.rows[0]);
     } catch (error) {
       console.error('PostgresDownloadSubmissionRepository.updateVerificationStatus error:', error);
       throw new Error(`Failed to update verification status: ${error instanceof Error ? error.message : 'Unknown error'}`);

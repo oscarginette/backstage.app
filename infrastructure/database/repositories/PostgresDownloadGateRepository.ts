@@ -9,7 +9,6 @@
  */
 
 import { sql } from '@/lib/db';
-import { db } from '@vercel/postgres';
 import { randomUUID } from 'crypto';
 import { IDownloadGateRepository } from '@/domain/repositories/IDownloadGateRepository';
 import { DownloadGate } from '@/domain/entities/DownloadGate';
@@ -225,24 +224,19 @@ export class PostgresDownloadGateRepository implements IDownloadGateRepository {
       // Add WHERE clause values
       values.push(gateId, userId);
 
-      const client = await db.connect();
-      try {
-        const result = await client.query(
-          `UPDATE download_gates
-           SET ${updates.join(', ')}
-           WHERE id = $${values.length - 1} AND user_id = $${values.length}
-           RETURNING *`,
-          values
-        );
+      const result = await sql.query(
+        `UPDATE download_gates
+         SET ${updates.join(', ')}
+         WHERE id = $${values.length - 1} AND user_id = $${values.length}
+         RETURNING *`,
+        values
+      );
 
-        if (result.rowCount === 0 || result.rows.length === 0) {
-          throw new Error('Download gate not found');
-        }
-
-        return this.mapToEntity(result.rows[0]);
-      } finally {
-        client.release();
+      if (result.rowCount === 0 || result.rows.length === 0) {
+        throw new Error('Download gate not found');
       }
+
+      return this.mapToEntity(result.rows[0]);
     } catch (error) {
       console.error('PostgresDownloadGateRepository.update error:', error);
 

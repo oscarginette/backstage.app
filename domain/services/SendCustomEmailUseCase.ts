@@ -8,6 +8,15 @@
  * - Single Responsibility: Only handles custom email sending logic
  * - Dependency Inversion: Depends on interfaces, not implementations
  * - Open/Closed: Can be extended without modification
+ *
+ * TRANSACTION SAFETY:
+ * Uses transactions to ensure atomicity of:
+ * - Campaign record creation + execution log creation
+ * - Prevents orphan campaign records if logging fails
+ * - Ensures consistent state between campaign and execution_logs tables
+ *
+ * Note: Individual email sends are NOT transactional (by design).
+ * We want to send as many as possible even if some fail (partial success).
  */
 
 import { IContactRepository } from '@/domain/repositories/IContactRepository';

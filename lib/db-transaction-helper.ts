@@ -164,15 +164,15 @@ export async function withTransaction<T>(
 
         // Create transaction wrapper
         const txClient: TransactionClient = {
-          query: async <T = any>(text: string, values?: any[]) => {
-            return client.query<T>(text, values || []);
+          query: async (text: string, values?: any[]) => {
+            return client.query(text, values || []);
           },
-          sql: async <T = any>(strings: TemplateStringsArray, ...values: any[]) => {
+          sql: async (strings: TemplateStringsArray, ...values: any[]) => {
             // Convert template literal to parameterized query
             const text = strings.reduce((acc, str, i) => {
               return acc + str + (i < values.length ? `$${i + 1}` : '');
             }, '');
-            return client.query<T>(text, values);
+            return client.query(text, values);
           }
         };
 
@@ -229,7 +229,7 @@ export async function withTransaction<T>(
  * Get a transaction client
  * This handles both local PostgreSQL (pg Pool) and Vercel Postgres
  */
-async function getTransactionClient(): Promise<PoolClient> {
+async function getTransactionClient(): Promise<any> {
   // Check if we're using local PostgreSQL with Pool
   const localPool = (sql as any).__pool;
   if (localPool && localPool instanceof Pool) {
@@ -238,18 +238,16 @@ async function getTransactionClient(): Promise<PoolClient> {
 
   // For Vercel Postgres, we need to access the underlying pool
   // @vercel/postgres exports a pool that we can use
-  const { Pool: VercelPool } = await import('@vercel/postgres');
-  const pool = new VercelPool({
-    connectionString: process.env.POSTGRES_URL
-  });
+  const { db } = await import('@vercel/postgres');
+  const client = await db.connect();
 
-  return pool.connect();
+  return client;
 }
 
 /**
  * Release a transaction client back to the pool
  */
-async function releaseTransactionClient(client: PoolClient): Promise<void> {
+async function releaseTransactionClient(client: any): Promise<void> {
   try {
     client.release();
   } catch (error) {

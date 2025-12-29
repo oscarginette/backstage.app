@@ -24,7 +24,7 @@
  * to avoid exhausting database connection limits.
  */
 
-import { createPool, VercelPool, sql as vercelSql } from '@vercel/postgres';
+import { sql as vercelSql } from '@vercel/postgres';
 import { Pool, PoolConfig } from 'pg';
 import { env, isLocalPostgres as checkIsLocalPostgres } from '@/lib/env';
 
@@ -86,7 +86,6 @@ const isLocalPostgres = checkIsLocalPostgres();
 const POSTGRES_URL = env.POSTGRES_URL;
 
 let localPool: Pool | null = null;
-let vercelPool: VercelPool | null = null;
 
 /**
  * Initialize connection pool based on environment
@@ -136,14 +135,9 @@ function initializePool() {
       });
     }
   } else {
-    // Vercel Postgres (Neon)
-    if (!vercelPool) {
-      vercelPool = createPool({
-        connectionString: POSTGRES_URL,
-      });
-
-      console.log('[DB] Vercel Postgres pool initialized');
-    }
+    // Vercel Postgres uses built-in connection pooling
+    // No explicit pool initialization needed
+    console.log('[DB] Using Vercel Postgres with built-in pooling');
   }
 }
 
@@ -241,10 +235,8 @@ export const db = (async (
     }, '');
 
     return executeQuery(() => localPool!.query(queryStr, values));
-  } else if (vercelPool) {
-    return vercelPool(strings, ...values);
   } else {
-    // Fallback to direct vercelSql
+    // Use Vercel Postgres sql function
     return vercelSql(strings, ...values);
   }
 }) as any;
@@ -255,10 +247,10 @@ export const db = (async (
 db.query = async (text: string, values: any[] = []) => {
   if (isLocalPostgres && localPool) {
     return executeQuery(() => localPool!.query(text, values));
-  } else if (vercelPool) {
-    return (vercelPool as any).query(text, values);
   } else {
-    return (vercelSql as any).query(text, values);
+    // Vercel Postgres doesn't support parameterized query() method the same way
+    // Use template literal syntax instead
+    throw new Error('Use template literal syntax (sql`...`) instead of db.query() with Vercel Postgres');
   }
 };
 
@@ -278,12 +270,8 @@ db.withTimeout = (timeoutMs: number): DatabaseClient => {
       }, '');
 
       return executeQuery(() => localPool!.query(queryStr, values), timeoutMs);
-    } else if (vercelPool) {
-      // Vercel Postgres doesn't support timeout configuration
-      // Just execute normally and log warning
-      console.warn('[DB] Custom timeout not supported for Vercel Postgres');
-      return vercelPool(strings, ...values);
     } else {
+      // Vercel Postgres doesn't support timeout configuration
       console.warn('[DB] Custom timeout not supported for Vercel Postgres');
       return vercelSql(strings, ...values);
     }
@@ -292,12 +280,9 @@ db.withTimeout = (timeoutMs: number): DatabaseClient => {
   timeoutDb.query = async (text: string, values: any[] = []) => {
     if (isLocalPostgres && localPool) {
       return executeQuery(() => localPool!.query(text, values), timeoutMs);
-    } else if (vercelPool) {
-      console.warn('[DB] Custom timeout not supported for Vercel Postgres');
-      return (vercelPool as any).query(text, values);
     } else {
       console.warn('[DB] Custom timeout not supported for Vercel Postgres');
-      return (vercelSql as any).query(text, values);
+      throw new Error('Use template literal syntax (sql`...`) instead of db.query() with Vercel Postgres');
     }
   };
 
@@ -370,12 +355,9 @@ export async function closeDatabase(): Promise<void> {
     if (localPool) {
       await localPool.end();
       console.log('[DB] Local PostgreSQL pool closed');
-    }
-
-    if (vercelPool) {
-      // Vercel Pool doesn't have an explicit close method
-      // Connections will be cleaned up automatically
-      console.log('[DB] Vercel Postgres pool cleanup initiated');
+    } else {
+      // Vercel Postgres connections are managed automatically
+      console.log('[DB] Vercel Postgres cleanup (managed automatically)');
     }
   } catch (error) {
     console.error('[DB] Error during database shutdown:', error);

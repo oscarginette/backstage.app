@@ -3,6 +3,8 @@ import { ProcessEmailEventUseCase } from '@/domain/services/ProcessEmailEventUse
 import { emailEventRepository } from '@/infrastructure/database/repositories';
 import { EmailEventFactory } from '@/infrastructure/events/EmailEventFactory';
 import { ResendWebhookSchema } from '@/lib/validation-schemas';
+import { verifyResendWebhook } from '@/lib/webhooks';
+import { env } from '@/lib/env';
 
 export const dynamic = 'force-dynamic';
 
@@ -22,10 +24,50 @@ export const dynamic = 'force-dynamic';
  * 2. URL: https://tu-dominio.vercel.app/api/webhooks/resend
  * 3. Events: Seleccionar todos los de arriba
  * 4. Secret: Copiar y guardar en RESEND_WEBHOOK_SECRET
+ *
+ * Seguridad:
+ * - Verifica firma HMAC-SHA256 para prevenir webhooks maliciosos
+ * - Valida timestamp para prevenir replay attacks (max 5 minutos)
  */
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
+    // 1. SECURITY: Verify webhook signature BEFORE processing
+    // IMPORTANT: Must read raw body (text) BEFORE parsing JSON
+    const rawBody = await request.text();
+    const signatureHeader = request.headers.get('resend-signature');
+
+    // Only verify if webhook secret is configured (optional in development)
+    if (env.RESEND_WEBHOOK_SECRET) {
+      if (!signatureHeader) {
+        console.error('[Resend Webhook] Missing Resend-Signature header');
+        return NextResponse.json(
+          { error: 'Missing signature header' },
+          { status: 401 }
+        );
+      }
+
+      const verificationResult = verifyResendWebhook(
+        rawBody,
+        signatureHeader,
+        env.RESEND_WEBHOOK_SECRET,
+        300 // 5 minutes tolerance for replay attack prevention
+      );
+
+      if (!verificationResult.valid) {
+        console.error('[Resend Webhook] Signature verification failed:', verificationResult.error);
+        return NextResponse.json(
+          { error: 'Invalid signature', details: verificationResult.error },
+          { status: 401 }
+        );
+      }
+
+      console.log('[Resend Webhook] Signature verified successfully');
+    } else {
+      console.warn('[Resend Webhook] RESEND_WEBHOOK_SECRET not configured - skipping signature verification (NOT RECOMMENDED for production)');
+    }
+
+    // 2. Parse and validate payload
+    const body = JSON.parse(rawBody);
 
     // Validate webhook payload
     const validation = ResendWebhookSchema.safeParse(body);

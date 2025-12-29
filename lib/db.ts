@@ -1,67 +1,27 @@
 /**
  * Database connection wrapper
  * Supports both Vercel Postgres (Neon) and local PostgreSQL
+ *
+ * DEPRECATED: This module is kept for backward compatibility.
+ * New code should import from '@/lib/db-config' instead.
+ *
+ * Migration path:
+ * - Old: import { sql } from '@/lib/db';
+ * - New: import { db } from '@/lib/db-config';
+ *
+ * The new db-config module provides:
+ * - Connection pooling with configurable limits
+ * - Query timeouts to prevent hanging queries
+ * - Health check functionality
+ * - Better error handling and monitoring
  */
 
-import { sql as vercelSql } from '@vercel/postgres';
-import { Pool } from 'pg';
-import { env, isLocalPostgres as checkIsLocalPostgres } from '@/lib/env';
-
-// Use validated environment variable
-const POSTGRES_URL = env.POSTGRES_URL;
-
-// Check if we're using local PostgreSQL
-const isLocalPostgres = checkIsLocalPostgres();
-
-let localPool: Pool | null = null;
-
-if (isLocalPostgres) {
-  localPool = new Pool({
-    connectionString: POSTGRES_URL,
-  });
-}
+import { db } from '@/lib/db-config';
 
 /**
- * SQL template tag for database queries
- * Automatically uses local pg or Vercel Postgres based on connection string
+ * @deprecated Use `db` from '@/lib/db-config' instead
+ * Kept for backward compatibility with existing code
  */
-export const sql = (async (strings: TemplateStringsArray, ...values: any[]) => {
-  if (isLocalPostgres && localPool) {
-    const queryStr = strings.reduce((acc, str, i) => {
-      return acc + str + (i < values.length ? `$${i + 1}` : '');
-    }, '');
-
-    const result = await localPool.query(queryStr, values);
-    return {
-      rows: result.rows,
-      rowCount: result.rowCount,
-    };
-  } else {
-    return vercelSql(strings, ...values);
-  }
-}) as any;
-
-/**
- * Raw query support for dynamic queries
- */
-sql.query = async (text: string, values: any[]) => {
-  if (isLocalPostgres && localPool) {
-    const result = await localPool.query(text, values);
-    return {
-      rows: result.rows,
-      rowCount: result.rowCount,
-    };
-  } else {
-    // For Vercel, we need to use the raw query method if available or fallback
-    // @vercel/postgres doesn't expose a simple .query(text, values) on the default export
-    // but the underlying pool/client does. For now, we'll use localPool if available or error.
-    if (!isLocalPostgres) {
-        // vercelSql has a .query method for raw queries
-        return (vercelSql as any).query(text, values);
-    }
-    
-    throw new Error('Database query method not supported in this environment');
-  }
-};
+export const sql = db;
 
 export default sql;
