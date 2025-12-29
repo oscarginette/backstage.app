@@ -21,6 +21,7 @@ export const PATHS = {
   LOGIN: '/login',
   SIGNUP: '/signup',
   PRICING: '/pricing',
+  UPGRADE: '/upgrade',
 
   // Auth & Settings
   SETTINGS: '/settings',

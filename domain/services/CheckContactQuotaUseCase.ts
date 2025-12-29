@@ -55,6 +55,21 @@ export class CheckContactQuotaUseCase {
 
     const limit = quotaInfo.maxContacts;
 
+    // Check if subscription has expired
+    const now = new Date();
+    const hasExpired = quotaInfo.subscriptionExpiresAt && quotaInfo.subscriptionExpiresAt < now;
+
+    if (hasExpired) {
+      return {
+        allowed: false,
+        currentCount,
+        limit,
+        remaining: 0,
+        upgradeRequired: true,
+        message: `Your subscription has expired. Please renew your plan to continue adding contacts.`,
+      };
+    }
+
     const remaining = Math.max(0, limit - currentCount);
     const wouldExceed = currentCount + additionalContacts > limit;
 

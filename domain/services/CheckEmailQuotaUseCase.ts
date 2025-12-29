@@ -50,6 +50,22 @@ export class CheckEmailQuotaUseCase {
     const currentCount = quotaInfo.emailsSentThisMonth;
     const limit = quotaInfo.maxMonthlyEmails;
 
+    // Check if subscription has expired
+    const now = new Date();
+    const hasExpired = quotaInfo.subscriptionExpiresAt && quotaInfo.subscriptionExpiresAt < now;
+
+    if (hasExpired) {
+      return {
+        allowed: false,
+        currentCount,
+        limit,
+        remaining: 0,
+        wouldExceedBy: emailCount,
+        upgradeRequired: true,
+        message: `Your subscription has expired. Please renew your plan to continue sending emails.`,
+      };
+    }
+
     // Check for unlimited plan (maxMonthlyEmails = null or very high number)
     const isUnlimited = limit >= 999999999;
 
