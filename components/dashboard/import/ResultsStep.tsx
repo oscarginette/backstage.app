@@ -1,6 +1,7 @@
 'use client';
 
-import { CheckCircle, AlertCircle, XCircle } from 'lucide-react';
+import { CheckCircle, AlertCircle, XCircle, Zap } from 'lucide-react';
+import Link from 'next/link';
 
 interface ImportResults {
   importId?: number;
@@ -14,12 +15,21 @@ interface ImportResults {
   fileType?: string;
 }
 
+interface QuotaInfo {
+  exceeded: boolean;
+  currentCount: number;
+  limit: number;
+  remaining: number;
+  message?: string;
+}
+
 interface Props {
   results: ImportResults;
+  quotaInfo?: QuotaInfo | null;
   onComplete: () => void;
 }
 
-export default function ResultsStep({ results, onComplete }: Props) {
+export default function ResultsStep({ results, quotaInfo, onComplete }: Props) {
   const totalProcessed = results.contactsInserted + results.contactsUpdated + results.contactsSkipped;
   const successRate = totalProcessed > 0
     ? ((results.contactsInserted + results.contactsUpdated) / totalProcessed * 100).toFixed(1)
@@ -29,6 +39,28 @@ export default function ResultsStep({ results, onComplete }: Props) {
 
   return (
     <div className="space-y-3">
+      {/* Quota Warning - Show if exceeded */}
+      {quotaInfo?.exceeded && (
+        <div className="rounded-xl p-4 bg-gradient-to-r from-purple-50 to-pink-50 border-2 border-purple-200">
+          <div className="flex items-start gap-3">
+            <Zap className="w-6 h-6 text-purple-600 flex-shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <h3 className="text-sm font-bold text-purple-900">Upgrade Required</h3>
+              <p className="text-xs text-purple-700 mt-1">
+                You've imported {quotaInfo.currentCount} contacts (limit: {quotaInfo.limit}).
+                Upgrade your plan to send emails to all your contacts.
+              </p>
+              <Link
+                href="/upgrade"
+                className="inline-block mt-3 px-4 py-2 bg-purple-600 text-white text-xs font-medium rounded-lg hover:bg-purple-700 transition-colors"
+              >
+                View Plans
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Status Banner - Compacto */}
       <div className={`rounded-xl p-3 ${
         !hasWarnings

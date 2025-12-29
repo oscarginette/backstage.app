@@ -55,6 +55,14 @@ interface ImportResults {
   errors?: Array<{ email: string; error: string }>;
 }
 
+interface QuotaInfo {
+  exceeded: boolean;
+  currentCount: number;
+  limit: number;
+  remaining: number;
+  message?: string;
+}
+
 interface Props {
   isOpen: boolean;
   onClose: () => void;
@@ -66,6 +74,7 @@ export default function ImportWizardModal({ isOpen, onClose, onSuccess }: Props)
   const [preview, setPreview] = useState<ImportPreview | null>(null);
   const [columnMapping, setColumnMapping] = useState<ColumnMappingData | null>(null);
   const [results, setResults] = useState<ImportResults | null>(null);
+  const [quotaInfo, setQuotaInfo] = useState<QuotaInfo | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   if (!isOpen) return null;
@@ -76,6 +85,7 @@ export default function ImportWizardModal({ isOpen, onClose, onSuccess }: Props)
     setPreview(null);
     setColumnMapping(null);
     setResults(null);
+    setQuotaInfo(null);
     setError(null);
     onClose();
   };
@@ -120,6 +130,7 @@ export default function ImportWizardModal({ isOpen, onClose, onSuccess }: Props)
       }
 
       setResults(data.import);
+      setQuotaInfo(data.quota || null);
       setCurrentStep('results');
     } catch (err: any) {
       setError(err.message);
@@ -228,7 +239,7 @@ export default function ImportWizardModal({ isOpen, onClose, onSuccess }: Props)
           )}
 
           {currentStep === 'results' && results && (
-            <ResultsStep results={results} onComplete={handleResultsComplete} />
+            <ResultsStep results={results} quotaInfo={quotaInfo} onComplete={handleResultsComplete} />
           )}
         </div>
       </div>
