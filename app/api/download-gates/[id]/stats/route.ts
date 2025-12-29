@@ -7,13 +7,7 @@
 
 import { NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
-import { GetGateStatsUseCase } from '@/domain/services/GetGateStatsUseCase';
-import { PostgresDownloadGateRepository } from '@/infrastructure/database/repositories/PostgresDownloadGateRepository';
-import { PostgresDownloadAnalyticsRepository } from '@/infrastructure/database/repositories/PostgresDownloadAnalyticsRepository';
-
-// Singleton repository instances
-const gateRepository = new PostgresDownloadGateRepository();
-const analyticsRepository = new PostgresDownloadAnalyticsRepository();
+import { UseCaseFactory } from '@/lib/di-container';
 
 export const dynamic = 'force-dynamic';
 
@@ -38,11 +32,8 @@ export async function GET(
     const userId = parseInt(session.user.id);
     const { id } = await params;
 
-    // Initialize use case
-    const getStatsUseCase = new GetGateStatsUseCase(
-      gateRepository,
-      analyticsRepository
-    );
+    // Get use case from factory (DI)
+    const getStatsUseCase = UseCaseFactory.createGetGateStatsUseCase();
 
     // Execute
     const result = await getStatsUseCase.execute({

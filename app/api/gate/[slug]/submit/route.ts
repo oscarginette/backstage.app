@@ -12,6 +12,7 @@ import { PostgresDownloadSubmissionRepository } from '@/infrastructure/database/
 import { PostgresDownloadAnalyticsRepository } from '@/infrastructure/database/repositories/PostgresDownloadAnalyticsRepository';
 import { PostgresContactRepository } from '@/infrastructure/database/repositories/PostgresContactRepository';
 import { serializeSubmission } from '@/lib/serialization';
+import { SubmitDownloadGateSchema } from '@/lib/validation-schemas';
 
 // Singleton repository instances
 const gateRepository = new PostgresDownloadGateRepository();
@@ -32,24 +33,18 @@ export async function POST(
   try {
     const { slug } = await params;
 
-    // Parse request body
+    // Parse and validate request body
     const body = await request.json();
-    const { email, firstName, consentMarketing } = body;
 
-    // Validate required fields
-    if (!email) {
+    const validation = SubmitDownloadGateSchema.safeParse(body);
+    if (!validation.success) {
       return NextResponse.json(
-        { error: 'Email is required' },
+        { error: 'Validation failed', details: validation.error.format() },
         { status: 400 }
       );
     }
 
-    if (consentMarketing === undefined || consentMarketing === null) {
-      return NextResponse.json(
-        { error: 'Marketing consent is required' },
-        { status: 400 }
-      );
-    }
+    const { email, firstName, consentMarketing } = validation.data;
 
     // Extract IP and user agent for GDPR compliance
     const ipAddress = request.headers.get('x-forwarded-for') || undefined;
@@ -99,9 +94,11 @@ export async function POST(
     console.error('POST /api/gate/[slug]/submit error:', error);
 
     if (error instanceof Error) {
-      if (error.message.includes('Invalid') || error.message.includes('required')) {
+      const errorMessage = error.message;
+
+      if (errorMessage.includes('Invalid') || errorMessage.includes('required')) {
         return NextResponse.json(
-          { error: error.message },
+          { error: errorMessage },
           { status: 400 }
         );
       }

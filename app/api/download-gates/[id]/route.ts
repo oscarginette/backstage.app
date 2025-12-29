@@ -13,19 +13,9 @@
 
 import { NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
-import { GetDownloadGateUseCase } from '@/domain/services/GetDownloadGateUseCase';
-import { UpdateDownloadGateUseCase } from '@/domain/services/UpdateDownloadGateUseCase';
-import { DeleteDownloadGateUseCase } from '@/domain/services/DeleteDownloadGateUseCase';
-import { GetGateStatsUseCase } from '@/domain/services/GetGateStatsUseCase';
-import { PostgresDownloadGateRepository } from '@/infrastructure/database/repositories/PostgresDownloadGateRepository';
-import { PostgresDownloadSubmissionRepository } from '@/infrastructure/database/repositories/PostgresDownloadSubmissionRepository';
-import { PostgresDownloadAnalyticsRepository } from '@/infrastructure/database/repositories/PostgresDownloadAnalyticsRepository';
+import { UseCaseFactory } from '@/lib/di-container';
 import { serializeGate, serializeGateWithStats } from '@/lib/serialization';
-
-// Singleton repository instances
-const gateRepository = new PostgresDownloadGateRepository();
-const submissionRepository = new PostgresDownloadSubmissionRepository();
-const analyticsRepository = new PostgresDownloadAnalyticsRepository();
+import { UpdateDownloadGateSchema } from '@/lib/validation-schemas';
 
 export const dynamic = 'force-dynamic';
 
@@ -50,9 +40,9 @@ export async function GET(
     const userId = parseInt(session.user.id);
     const { id } = await params;
 
-    // Initialize use cases
-    const getGateUseCase = new GetDownloadGateUseCase(gateRepository);
-    const getStatsUseCase = new GetGateStatsUseCase(gateRepository, analyticsRepository);
+    // Get use cases from factory (DI)
+    const getGateUseCase = UseCaseFactory.createGetDownloadGateUseCase();
+    const getStatsUseCase = UseCaseFactory.createGetGateStatsUseCase();
 
     // Execute
     const gate = await getGateUseCase.executeById({ userId, gateId: id });
@@ -122,17 +112,22 @@ export async function PATCH(
     const userId = parseInt(session.user.id);
     const { id } = await params;
 
-    // Parse request body
+    // Parse and validate request body
     const body = await request.json();
 
-    // Initialize use case
-    const updateGateUseCase = new UpdateDownloadGateUseCase(
-      gateRepository,
-      submissionRepository
-    );
+    const validation = UpdateDownloadGateSchema.safeParse(body);
+    if (!validation.success) {
+      return NextResponse.json(
+        { error: 'Validation failed', details: validation.error.format() },
+        { status: 400 }
+      );
+    }
 
-    // Execute
-    const result = await updateGateUseCase.execute(userId, id, body);
+    // Get use case from factory (DI)
+    const updateGateUseCase = UseCaseFactory.createUpdateDownloadGateUseCase();
+
+    // Execute with validated data
+    const result = await updateGateUseCase.execute(userId, id, validation.data);
 
     if (!result.success) {
       if (result.error?.includes('not found') || result.error?.includes('access denied')) {
@@ -156,9 +151,11 @@ export async function PATCH(
     console.error('PATCH /api/download-gates/[id] error:', error);
 
     if (error instanceof Error) {
-      if (error.message.includes('Invalid') || error.message.includes('required')) {
+      const errorMessage = error.message;
+
+      if (errorMessage.includes('Invalid') || errorMessage.includes('required')) {
         return NextResponse.json(
-          { error: error.message },
+          { error: errorMessage },
           { status: 400 }
         );
       }
@@ -192,8 +189,8 @@ export async function DELETE(
     const userId = parseInt(session.user.id);
     const { id } = await params;
 
-    // Initialize use case
-    const deleteGateUseCase = new DeleteDownloadGateUseCase(gateRepository);
+    // Get use case from factory (DI)
+    const deleteGateUseCase = UseCaseFactory.createDeleteDownloadGateUseCase();
 
     // Execute
     const result = await deleteGateUseCase.execute(userId, id);

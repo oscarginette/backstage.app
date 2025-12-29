@@ -10,15 +10,10 @@
 
 import { NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
-import { ListDownloadGatesUseCase } from '@/domain/services/ListDownloadGatesUseCase';
-import { CreateDownloadGateUseCase } from '@/domain/services/CreateDownloadGateUseCase';
-import { PostgresDownloadGateRepository } from '@/infrastructure/database/repositories/PostgresDownloadGateRepository';
-import { PostgresDownloadAnalyticsRepository } from '@/infrastructure/database/repositories/PostgresDownloadAnalyticsRepository';
+import { UseCaseFactory } from '@/lib/di-container';
 import { serializeGate, serializeGateWithStats } from '@/lib/serialization';
-
-// Singleton repository instances
-const gateRepository = new PostgresDownloadGateRepository();
-const analyticsRepository = new PostgresDownloadAnalyticsRepository();
+import { CreateDownloadGateSchema } from '@/lib/validation-schemas';
+import { isAppError } from '@/lib/errors';
 
 export const dynamic = 'force-dynamic';
 
@@ -39,11 +34,8 @@ export async function GET(request: Request) {
 
     const userId = parseInt(session.user.id);
 
-    // Initialize use case
-    const listGatesUseCase = new ListDownloadGatesUseCase(
-      gateRepository,
-      analyticsRepository
-    );
+    // Get use case from factory (DI)
+    const listGatesUseCase = UseCaseFactory.createListDownloadGatesUseCase();
 
     // Execute
     const gatesWithStats = await listGatesUseCase.execute(userId);
@@ -93,14 +85,22 @@ export async function POST(request: Request) {
 
     const userId = parseInt(session.user.id);
 
-    // Parse request body
+    // Parse and validate request body
     const body = await request.json();
 
-    // Initialize use case
-    const createGateUseCase = new CreateDownloadGateUseCase(gateRepository);
+    const validation = CreateDownloadGateSchema.safeParse(body);
+    if (!validation.success) {
+      return NextResponse.json(
+        { error: 'Validation failed', details: validation.error.format() },
+        { status: 400 }
+      );
+    }
 
-    // Execute
-    const result = await createGateUseCase.execute(userId, body);
+    // Get use case from factory (DI)
+    const createGateUseCase = UseCaseFactory.createCreateDownloadGateUseCase();
+
+    // Execute with validated data
+    const result = await createGateUseCase.execute(userId, validation.data);
 
     if (!result.success) {
       return NextResponse.json(
@@ -119,15 +119,15 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error('POST /api/download-gates error:', error);
 
-    if (error instanceof Error) {
-      if (error.message.includes('Invalid') || error.message.includes('required')) {
-        return NextResponse.json(
-          { error: error.message },
-          { status: 400 }
-        );
-      }
+    // Handle known AppError types with proper status codes
+    if (isAppError(error)) {
+      return NextResponse.json(
+        { error: error instanceof Error ? error.message : "Unknown error" },
+        { status: error.status }
+      );
     }
 
+    // Handle unexpected errors
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

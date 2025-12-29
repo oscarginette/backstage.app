@@ -7,14 +7,8 @@
 
 import { NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
-import { ListGateSubmissionsUseCase } from '@/domain/services/ListGateSubmissionsUseCase';
-import { PostgresDownloadGateRepository } from '@/infrastructure/database/repositories/PostgresDownloadGateRepository';
-import { PostgresDownloadSubmissionRepository } from '@/infrastructure/database/repositories/PostgresDownloadSubmissionRepository';
+import { UseCaseFactory } from '@/lib/di-container';
 import { serializeSubmission } from '@/lib/serialization';
-
-// Singleton repository instances
-const gateRepository = new PostgresDownloadGateRepository();
-const submissionRepository = new PostgresDownloadSubmissionRepository();
 
 export const dynamic = 'force-dynamic';
 
@@ -39,11 +33,8 @@ export async function GET(
     const userId = parseInt(session.user.id);
     const { id } = await params;
 
-    // Initialize use case
-    const listSubmissionsUseCase = new ListGateSubmissionsUseCase(
-      gateRepository,
-      submissionRepository
-    );
+    // Get use case from factory (DI)
+    const listSubmissionsUseCase = UseCaseFactory.createListGateSubmissionsUseCase();
 
     // Execute
     const result = await listSubmissionsUseCase.execute({ userId, gateId: id });

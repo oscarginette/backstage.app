@@ -72,9 +72,11 @@ export async function POST(
     console.error('POST /api/gate/[slug]/download-token error:', error);
 
     if (error instanceof Error) {
-      if (error.message.includes('Invalid') || error.message.includes('required')) {
+      const errorMessage = error.message;
+
+      if (errorMessage.includes('Invalid') || errorMessage.includes('required')) {
         return NextResponse.json(
-          { error: error.message },
+          { error: errorMessage },
           { status: 400 }
         );
       }
