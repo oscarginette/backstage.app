@@ -26,9 +26,11 @@ const envSchema = z.object({
   POSTGRES_PASSWORD: z.string().optional(),
   POSTGRES_DATABASE: z.string().optional(),
 
-  // NextAuth (Required for authentication)
+  // NextAuth (Required for authentication at runtime)
   NEXTAUTH_URL: z.string().url('Invalid NEXTAUTH_URL - must be a valid URL').optional(),
-  NEXTAUTH_SECRET: z.string().min(32, 'NEXTAUTH_SECRET must be at least 32 characters for security'),
+  NEXTAUTH_SECRET: z.string().min(32, 'NEXTAUTH_SECRET must be at least 32 characters for security').optional(),
+  // Legacy: Accept AUTH_SECRET for backward compatibility (NextAuth v5)
+  AUTH_SECRET: z.string().min(32, 'AUTH_SECRET must be at least 32 characters for security').optional(),
 
   // Email Provider (Resend - Required for email functionality)
   RESEND_API_KEY: z.string().startsWith('re_', 'Invalid Resend API key format - must start with re_').optional(),
