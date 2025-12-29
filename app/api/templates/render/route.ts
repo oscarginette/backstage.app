@@ -30,15 +30,15 @@ export async function POST(request: Request) {
       html: result.html,
       subject: result.subject
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error rendering template:', error);
 
-    if (error.name === 'ValidationError') {
+    if (error instanceof Error && error.name === 'ValidationError') {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
 
     return NextResponse.json(
-      { error: error.message || 'Failed to render template' },
+      { error: (error instanceof Error ? error.message : "Unknown error") || 'Failed to render template' },
       { status: 500 }
     );
   }

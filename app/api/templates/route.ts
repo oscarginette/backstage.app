@@ -1,31 +1,45 @@
-import { NextResponse } from 'next/server';
 import { CreateEmailTemplateUseCase } from '@/domain/services/email-templates/CreateEmailTemplateUseCase';
 import { GetEmailTemplatesUseCase } from '@/domain/services/email-templates/GetEmailTemplatesUseCase';
 import { PostgresEmailTemplateRepository } from '@/infrastructure/database/repositories/PostgresEmailTemplateRepository';
+import { withErrorHandler, generateRequestId } from '@/lib/error-handler';
+import { successResponse, createdResponse } from '@/lib/api-response';
+import { CreateEmailTemplateSchema } from '@/lib/validation-schemas';
 
 const emailTemplateRepository = new PostgresEmailTemplateRepository();
 
-export async function GET() {
-  try {
-    const useCase = new GetEmailTemplatesUseCase(emailTemplateRepository);
-    const result = await useCase.execute({});
-    return NextResponse.json({
+export const GET = withErrorHandler(async () => {
+  const requestId = generateRequestId();
+  const useCase = new GetEmailTemplatesUseCase(emailTemplateRepository);
+  const result = await useCase.execute({});
+
+  return successResponse(
+    {
       templates: result.templates.map(t => t.toJSON()),
       count: result.count
-    });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
-  }
-}
+    },
+    200,
+    requestId
+  );
+});
 
-export async function POST(request: Request) {
-  try {
-    const body = await request.json();
-    const useCase = new CreateEmailTemplateUseCase(emailTemplateRepository);
-    const result = await useCase.execute(body);
-    return NextResponse.json({ template: result.template.toJSON(), success: result.success }, { status: 201 });
-  } catch (error: any) {
-    const status = error.name === 'ValidationError' ? 400 : 500;
-    return NextResponse.json({ error: error.message }, { status });
+export const POST = withErrorHandler(async (request: Request) => {
+  const requestId = generateRequestId();
+  const body = await request.json();
+
+  // Validate request body
+  const validation = CreateEmailTemplateSchema.safeParse(body);
+  if (!validation.success) {
+    throw new Error(`Validation failed: ${JSON.stringify(validation.error.format())}`);
   }
-}
+
+  const useCase = new CreateEmailTemplateUseCase(emailTemplateRepository);
+  const result = await useCase.execute(validation.data);
+
+  return createdResponse(
+    {
+      template: result.template.toJSON(),
+      success: result.success
+    },
+    requestId
+  );
+});

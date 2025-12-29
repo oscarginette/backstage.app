@@ -31,10 +31,10 @@ export async function POST(request: Request) {
       errors: [],
       hasErrors: false
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error compiling MJML:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to compile MJML' },
+      { error: (error instanceof Error ? error.message : "Unknown error") || 'Failed to compile MJML' },
       { status: 500 }
     );
   }
