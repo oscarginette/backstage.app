@@ -3,8 +3,10 @@
 import { useEffect, useState, useMemo } from 'react';
 import { DownloadSubmission } from '@/types/download-gates';
 import { Search, Download, Check, Clock, X, FileText, Filter } from 'lucide-react';
+import { useTranslations } from '@/lib/i18n/context';
 
 export default function GateSubmissions({ gateId }: { gateId: string }) {
+  const t = useTranslations('dashboard.gates.submissions');
   const [submissions, setSubmissions] = useState<DownloadSubmission[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -46,12 +48,12 @@ export default function GateSubmissions({ gateId }: { gateId: string }) {
     });
   };
 
-  const StatusBadge = ({ verified, label }: { verified: boolean, label: string }) => (
+  const StatusBadge = ({ verified, labelKey }: { verified: boolean, labelKey: string }) => (
     <div className={`flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-widest ${
       verified ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-400'
     }`}>
       {verified ? <Check className="w-3 h-3" /> : <Clock className="w-3 h-3" />}
-      <span>{label}</span>
+      <span>{t(labelKey)}</span>
     </div>
   );
 
@@ -70,11 +72,11 @@ export default function GateSubmissions({ gateId }: { gateId: string }) {
       {/* Header */}
       <div className="p-8 border-b border-[#E8E6DF]">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-serif text-[#1c1c1c]">Fans & Submissions</h2>
+          <h2 className="text-2xl font-serif text-[#1c1c1c]">{t('title')}</h2>
           <div className="flex items-center gap-2">
             <button className="flex items-center gap-2 px-4 py-2 rounded-xl border border-[#E8E6DF] hover:bg-[#F5F3ED] transition-all text-sm font-medium">
               <Download className="w-4 h-4" />
-              <span>Export CSV</span>
+              <span>{t('exportCsv')}</span>
             </button>
           </div>
         </div>
@@ -85,14 +87,14 @@ export default function GateSubmissions({ gateId }: { gateId: string }) {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Buscar por email o nombre..."
+              placeholder={t('searchPlaceholder')}
               className="w-full px-5 py-3 pl-12 rounded-xl border border-[#E8E6DF] bg-white/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#FF5500]/20 focus:border-[#FF5500] transition-all text-sm"
             />
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#999]" />
           </div>
           <button className="flex items-center gap-2 px-5 py-3 rounded-xl border border-[#E8E6DF] bg-white text-gray-600 hover:bg-[#F5F3ED] transition-all text-sm text-medium">
              <Filter className="w-4 h-4" />
-             <span>Filtros</span>
+             <span>{t('filters')}</span>
           </button>
         </div>
       </div>
@@ -102,10 +104,10 @@ export default function GateSubmissions({ gateId }: { gateId: string }) {
         <table className="w-full">
           <thead>
             <tr className="border-b border-[#E8E6DF] bg-[#F9F8F4]/50">
-              <th className="px-6 py-4 text-left text-xs font-semibold text-[#666] uppercase tracking-wider">Email/Name</th>
-              <th className="px-6 py-4 text-left text-xs font-semibold text-[#666] uppercase tracking-wider">Verified Steps</th>
-              <th className="px-6 py-4 text-left text-xs font-semibold text-[#666] uppercase tracking-wider">Status</th>
-              <th className="px-6 py-4 text-left text-xs font-semibold text-[#666] uppercase tracking-wider">Date</th>
+              <th className="px-6 py-4 text-left text-xs font-semibold text-[#666] uppercase tracking-wider">{t('emailName')}</th>
+              <th className="px-6 py-4 text-left text-xs font-semibold text-[#666] uppercase tracking-wider">{t('verifiedSteps')}</th>
+              <th className="px-6 py-4 text-left text-xs font-semibold text-[#666] uppercase tracking-wider">{t('status')}</th>
+              <th className="px-6 py-4 text-left text-xs font-semibold text-[#666] uppercase tracking-wider">{t('date')}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-[#E8E6DF]">
@@ -114,7 +116,7 @@ export default function GateSubmissions({ gateId }: { gateId: string }) {
                 <td colSpan={4} className="px-6 py-20 text-center">
                   <div className="flex flex-col items-center gap-4 text-[#CCC]">
                     <FileText className="w-12 h-12" />
-                    <span className="text-lg font-medium">No hay envíos todavía</span>
+                    <span className="text-lg font-medium">{t('noSubmissions')}</span>
                   </div>
                 </td>
               </tr>
@@ -127,21 +129,21 @@ export default function GateSubmissions({ gateId }: { gateId: string }) {
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex flex-wrap gap-2">
-                      <StatusBadge verified={s.soundcloudRepostVerified} label="Repost" />
-                      <StatusBadge verified={s.soundcloudFollowVerified} label="Follow" />
-                      <StatusBadge verified={s.spotifyConnected} label="Spotify" />
+                      <StatusBadge verified={s.soundcloudRepostVerified} labelKey="repost" />
+                      <StatusBadge verified={s.soundcloudFollowVerified} labelKey="follow" />
+                      <StatusBadge verified={s.spotifyConnected} labelKey="spotify" />
                     </div>
                   </td>
                   <td className="px-6 py-4">
                     {s.downloadCompleted ? (
                       <span className="flex items-center gap-1.5 text-sm font-bold text-emerald-600">
                         <Download className="w-4 h-4" />
-                        Downloaded
+                        {t('downloaded')}
                       </span>
                     ) : (
                       <span className="flex items-center gap-1.5 text-sm font-medium text-gray-400">
                         <Clock className="w-4 h-4" />
-                        Pending
+                        {t('pending')}
                       </span>
                     )}
                   </td>

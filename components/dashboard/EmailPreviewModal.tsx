@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Modal from '@/components/ui/Modal';
 import { SoundCloudTrack } from '../../types/dashboard';
+import { useTranslations } from '@/lib/i18n/context';
 
 interface EmailPreviewModalProps {
   track: SoundCloudTrack;
@@ -19,6 +20,7 @@ export default function EmailPreviewModal({
   sending,
   contactsCount
 }: EmailPreviewModalProps) {
+  const t = useTranslations('dashboard.emails.preview');
   const [previewHtml, setPreviewHtml] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [editMode, setEditMode] = useState(false);
@@ -83,10 +85,10 @@ export default function EmailPreviewModal({
           <div className="flex items-start justify-between mb-4">
             <div>
               <h2 className="text-2xl font-serif text-[#1c1c1c] mb-1">
-                {track.alreadySent ? 'Reenviar Campaña' : 'Vista Previa del Email'}
+                {track.alreadySent ? t('resendTitle') : t('title')}
               </h2>
               <p className="text-sm text-gray-500">
-                {track.title} • Se enviará a {contactsCount} contacto{contactsCount !== 1 ? 's' : ''}
+                {track.title} • {contactsCount === 1 ? t('sendTo', { count: contactsCount }) : t('sendToPlural', { count: contactsCount })}
               </p>
             </div>
             <div className="flex items-center gap-2">
@@ -99,7 +101,7 @@ export default function EmailPreviewModal({
                 }`}
                 disabled={sending}
               >
-                {editMode ? 'Modo Vista Previa' : 'Editar Contenido'}
+                {editMode ? t('previewMode') : t('editMode')}
               </button>
               <button
                 onClick={onClose}
@@ -120,9 +122,9 @@ export default function EmailPreviewModal({
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                 </svg>
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-amber-900">Esta campaña ya fue enviada</p>
+                  <p className="text-sm font-medium text-amber-900">{t('alreadySent')}</p>
                   <p className="text-xs text-amber-700 mt-1">
-                    Los contactos recibirán este email nuevamente. Asegúrate de que sea intencional.
+                    {t('alreadySentWarning')}
                   </p>
                 </div>
               </div>
@@ -137,63 +139,63 @@ export default function EmailPreviewModal({
           {/* Editor Panel (if edit mode) */}
           {editMode && (
             <div className="w-1/2 border-r border-[#E8E6DF] overflow-y-auto p-6 bg-gray-50">
-              <h3 className="text-lg font-semibold text-[#1c1c1c] mb-4">Personalizar Contenido</h3>
+              <h3 className="text-lg font-semibold text-[#1c1c1c] mb-4">{t('customizeContent')}</h3>
 
               <div className="space-y-4">
                 {/* Subject */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Asunto del Email
+                    {t('subject')}
                   </label>
                   <input
                     type="text"
                     value={subject}
                     onChange={(e) => setSubject(e.target.value)}
                     className="w-full px-4 py-2.5 rounded-xl border border-[#E8E6DF] focus:outline-none focus:ring-2 focus:ring-[#FF5500]/20 focus:border-[#FF5500] transition-all"
-                    placeholder="Asunto del email"
+                    placeholder={t('subjectPlaceholder')}
                   />
                 </div>
 
                 {/* Greeting */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Saludo
+                    {t('greeting')}
                   </label>
                   <input
                     type="text"
                     value={greeting}
                     onChange={(e) => setGreeting(e.target.value)}
                     className="w-full px-4 py-2.5 rounded-xl border border-[#E8E6DF] focus:outline-none focus:ring-2 focus:ring-[#FF5500]/20 focus:border-[#FF5500] transition-all"
-                    placeholder="Hey mate,"
+                    placeholder={t('greetingPlaceholder')}
                   />
                 </div>
 
                 {/* Message */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Mensaje Principal
-                    <span className="text-xs text-gray-500 ml-2">(Usa **texto** para negrita)</span>
+                    {t('message')}
+                    <span className="text-xs text-gray-500 ml-2">{t('messageHint')}</span>
                   </label>
                   <textarea
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
                     rows={4}
                     className="w-full px-4 py-2.5 rounded-xl border border-[#E8E6DF] focus:outline-none focus:ring-2 focus:ring-[#FF5500]/20 focus:border-[#FF5500] transition-all resize-none"
-                    placeholder="This is my new track..."
+                    placeholder={t('messagePlaceholder')}
                   />
                 </div>
 
                 {/* Signature */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Firma
+                    {t('signature')}
                   </label>
                   <textarea
                     value={signature}
                     onChange={(e) => setSignature(e.target.value)}
                     rows={3}
                     className="w-full px-4 py-2.5 rounded-xl border border-[#E8E6DF] focus:outline-none focus:ring-2 focus:ring-[#FF5500]/20 focus:border-[#FF5500] transition-all resize-none"
-                    placeholder="Much love,\nGee Beat"
+                    placeholder={t('signaturePlaceholder')}
                   />
                 </div>
 
@@ -207,7 +209,7 @@ export default function EmailPreviewModal({
                   }}
                   className="w-full px-4 py-2 rounded-xl border border-[#E8E6DF] text-sm text-gray-600 hover:bg-white transition-colors"
                 >
-                  Restaurar Original
+                  {t('reset')}
                 </button>
               </div>
             </div>
@@ -235,7 +237,7 @@ export default function EmailPreviewModal({
         <div className="p-6 border-t border-[#E8E6DF] bg-white">
           <div className="flex items-center justify-between gap-4">
             <div className="text-sm text-gray-500">
-              Subject: <span className="font-medium text-gray-700">{subject}</span>
+              {t('subjectLabel')} <span className="font-medium text-gray-700">{subject}</span>
             </div>
             <div className="flex gap-3">
               <button
@@ -243,7 +245,7 @@ export default function EmailPreviewModal({
                 disabled={sending}
                 className="px-6 py-2.5 rounded-xl border border-[#E8E6DF] text-[#1c1c1c] hover:bg-[#F5F3ED] transition-colors disabled:opacity-50"
               >
-                Cancelar
+                {t('cancel')}
               </button>
               <button
                 onClick={handleConfirm}
@@ -253,11 +255,11 @@ export default function EmailPreviewModal({
                 {sending ? (
                   <>
                     <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    Enviando...
+                    {t('sending')}
                   </>
                 ) : (
                   <>
-                    {track.alreadySent ? 'Reenviar Campaña' : 'Confirmar y Enviar'}
+                    {track.alreadySent ? t('resend') : t('confirm')}
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                     </svg>

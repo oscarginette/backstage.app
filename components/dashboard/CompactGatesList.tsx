@@ -41,8 +41,9 @@ export default function CompactGatesList({ gates, loading }: CompactGatesListPro
   return (
     <div className="flex flex-col gap-3">
       {recentGates.map((gate) => (
-        <div 
+        <Link 
           key={gate.id}
+          href={PATHS.DASHBOARD.DOWNLOAD_GATES.DETAILS(gate.id)}
           className="flex items-center justify-between p-3.5 bg-white/40 border border-[#E8E6DF]/60 rounded-2xl hover:bg-white hover:shadow-lg hover:shadow-black/5 transition-all duration-500 group"
         >
           <div className="flex items-center gap-4">
@@ -76,13 +77,12 @@ export default function CompactGatesList({ gates, loading }: CompactGatesListPro
                 </div>
               </div>
           </div>
-          <Link
-            href={PATHS.DASHBOARD.DOWNLOAD_GATES.DETAILS(gate.id)}
-            className="w-8 h-8 flex items-center justify-center rounded-xl bg-white border border-[#E8E6DF]/60 text-gray-400 hover:text-[#1c1c1c] hover:border-[#1c1c1c]/20 hover:shadow-md transition-all active:scale-95"
+          <div
+            className="w-8 h-8 flex items-center justify-center rounded-xl bg-white border border-[#E8E6DF]/60 text-gray-400 group-hover:text-[#1c1c1c] group-hover:border-[#1c1c1c]/20 group-hover:shadow-md transition-all active:scale-95"
           >
             <ArrowRight className="w-3.5 h-3.5" />
-          </Link>
-        </div>
+          </div>
+        </Link>
       ))}
       {gates.length > 3 && (
         <div className="text-center py-2 text-xs font-bold text-gray-400">

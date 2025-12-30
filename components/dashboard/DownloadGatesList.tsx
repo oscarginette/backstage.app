@@ -5,8 +5,10 @@ import { DownloadGate } from '@/types/download-gates';
 import { BarChart2, Eye, Download, Users, ExternalLink, Plus, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import DataTable from './DataTable';
+import { useTranslations } from '@/lib/i18n/context';
 
 export default function DownloadGatesList() {
+  const t = useTranslations('dashboard.gates.list');
   const [gates, setGates] = useState<DownloadGate[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -29,7 +31,7 @@ export default function DownloadGatesList() {
   };
 
   const deleteGate = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this gate?')) return;
+    if (!confirm(t('deleteConfirm'))) return;
     try {
       const res = await fetch(`/api/download-gates/${id}`, { method: 'DELETE' });
       if (res.ok) {
@@ -42,7 +44,7 @@ export default function DownloadGatesList() {
 
   const columns = [
     {
-      header: 'Gate / Title',
+      header: t('gateTitle'),
       className: 'flex-[3] min-w-[200px]',
       accessor: (gate: DownloadGate) => (
         <div className="flex items-center gap-4">
@@ -61,24 +63,24 @@ export default function DownloadGatesList() {
       ),
     },
     {
-      header: 'Reach',
+      header: t('reach'),
       className: 'flex-1 min-w-[120px]',
       accessor: (gate: DownloadGate) => (
         <div className="flex items-center gap-4">
           <div className="flex flex-col text-center">
             <span className="text-xs font-bold text-[#1c1c1c]">{gate.stats.views.toLocaleString()}</span>
-            <span className="text-[9px] text-gray-400 font-bold uppercase tracking-widest">Views</span>
+            <span className="text-[9px] text-gray-400 font-bold uppercase tracking-widest">{t('views')}</span>
           </div>
           <div className="w-px h-6 bg-[#E8E6DF]/50" />
           <div className="flex flex-col text-center">
             <span className="text-xs font-bold text-[#1c1c1c]">{gate.stats.downloads.toLocaleString()}</span>
-            <span className="text-[9px] text-gray-400 font-bold uppercase tracking-widest">Downloads</span>
+            <span className="text-[9px] text-gray-400 font-bold uppercase tracking-widest">{t('downloads')}</span>
           </div>
         </div>
       ),
     },
     {
-      header: 'Audience Growth',
+      header: t('audienceGrowth'),
       className: 'flex-1 min-w-[140px]',
       accessor: (gate: DownloadGate) => (
         <div className="flex items-center gap-3">
@@ -87,13 +89,13 @@ export default function DownloadGatesList() {
           </div>
           <div className="flex flex-col">
             <span className="text-sm font-black text-[#1c1c1c]">{gate.stats.submissions.toLocaleString()}</span>
-            <span className="text-[9px] text-gray-400 font-bold uppercase tracking-widest">Captured Emails</span>
+            <span className="text-[9px] text-gray-400 font-bold uppercase tracking-widest">{t('capturedEmails')}</span>
           </div>
         </div>
       ),
     },
     {
-      header: 'Conversion',
+      header: t('conversion'),
       className: 'w-40 flex-none',
       accessor: (gate: DownloadGate) => (
         <div className="flex flex-col gap-1">
@@ -110,17 +112,17 @@ export default function DownloadGatesList() {
       ),
     },
     {
-      header: 'Status',
+      header: t('status'),
       className: 'w-32 flex-none',
       accessor: (gate: DownloadGate) => (
-        <div 
+        <div
           className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest ${
             gate.active ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'
           }`}
-          title={gate.active ? 'Este gate está activo y aceptando visitantes' : 'Este gate está pausado y no acepta visitantes'}
+          title={gate.active ? t('activeTooltip') : t('pausedTooltip')}
         >
           <div className={`w-1.5 h-1.5 rounded-full ${gate.active ? 'bg-emerald-500' : 'bg-red-500'}`} />
-          {gate.active ? 'Active' : 'Paused'}
+          {gate.active ? t('active') : t('paused')}
         </div>
       ),
     },
@@ -136,11 +138,11 @@ export default function DownloadGatesList() {
           >
             <ExternalLink className="w-4 h-4" />
           </Link>
-          <Link 
+          <Link
             href={`/dashboard/download-gates/${gate.id}`}
             className="px-4 py-2 rounded-xl bg-[#1c1c1c] text-white text-[11px] font-bold hover:bg-black transition-all active:scale-95 shadow-lg"
           >
-            Manage
+            {t('manage')}
           </Link>
           <button
             onClick={(e) => {
@@ -161,9 +163,9 @@ export default function DownloadGatesList() {
       data={gates}
       columns={columns}
       loading={loading}
-      searchPlaceholder="Search gates..."
+      searchPlaceholder={t('searchPlaceholder')}
       searchFields={(gate) => `${gate.title} ${gate.slug}`}
-      emptyMessage="No download gates found."
+      emptyMessage={t('emptyMessage')}
       emptyIcon={<BarChart2 className="w-16 h-16" />}
     />
   );

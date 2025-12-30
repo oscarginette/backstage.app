@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { EmailContent } from '../../types/dashboard';
+import { useTranslations } from '@/lib/i18n/context';
 
 interface EmailContentEditorProps {
   initialContent: EmailContent;
@@ -25,6 +26,7 @@ function CoverImageUpload({
   currentImage: string;
   onImageChange: (url: string) => void;
 }) {
+  const t = useTranslations('dashboard.emails.editor');
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [inputMode, setInputMode] = useState<'file' | 'url'>('file');
@@ -55,10 +57,10 @@ function CoverImageUpload({
         onImageChange(result.imageUrl);
         setUrlInput(result.imageUrl);
       } else {
-        setError(result.error || 'Error al subir');
+        setError(result.error || t('uploadError'));
       }
     } catch (err) {
-      setError('Error al subir imagen');
+      setError(t('uploadError'));
       console.error('Upload error:', err);
     } finally {
       setUploading(false);
@@ -82,8 +84,8 @@ function CoverImageUpload({
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <label className="block text-sm font-medium text-gray-700">
-          Imagen de Portada
-          <span className="text-xs text-gray-500 ml-2">(Opcional)</span>
+          {t('coverImage')}
+          <span className="text-xs text-gray-500 ml-2">{t('coverImageOptional')}</span>
         </label>
 
         {/* Toggle between file upload and URL input */}
@@ -97,7 +99,7 @@ function CoverImageUpload({
                 : 'text-gray-600 hover:text-gray-900'
             }`}
           >
-            Subir fichero
+            {t('uploadFile')}
           </button>
           <button
             type="button"
@@ -108,7 +110,7 @@ function CoverImageUpload({
                 : 'text-gray-600 hover:text-gray-900'
             }`}
           >
-            URL
+            {t('url')}
           </button>
         </div>
       </div>
@@ -118,19 +120,19 @@ function CoverImageUpload({
         <div className="relative inline-block">
           <img
             src={currentImage}
-            alt="Cover preview"
+            alt={t('coverPreview')}
             className="max-w-full h-auto max-h-48 rounded-lg border border-gray-300"
             onError={(e) => {
               // Hide broken images
               e.currentTarget.style.display = 'none';
-              setError('URL de imagen no válida');
+              setError(t('invalidImageUrl'));
             }}
           />
           <button
             type="button"
             onClick={handleRemoveImage}
             className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1.5 hover:bg-red-600 transition-colors shadow-lg"
-            title="Eliminar imagen"
+            title={t('removeImage')}
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -162,12 +164,12 @@ function CoverImageUpload({
           {uploading && (
             <div className="flex items-center gap-2 text-sm text-blue-600">
               <div className="w-4 h-4 border-2 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
-              Subiendo imagen...
+              {t('uploading')}
             </div>
           )}
 
           <p className="text-xs text-gray-500">
-            Formatos: JPEG, PNG, GIF, WebP (máx. 5MB)
+            {t('formats')}
           </p>
         </>
       )}
@@ -180,10 +182,10 @@ function CoverImageUpload({
             value={urlInput}
             onChange={(e) => handleUrlChange(e.target.value)}
             className="w-full px-4 py-2.5 rounded-xl border border-[#E8E6DF] focus:outline-none focus:ring-2 focus:ring-[#FF5500]/20 focus:border-[#FF5500] transition-all"
-            placeholder="https://ejemplo.com/imagen.jpg"
+            placeholder={t('urlPlaceholder')}
           />
           <p className="text-xs text-gray-500">
-            Introduce la URL completa de la imagen
+            {t('urlHelp')}
           </p>
         </>
       )}
@@ -202,6 +204,7 @@ export default function EmailContentEditor({
   onClose,
   saving = false
 }: EmailContentEditorProps) {
+  const t = useTranslations('dashboard.emails.editor');
   const [subject, setSubject] = useState(initialContent.subject);
   const [greeting, setGreeting] = useState(initialContent.greeting);
   const [message, setMessage] = useState(initialContent.message);
@@ -273,20 +276,20 @@ export default function EmailContentEditor({
       <div className="flex-1 overflow-hidden flex">
         {/* Editor Panel */}
         <div className="w-1/2 border-r border-[#E8E6DF] overflow-y-auto p-8 bg-[#FDFCF8]">
-          <h3 className="text-xl font-serif text-[#1c1c1c] mb-6">Personalizar Contenido</h3>
+          <h3 className="text-xl font-serif text-[#1c1c1c] mb-6">{t('title')}</h3>
 
           <div className="space-y-4">
             {/* Subject */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2 font-serif">
-                Asunto del Email
+                {t('subject')}
               </label>
               <input
                 type="text"
                 value={subject}
                 onChange={(e) => setSubject(e.target.value)}
                 className="w-full px-4 py-2.5 rounded-xl border border-[#E8E6DF] focus:outline-none focus:ring-2 focus:ring-[#FF5500]/20 focus:border-[#FF5500] transition-all"
-                placeholder="Asunto del email"
+                placeholder={t('subjectPlaceholder')}
               />
             </div>
 
@@ -299,43 +302,43 @@ export default function EmailContentEditor({
             {/* Greeting */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2 font-serif">
-                Saludo
+                {t('greeting')}
               </label>
               <input
                 type="text"
                 value={greeting}
                 onChange={(e) => setGreeting(e.target.value)}
                 className="w-full px-4 py-2.5 rounded-xl border border-[#E8E6DF] focus:outline-none focus:ring-2 focus:ring-[#FF5500]/20 focus:border-[#FF5500] transition-all"
-                placeholder="Hey mate,"
+                placeholder={t('greetingPlaceholder')}
               />
             </div>
 
             {/* Message */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2 font-serif">
-                Mensaje Principal
-                <span className="text-xs text-gray-400 font-sans ml-2">(Usa **texto** para negrita)</span>
+                {t('message')}
+                <span className="text-xs text-gray-400 font-sans ml-2">{t('messageHint')}</span>
               </label>
               <textarea
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 rows={6}
                 className="w-full px-4 py-2.5 rounded-xl border border-[#E8E6DF] focus:outline-none focus:ring-2 focus:ring-[#FF5500]/20 focus:border-[#FF5500] transition-all resize-none"
-                placeholder="This is my new track..."
+                placeholder={t('messagePlaceholder')}
               />
             </div>
 
             {/* Signature */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2 font-serif">
-                Firma
+                {t('signature')}
               </label>
               <textarea
                 value={signature}
                 onChange={(e) => setSignature(e.target.value)}
                 rows={3}
                 className="w-full px-4 py-2.5 rounded-xl border border-[#E8E6DF] focus:outline-none focus:ring-2 focus:ring-[#FF5500]/20 focus:border-[#FF5500] transition-all resize-none"
-                placeholder="Much love,\nGee Beat"
+                placeholder={t('signaturePlaceholder')}
               />
             </div>
 
@@ -350,14 +353,14 @@ export default function EmailContentEditor({
               }}
               className="w-full px-6 py-3 rounded-full border border-[#E8E6DF] text-sm text-gray-500 hover:bg-white hover:text-black hover:border-black transition-colors"
             >
-              Restaurar Original
+              {t('reset')}
             </button>
           </div>
         </div>
 
         {/* Preview Panel */}
         <div className="w-1/2 overflow-y-auto p-8 bg-gray-50">
-          <h3 className="text-xl font-serif text-[#1c1c1c] mb-6">Vista Previa</h3>
+          <h3 className="text-xl font-serif text-[#1c1c1c] mb-6">{t('preview')}</h3>
 
           {loadingPreview ? (
             <div className="flex items-center justify-center py-12">
@@ -379,7 +382,7 @@ export default function EmailContentEditor({
       <div className="p-6 border-t border-[#E8E6DF] bg-white">
         <div className="flex items-center justify-between gap-4">
           <div className="text-sm text-gray-500">
-            Subject: <span className="font-serif text-[#1c1c1c] ml-1">{subject}</span>
+            {t('subjectLabel')} <span className="font-serif text-[#1c1c1c] ml-1">{subject}</span>
           </div>
           <div className="flex gap-3">
             <button
@@ -387,7 +390,7 @@ export default function EmailContentEditor({
               disabled={saving || savingDraft}
               className="px-6 py-3 rounded-full text-gray-500 hover:text-[#1c1c1c] transition-colors disabled:opacity-50"
             >
-              Cancelar
+              {t('cancel')}
             </button>
             <button
               onClick={handleSaveDraft}
@@ -397,14 +400,14 @@ export default function EmailContentEditor({
               {savingDraft ? (
                 <>
                   <div className="w-4 h-4 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
-                  Guardando...
+                  {t('saving')}
                 </>
               ) : (
                 <>
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
                   </svg>
-                  Guardar Borrador
+                  {t('saveDraft')}
                 </>
               )}
             </button>
@@ -416,11 +419,11 @@ export default function EmailContentEditor({
               {saving ? (
                 <>
                   <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  Enviando...
+                  {t('sending')}
                 </>
               ) : (
                 <>
-                  <span className="font-serif italic">Enviar Email</span>
+                  <span className="font-serif italic">{t('sendEmail')}</span>
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                   </svg>

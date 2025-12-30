@@ -3,33 +3,35 @@
 import { useState } from 'react';
 import { DownloadGate } from '@/types/download-gates';
 import { Eye, User, Download, PieChart, Repeat, Music, Copy, Share2, Check } from 'lucide-react';
+import { useTranslations } from '@/lib/i18n/context';
 
 export default function GateOverview({ gate }: { gate: DownloadGate }) {
+  const t = useTranslations('dashboard.gates.overview');
   const [copied, setCopied] = useState(false);
 
   const stats = [
-    { label: 'Total Views', value: gate.stats.views, icon: Eye, color: 'blue' },
-    { label: 'Submissions', value: gate.stats.submissions, icon: User, color: 'purple' },
-    { label: 'Downloads', value: gate.stats.downloads, icon: Download, color: 'emerald' },
-    { label: 'Conv. Rate', value: `${gate.stats.conversionRate.toFixed(1)}%`, icon: PieChart, color: 'orange' },
-    { label: 'SC Reposts', value: gate.stats.soundcloudReposts, icon: Repeat, color: 'orange' },
-    { label: 'Spotify Conn.', value: gate.stats.spotifyConnections, icon: Music, color: 'emerald' },
+    { label: t('totalViews'), value: gate.stats.views, icon: Eye, color: 'blue' },
+    { label: t('submissions'), value: gate.stats.submissions, icon: User, color: 'purple' },
+    { label: t('downloads'), value: gate.stats.downloads, icon: Download, color: 'emerald' },
+    { label: t('convRate'), value: `${gate.stats.conversionRate.toFixed(1)}%`, icon: PieChart, color: 'orange' },
+    { label: t('scReposts'), value: gate.stats.soundcloudReposts, icon: Repeat, color: 'orange' },
+    { label: t('spotifyConn'), value: gate.stats.spotifyConnections, icon: Music, color: 'emerald' },
   ];
 
   // Fix: Don't show Views as 100% when it's 0
   const funnelSteps = [
     {
-      name: 'Views',
+      name: t('views'),
       count: gate.stats.views,
       percent: gate.stats.views > 0 ? 100 : 0
     },
     {
-      name: 'Email Submitted',
+      name: t('emailSubmitted'),
       count: gate.stats.submissions,
       percent: gate.stats.views > 0 ? (gate.stats.submissions / gate.stats.views * 100) : 0
     },
     {
-      name: 'Actions Completed',
+      name: t('actionsCompleted'),
       count: gate.stats.downloads,
       percent: gate.stats.submissions > 0 ? (gate.stats.downloads / gate.stats.submissions * 100) : 0
     },
@@ -49,7 +51,7 @@ export default function GateOverview({ gate }: { gate: DownloadGate }) {
       try {
         await navigator.share({
           title: gate.title,
-          text: `Descarga mi track: ${gate.title}`,
+          text: t('shareText', { title: gate.title }),
           url: url,
         });
       } catch (err) {
@@ -87,12 +89,12 @@ export default function GateOverview({ gate }: { gate: DownloadGate }) {
         <div className="bg-white/70 backdrop-blur-xl p-8 rounded-3xl border border-[#E8E6DF] shadow-xl">
           <h3 className="text-xl font-serif text-[#1c1c1c] mb-6 flex items-center gap-2">
             <Share2 className="w-5 h-5 text-[#FF5500]" />
-            Promoción
+            {t('promotion')}
           </h3>
-          
+
           <div className="space-y-6">
             <div className="space-y-2">
-              <label className="text-xs font-bold uppercase tracking-widest text-gray-500 ml-1">Link Público</label>
+              <label className="text-xs font-bold uppercase tracking-widest text-gray-500 ml-1">{t('publicLink')}</label>
               <div className="flex items-center gap-2">
                 <div className="flex-1 px-5 py-3 rounded-xl bg-[#F5F3ED] border border-[#E8E6DF] text-sm font-mono text-[#1c1c1c] truncate">
                   {window.location.origin}/gate/{gate.slug}
@@ -109,7 +111,7 @@ export default function GateOverview({ gate }: { gate: DownloadGate }) {
                     <>
                       <Check className="w-4 h-4" />
                       <span className="absolute -top-8 left-1/2 -translate-x-1/2 px-2 py-1 bg-emerald-500 text-white text-xs rounded-lg whitespace-nowrap">
-                        ¡Copiado!
+                        {t('copied')}
                       </span>
                     </>
                   ) : (
@@ -124,7 +126,7 @@ export default function GateOverview({ gate }: { gate: DownloadGate }) {
               className="w-full flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-[#FF5500] text-white hover:bg-[#e64d00] transition-all text-sm font-medium active:scale-95"
             >
               <Share2 className="w-4 h-4" />
-              <span>Compartir</span>
+              <span>{t('share')}</span>
             </button>
           </div>
         </div>
@@ -133,7 +135,7 @@ export default function GateOverview({ gate }: { gate: DownloadGate }) {
         <div className="bg-white/70 backdrop-blur-xl p-8 rounded-3xl border border-[#E8E6DF] shadow-xl">
           <h3 className="text-xl font-serif text-[#1c1c1c] mb-6 flex items-center gap-2">
             <PieChart className="w-5 h-5 text-[#FF5500]" />
-            Conversion Funnel
+            {t('conversionFunnel')}
           </h3>
 
           <div className="space-y-6">
