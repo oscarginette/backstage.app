@@ -92,10 +92,11 @@ export type DeleteContactsInput = z.infer<typeof DeleteContactsSchema>;
  */
 export const CreateDownloadGateSchema = z.object({
   title: z.string().min(1, 'Title is required').max(200, 'Title too long'),
+  artistName: z.string().max(200, 'Artist name too long').optional(),
   description: z.string().max(1000, 'Description too long').optional(),
   fileUrl: z.string().url('Invalid file URL'),
   fileType: z.enum(['audio', 'video', 'image', 'document', 'other']).default('audio'),
-  coverImage: z.string().url('Invalid cover image URL').optional(),
+  artworkUrl: z.string().url('Invalid artwork URL').optional(),
   collectEmail: z.boolean().default(true),
   collectName: z.boolean().default(false),
   requireSoundcloudRepost: z.boolean().default(false),
@@ -114,10 +115,11 @@ export type CreateDownloadGateInput = z.infer<typeof CreateDownloadGateSchema>;
  */
 export const UpdateDownloadGateSchema = z.object({
   title: z.string().min(1, 'Title is required').max(200, 'Title too long').optional(),
+  artistName: z.string().max(200, 'Artist name too long').optional(),
   description: z.string().max(1000, 'Description too long').optional(),
   fileUrl: z.string().url('Invalid file URL').optional(),
   fileType: z.enum(['audio', 'video', 'image', 'document', 'other']).optional(),
-  coverImage: z.string().url('Invalid cover image URL').optional(),
+  artworkUrl: z.string().url('Invalid artwork URL').optional(),
   collectEmail: z.boolean().optional(),
   collectName: z.boolean().optional(),
   requireSoundcloudRepost: z.boolean().optional(),

@@ -6,6 +6,7 @@ import { ChevronLeft, BarChart2, Users, Settings, Loader2 } from 'lucide-react';
 import { DownloadGate } from '@/types/download-gates';
 import GateOverview from '@/components/dashboard/GateOverview';
 import GateSubmissions from '@/components/dashboard/GateSubmissions';
+import GateSettingsForm from '@/components/dashboard/GateSettingsForm';
 import { PATHS } from '@/lib/paths';
 
 export default function GateDetailsPage({ params }: { params: Promise<{ id: string }> }) {
@@ -118,17 +119,7 @@ export default function GateDetailsPage({ params }: { params: Promise<{ id: stri
         <div className="pb-12">
           {activeTab === 'overview' && <GateOverview gate={gate} />}
           {activeTab === 'submissions' && <GateSubmissions gateId={gate.id} />}
-          {activeTab === 'edit' && (
-             <div className="bg-white/70 backdrop-blur-xl rounded-3xl border border-[#E8E6DF] shadow-2xl p-12 text-center">
-                <p className="text-[#666]">Formulario de edición en construcción...</p>
-                <button
-                  onClick={() => setActiveTab('overview')}
-                  className="mt-4 text-[#FF5500] hover:underline"
-                >
-                  Volver al Overview
-                </button>
-             </div>
-          )}
+          {activeTab === 'edit' && <GateSettingsForm gate={gate} onUpdate={fetchGate} />}
         </div>
       </div>
     </div>
