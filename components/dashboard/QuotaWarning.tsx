@@ -14,12 +14,14 @@ import { AlertTriangle, Mail, Users, AlertCircle, ArrowRight } from 'lucide-reac
 import Link from 'next/link';
 import { PATHS } from '@/lib/paths';
 import { useSession } from 'next-auth/react';
+import { SUBSCRIPTION_PLANS } from '@/domain/types/subscriptions';
 
 interface QuotaWarningProps {
   contactsUsed: number;
   contactsLimit: number;
   emailsUsed: number;
   emailsLimit: number;
+  subscriptionPlan: string;
 }
 
 export default function QuotaWarning({
@@ -27,6 +29,7 @@ export default function QuotaWarning({
   contactsLimit,
   emailsUsed,
   emailsLimit,
+  subscriptionPlan,
 }: QuotaWarningProps) {
   const { data: session } = useSession();
 
@@ -112,6 +115,14 @@ export default function QuotaWarning({
 
   const { title, description } = getLabels();
 
+  // Determine CTA button text based on plan and exceeded status
+  // FREE users: Always "Upgrade Plan" when exceeded
+  // Paid users: "Restore Access" (implies reactivation/renewal)
+  const isFreeUser = subscriptionPlan === SUBSCRIPTION_PLANS.FREE;
+  const ctaButtonText = isExceeded
+    ? (isFreeUser ? 'Upgrade Plan' : 'Restore Access')
+    : 'Upgrade Plan';
+
   return (
     <div className={`rounded-2xl border p-6 mb-8 backdrop-blur-sm transition-all ${containerClasses}`}>
       <div className="flex flex-col md:flex-row md:items-start gap-6">
@@ -187,7 +198,7 @@ export default function QuotaWarning({
             href={PATHS.UPGRADE}
             className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-bold text-white bg-neutral-900 hover:bg-neutral-800 transition-all hover:scale-105 shadow-xl shadow-black/10 whitespace-nowrap"
           >
-            {isExceeded ? 'Restore Access' : 'Upgrade Plan'}
+            {ctaButtonText}
             <ArrowRight className="w-4 h-4" />
           </Link>
         </div>

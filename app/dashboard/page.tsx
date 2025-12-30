@@ -23,6 +23,8 @@ import { useTranslations } from '@/lib/i18n/context';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { PATHS } from '@/lib/paths';
+import { USER_ROLES } from '@/domain/types/user-roles';
+import { SUBSCRIPTION_PLANS } from '@/domain/types/subscriptions';
 
 function DashboardContent() {
   const tNav = useTranslations('nav');
@@ -71,7 +73,7 @@ function DashboardContent() {
   const [showImportModal, setShowImportModal] = useState(false);
 
   // Admin state
-  const isAdmin = session?.user?.role === 'admin';
+  const isAdmin = session?.user?.role === USER_ROLES.ADMIN;
   const [adminUsers, setAdminUsers] = useState<any[]>([]);
   const [loadingAdminUsers, setLoadingAdminUsers] = useState(false);
 
@@ -81,6 +83,7 @@ function DashboardContent() {
     maxContacts: number;
     currentEmails: number;
     maxEmails: number;
+    subscriptionPlan: string;
     quotaUsagePercent: {
       contacts: number;
       emails: number;
@@ -201,6 +204,7 @@ function DashboardContent() {
                   contactsLimit={quota.maxContacts}
                   emailsUsed={quota.currentEmails}
                   emailsLimit={quota.maxEmails}
+                  subscriptionPlan={quota.subscriptionPlan}
                 />
               )}
 
@@ -337,9 +341,14 @@ function DashboardContent() {
               <StatCards
                 stats={{
                   totalContacts: adminUsers.length,
-                  totalDownloads: adminUsers.filter(u => u.subscriptionPlan !== 'free' && u.active).length,
+                  totalDownloads: adminUsers.filter(u => u.subscriptionPlan !== SUBSCRIPTION_PLANS.FREE && u.active).length,
                   activeCampaigns: adminUsers.filter(u => u.active).reduce((sum, u) => {
-                    const prices = { free: 0, pro: 29, business: 79, unlimited: 199 };
+                    const prices = {
+                      [SUBSCRIPTION_PLANS.FREE]: 0,
+                      [SUBSCRIPTION_PLANS.PRO]: 29,
+                      [SUBSCRIPTION_PLANS.BUSINESS]: 79,
+                      [SUBSCRIPTION_PLANS.UNLIMITED]: 199
+                    };
                     return sum + (prices[u.subscriptionPlan as keyof typeof prices] || 0);
                   }, 0),
                   avgConversionRate: adminUsers.reduce((sum, u) => sum + (u.quota?.emailsSentToday || 0), 0)
@@ -375,12 +384,6 @@ function DashboardContent() {
                   onRefresh={fetchAdminUsers} 
                   loading={loadingAdminUsers}
                 />
-              </div>
-
-              {/* Quota Management */}
-              <div className="space-y-6">
-                <h3 className="text-2xl font-serif text-[#1c1c1c] px-2">Quota Management</h3>
-                <UserTable users={adminUsers} onRefresh={fetchAdminUsers} />
               </div>
             </div>
           )}

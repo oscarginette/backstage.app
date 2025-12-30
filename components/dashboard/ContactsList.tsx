@@ -6,6 +6,7 @@ import DataTable from './DataTable';
 import ImportContactsButton from './ImportContactsButton';
 import BrevoImportWizardModal from './BrevoImportWizardModal';
 import Toast from '@/components/ui/Toast';
+import Modal, { ModalBody, ModalFooter } from '@/components/ui/Modal';
 import { apiGet, isApiError } from '@/lib/api-client';
 import { GetContactsWithStatsResult } from '@/domain/services/GetContactsWithStatsUseCase';
 import { Contact, ContactStats } from '@/domain/repositories/IContactRepository';
@@ -27,6 +28,9 @@ const ContactsList = forwardRef<ContactsListRef, Props>(({ onImportClick }, ref)
   const [showBrevoImport, setShowBrevoImport] = useState(false);
   const [brevoConnected, setBrevoConnected] = useState<boolean | null>(null);
   const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastType, setToastType] = useState<'success' | 'error' | 'warning'>('success');
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   useEffect(() => {
     fetchContacts();
@@ -65,6 +69,8 @@ const ContactsList = forwardRef<ContactsListRef, Props>(({ onImportClick }, ref)
       setShowBrevoImport(true);
     } else {
       // Show toast prompting to connect Brevo
+      setToastMessage('You need to connect your Brevo account first.');
+      setToastType('warning');
       setShowToast(true);
     }
   };
@@ -74,8 +80,11 @@ const ContactsList = forwardRef<ContactsListRef, Props>(({ onImportClick }, ref)
     refresh: fetchContacts
   }));
 
-  const handleDelete = async () => {
-    if (!confirm(`Are you sure you want to delete ${selectedIds.length} contact${selectedIds.length !== 1 ? 's' : ''}?`)) return;
+  const handleDeleteClick = () => {
+    setShowDeleteModal(true);
+  };
+
+  const handleDeleteConfirm = async () => {
     setDeleting(true);
     try {
       const res = await fetch('/api/contacts/delete', {
@@ -85,13 +94,24 @@ const ContactsList = forwardRef<ContactsListRef, Props>(({ onImportClick }, ref)
       });
       if (res.ok) {
         await fetchContacts(); // Refresh the full list
+        const deletedCount = selectedIds.length;
         setSelectedIds([]);
+        setShowDeleteModal(false);
+        setToastMessage(`Successfully deleted ${deletedCount} contact${deletedCount !== 1 ? 's' : ''}`);
+        setToastType('success');
+        setShowToast(true);
       } else {
-        alert('Failed to delete contacts');
+        setShowDeleteModal(false);
+        setToastMessage('Failed to delete contacts');
+        setToastType('error');
+        setShowToast(true);
       }
     } catch (error) {
       console.error('Error deleting contacts:', error);
-      alert('Error deleting contacts. Please try again.');
+      setShowDeleteModal(false);
+      setToastMessage('Error deleting contacts. Please try again.');
+      setToastType('error');
+      setShowToast(true);
     } finally {
       setDeleting(false);
     }
@@ -189,7 +209,7 @@ const ContactsList = forwardRef<ContactsListRef, Props>(({ onImportClick }, ref)
             </button>
             {selectedIds.length > 0 && (
               <button
-                onClick={handleDelete}
+                onClick={handleDeleteClick}
                 disabled={deleting}
                 className="flex items-center gap-2 px-4 py-2 rounded-xl bg-red-50 text-red-600 hover:bg-red-100 transition-all border border-red-200 text-xs font-bold active:scale-95 disabled:opacity-50"
               >
@@ -211,19 +231,66 @@ const ContactsList = forwardRef<ContactsListRef, Props>(({ onImportClick }, ref)
         }}
       />
 
-      {/* Toast for Brevo connection prompt */}
+      {/* Delete Confirmation Modal */}
+      <Modal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        size="md"
+        title="Delete Contacts"
+        showCloseButton={true}
+        closeOnBackdropClick={!deleting}
+      >
+        <ModalBody>
+          <div className="space-y-4">
+            <div className="flex items-center gap-3 p-4 bg-red-50 border border-red-100 rounded-xl">
+              <Trash2 className="w-5 h-5 text-red-600 flex-shrink-0" />
+              <p className="text-sm text-red-800">
+                This action cannot be undone. This will permanently delete the selected contact{selectedIds.length !== 1 ? 's' : ''}.
+              </p>
+            </div>
+            <p className="text-sm text-gray-600">
+              You are about to delete <span className="font-bold text-gray-900">{selectedIds.length}</span> contact{selectedIds.length !== 1 ? 's' : ''}.
+            </p>
+          </div>
+        </ModalBody>
+        <ModalFooter>
+          <div className="flex gap-3 justify-end">
+            <button
+              onClick={() => setShowDeleteModal(false)}
+              disabled={deleting}
+              className="px-4 py-2 rounded-xl bg-gray-100 text-gray-700 hover:bg-gray-200 transition-all border border-gray-200 text-sm font-bold active:scale-95 disabled:opacity-50"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleDeleteConfirm}
+              disabled={deleting}
+              className="px-4 py-2 rounded-xl bg-red-600 text-white hover:bg-red-700 transition-all border border-red-700 text-sm font-bold active:scale-95 disabled:opacity-50 flex items-center gap-2"
+            >
+              <Trash2 className="w-4 h-4" />
+              {deleting ? 'Deleting...' : 'Delete Contacts'}
+            </button>
+          </div>
+        </ModalFooter>
+      </Modal>
+
+      {/* Toast for notifications */}
       <Toast
-        message="You need to connect your Brevo account first."
-        type="warning"
+        message={toastMessage}
+        type={toastType}
         isVisible={showToast}
         onClose={() => setShowToast(false)}
-        action={{
-          label: 'Go to Settings',
-          onClick: () => {
-            window.location.href = '/settings';
-          }
-        }}
-        duration={0} // Manual dismiss only (because there's an action button)
+        action={
+          toastType === 'warning' && toastMessage.includes('Brevo')
+            ? {
+                label: 'Go to Settings',
+                onClick: () => {
+                  window.location.href = '/settings';
+                }
+              }
+            : undefined
+        }
+        duration={toastType === 'warning' && toastMessage.includes('Brevo') ? 0 : 5000}
       />
     </div>
   );

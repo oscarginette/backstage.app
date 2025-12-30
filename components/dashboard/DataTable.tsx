@@ -173,11 +173,22 @@ export default function DataTable<T>({
               return (
                 <div
                   key={virtualRow.index}
-                  onClick={() => onRowClick?.(item)}
+                  onClick={(e) => {
+                    // If selectable, toggle selection when clicking anywhere on the row except buttons
+                    if (selectable && getItemId) {
+                      const target = e.target as HTMLElement;
+                      // Don't toggle if clicking on a button, link, or input
+                      if (!target.closest('button, a, input')) {
+                        handleSelectOne(itemId);
+                      }
+                    }
+                    // Also call custom onRowClick if provided
+                    onRowClick?.(item);
+                  }}
                   className={`
                     group transition-colors duration-300 absolute w-full flex border-b border-[#E8E6DF]/30
                     hover:bg-[#F5F3ED]/40
-                    ${rowClickable ? 'cursor-pointer' : ''}
+                    ${rowClickable || selectable ? 'cursor-pointer' : ''}
                     ${isSelected ? 'bg-[#FF5500]/5' : ''}
                   `}
                   style={{
