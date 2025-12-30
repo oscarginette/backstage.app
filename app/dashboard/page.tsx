@@ -15,6 +15,8 @@ import DownloadGatesList from '../../components/dashboard/DownloadGatesList';
 import DashboardTabs, { TabType } from '../../components/dashboard/DashboardTabs';
 import CompactGatesList from '../../components/dashboard/CompactGatesList';
 import QuotaWarning from '../../components/dashboard/QuotaWarning';
+import UserManagementTable from '../../components/admin/UserManagementTable';
+import UserTable from '../../components/admin/UserTable';
 import { Settings, Plus, Mail, Rocket, Users, ArrowRight, FileText, Settings as SettingsIcon } from 'lucide-react';
 import Link from 'next/link';
 import { useTranslations } from '@/lib/i18n/context';
@@ -68,6 +70,11 @@ function DashboardContent() {
   const [showEmailEditor, setShowEmailEditor] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
 
+  // Admin state
+  const isAdmin = session?.user?.role === 'admin';
+  const [adminUsers, setAdminUsers] = useState<any[]>([]);
+  const [loadingAdminUsers, setLoadingAdminUsers] = useState(false);
+
   // Quota state
   const [quota, setQuota] = useState<{
     currentContacts: number;
@@ -116,6 +123,28 @@ function DashboardContent() {
     fetchQuota();
   }, []);
 
+  // Fetch admin users when admin tab is active
+  useEffect(() => {
+    if (activeTab === 'admin' && isAdmin) {
+      fetchAdminUsers();
+    }
+  }, [activeTab, isAdmin]);
+
+  const fetchAdminUsers = async () => {
+    try {
+      setLoadingAdminUsers(true);
+      const response = await fetch('/api/admin/users');
+      if (response.ok) {
+        const data = await response.json();
+        setAdminUsers(data.users || []);
+      }
+    } catch (error) {
+      console.error('Failed to fetch admin users:', error);
+    } finally {
+      setLoadingAdminUsers(false);
+    }
+  };
+
   return (
     <main className="min-h-screen bg-[#FDFCF9] font-sans selection:bg-[#FF5500]/10 selection:text-[#FF5500] relative overflow-x-hidden">
       
@@ -131,7 +160,7 @@ function DashboardContent() {
         <div className="mb-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
           <div className="flex-1 space-y-6">
             <Header />
-            <DashboardTabs activeTab={activeTab} onTabChange={setActiveTab} />
+            <DashboardTabs activeTab={activeTab} onTabChange={setActiveTab} isAdmin={isAdmin} />
           </div>
           <div className="flex flex-col items-end gap-3 min-w-[280px]">
             {session?.user && (
@@ -299,6 +328,66 @@ function DashboardContent() {
                 ref={contactsListRef}
                 onImportClick={() => handleProtectedAction(() => setShowImportModal(true))}
               />
+            </div>
+          )}
+
+          {activeTab === 'admin' && isAdmin && (
+            <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+              {/* Admin Stats - Reusing StatCards */}
+              <StatCards
+                stats={{
+                  totalContacts: adminUsers.length,
+                  totalDownloads: adminUsers.filter(u => u.subscriptionPlan !== 'free' && u.active).length,
+                  activeCampaigns: adminUsers.filter(u => u.active).reduce((sum, u) => {
+                    const prices = { free: 0, pro: 29, business: 79, unlimited: 199 };
+                    return sum + (prices[u.subscriptionPlan as keyof typeof prices] || 0);
+                  }, 0),
+                  avgConversionRate: adminUsers.reduce((sum, u) => sum + (u.quota?.emailsSentToday || 0), 0)
+                }}
+                labels={{
+                  totalContacts: 'Total Users',
+                  totalDownloads: 'Active Subs',
+                  activeCampaigns: 'Est. MRR',
+                  avgConversionRate: 'Emails Sent'
+                }}
+                formatters={{
+                  avgConversionRate: (value) => value.toLocaleString()
+                }}
+              />
+
+              {/* User Management */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between px-2">
+                  <h3 className="text-2xl font-serif text-[#1c1c1c]">User Management</h3>
+                  <button
+                    onClick={fetchAdminUsers}
+                    className="px-4 py-2 bg-[#1c1c1c] text-white rounded-xl hover:bg-black transition-all active:scale-95 flex items-center gap-2 text-sm font-bold"
+                  >
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                    Refresh
+                  </button>
+                </div>
+
+                {loadingAdminUsers ? (
+                  <div className="bg-white/60 backdrop-blur-xl border-2 border-gray-200 rounded-2xl p-12 shadow-lg">
+                    <div className="flex items-center justify-center">
+                      <div className="w-8 h-8 border-4 border-gray-200 border-t-[#FF5500] rounded-full animate-spin"></div>
+                    </div>
+                  </div>
+                ) : (
+                  <UserManagementTable users={adminUsers} onRefresh={fetchAdminUsers} />
+                )}
+              </div>
+
+              {/* Quota Management */}
+              <div className="space-y-4">
+                <h3 className="text-2xl font-serif text-[#1c1c1c] px-2">Quota Management</h3>
+                {!loadingAdminUsers && (
+                  <UserTable users={adminUsers} onRefresh={fetchAdminUsers} />
+                )}
+              </div>
             </div>
           )}
 
