@@ -24,7 +24,6 @@ import { DownloadSubmission } from '../entities/DownloadSubmission';
 import { CreateSubmissionInput } from '../types/download-gates';
 
 export interface SubmitEmailInput {
-  userId: number;
   gateSlug: string;
   email: string;
   firstName?: string;
@@ -104,8 +103,9 @@ export class SubmitEmailUseCase {
       const submission = await this.submissionRepository.create(submissionData);
 
       // 6. Add to contacts if marketing consent given
+      // Contact belongs to the gate owner, not a hardcoded user
       if (input.consentMarketing) {
-        await this.addToContacts(input.email, input.firstName);
+        await this.addToContacts(input.email, input.firstName, gate.userId);
       }
 
       // 7. Track analytics event
@@ -152,12 +152,16 @@ export class SubmitEmailUseCase {
    * GDPR compliant: Only if user explicitly consented
    * @param email - Email address
    * @param firstName - Optional first name
+   * @param gateOwnerId - User ID of the gate owner
    */
-  private async addToContacts(email: string, firstName?: string): Promise<void> {
+  private async addToContacts(email: string, firstName?: string, gateOwnerId?: number): Promise<void> {
     try {
-      // Using default userId 1 for download gates
-      // TODO: Make userId configurable or derive from gate owner
-      const userId = 1;
+      if (!gateOwnerId) {
+        console.error('[GDPR] Cannot create contact: gateOwnerId is required');
+        return;
+      }
+
+      const userId = gateOwnerId;
 
       // Check if contact already exists
       const existingContact = await this.contactRepository.findByEmail(email, userId);

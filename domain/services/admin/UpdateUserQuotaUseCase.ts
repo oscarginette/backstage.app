@@ -9,26 +9,22 @@
  */
 
 import { IUserRepository } from '@/domain/repositories/IUserRepository';
-import { IQuotaTrackingRepository } from '@/domain/repositories/IQuotaTrackingRepository';
 import { UnauthorizedError } from './GetAllUsersUseCase';
 
 export interface UpdateUserQuotaInput {
   adminUserId: number;
   targetUserId: number;
-  newMonthlyLimit: number;
+  monthlyQuota: number;
 }
 
 export interface UpdateUserQuotaResult {
   success: boolean;
   userId: number;
-  newMonthlyLimit: number;
+  monthlyQuota: number;
 }
 
 export class UpdateUserQuotaUseCase {
-  constructor(
-    private readonly userRepository: IUserRepository,
-    private readonly quotaRepository: IQuotaTrackingRepository
-  ) {}
+  constructor(private readonly userRepository: IUserRepository) {}
 
   async execute(input: UpdateUserQuotaInput): Promise<UpdateUserQuotaResult> {
     // Validate input
@@ -53,15 +49,15 @@ export class UpdateUserQuotaUseCase {
     }
 
     // Update quota
-    await this.quotaRepository.updateMonthlyLimit(
+    await this.userRepository.updateQuota(
       input.targetUserId,
-      input.newMonthlyLimit
+      input.monthlyQuota
     );
 
     return {
       success: true,
       userId: input.targetUserId,
-      newMonthlyLimit: input.newMonthlyLimit,
+      monthlyQuota: input.monthlyQuota,
     };
   }
 
@@ -75,11 +71,10 @@ export class UpdateUserQuotaUseCase {
     }
 
     if (
-      !input.newMonthlyLimit ||
-      input.newMonthlyLimit <= 0 ||
-      input.newMonthlyLimit > 10000
+      input.monthlyQuota < 0 ||
+      input.monthlyQuota > 999999999
     ) {
-      throw new Error('Monthly limit must be between 1 and 10,000');
+      throw new Error('Monthly quota must be between 0 and 999,999,999');
     }
   }
 }

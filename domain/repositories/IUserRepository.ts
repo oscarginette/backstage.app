@@ -98,4 +98,13 @@ export interface IUserRepository {
     subscriptionPlan: string;
     subscriptionExpiresAt: Date | null;
   }>;
+
+  /**
+   * Update user's monthly email quota
+   * Admin-only operation to adjust email sending limits
+   * @param userId - User identifier
+   * @param monthlyQuota - New monthly email quota
+   * @throws Error if user not found or update fails
+   */
+  updateQuota(userId: number, monthlyQuota: number): Promise<void>;
 }
