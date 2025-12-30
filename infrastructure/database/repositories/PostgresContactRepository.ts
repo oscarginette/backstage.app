@@ -172,66 +172,10 @@ export class PostgresContactRepository implements IContactRepository {
       return { inserted: 0, updated: 0, skipped: 0, errors: [] };
     }
 
-    try {
-      // Build VALUES clause for batch insert
-      // Format: (user_id, email, name, source, subscribed, metadata)
-      const values = contacts.map((contact) => {
-        return sql`(
-          ${contact.userId},
-          ${contact.email.toLowerCase().trim()},
-          ${contact.name || null},
-          ${contact.source},
-          ${contact.subscribed},
-          ${JSON.stringify(contact.metadata || {})}::jsonb
-        )`;
-      });
-
-      // Execute batch insert with ON CONFLICT
-      // Uses unnest() to join multiple value sets
-      const result = await sql`
-        INSERT INTO contacts (
-          user_id,
-          email,
-          name,
-          source,
-          subscribed,
-          metadata
-        )
-        SELECT * FROM unnest(
-          ${sql.array(contacts.map(c => c.userId), 'int4')},
-          ${sql.array(contacts.map(c => c.email.toLowerCase().trim()), 'text')},
-          ${sql.array(contacts.map(c => c.name || null), 'text')},
-          ${sql.array(contacts.map(c => c.source), 'text')},
-          ${sql.array(contacts.map(c => c.subscribed), 'bool')},
-          ${sql.array(contacts.map(c => JSON.stringify(c.metadata || {})), 'jsonb')}
-        ) AS t(user_id, email, name, source, subscribed, metadata)
-        ON CONFLICT (user_id, email) DO UPDATE SET
-          name = EXCLUDED.name,
-          subscribed = EXCLUDED.subscribed,
-          source = EXCLUDED.source,
-          metadata = contacts.metadata || COALESCE(EXCLUDED.metadata, '{}'::jsonb)
-        RETURNING (xmax = 0) AS is_insert
-      `;
-
-      // Count inserts vs updates
-      const inserted = result.rows.filter((row: any) => row.is_insert).length;
-      const updated = result.rows.length - inserted;
-
-      console.log(`[BulkImport] Processed ${contacts.length} contacts: ${inserted} inserted, ${updated} updated`);
-
-      return {
-        inserted,
-        updated,
-        skipped: 0,
-        errors: []
-      };
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      console.error('[BulkImport] Batch insert failed:', errorMessage);
-
-      // If batch insert fails, fall back to individual inserts for error handling
-      return this.bulkImportFallback(contacts);
-    }
+    // For Neon compatibility, use fallback approach directly
+    // Neon with pooling doesn't support sql.array() in production
+    console.log('[BulkImport] Processing contacts individually (Neon compatible)');
+    return this.bulkImportFallback(contacts);
   }
 
   /**
@@ -248,6 +192,9 @@ export class PostgresContactRepository implements IContactRepository {
 
     for (const contact of contacts) {
       try {
+        // Stringify metadata - PostgreSQL will infer JSONB type from column definition
+        const metadataJson = JSON.stringify(contact.metadata || {});
+
         const result = await sql`
           INSERT INTO contacts (
             user_id,
@@ -263,7 +210,7 @@ export class PostgresContactRepository implements IContactRepository {
             ${contact.name || null},
             ${contact.source},
             ${contact.subscribed},
-            ${JSON.stringify(contact.metadata || {})}::jsonb
+            ${metadataJson}
           )
           ON CONFLICT (user_id, email) DO UPDATE SET
             name = EXCLUDED.name,
