@@ -45,7 +45,7 @@ export class CreateCampaignUseCase {
   /**
    * Execute the use case
    *
-   * @param input - Campaign creation data
+   * @param input - Campaign creation data (including userId for multi-tenant)
    * @returns Created campaign
    * @throws ValidationError if validation fails
    */
@@ -53,8 +53,9 @@ export class CreateCampaignUseCase {
     // Validate input
     this.validateInput(input);
 
-    // Create campaign
+    // Create campaign with user isolation
     const campaign = await this.campaignRepository.create({
+      userId: input.userId,
       templateId: input.templateId || null,
       trackId: input.trackId || null,
       subject: input.subject,

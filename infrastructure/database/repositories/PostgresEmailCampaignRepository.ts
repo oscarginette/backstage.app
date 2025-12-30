@@ -19,10 +19,12 @@ import { EmailCampaign } from '@/domain/entities/EmailCampaign';
 export class PostgresEmailCampaignRepository implements IEmailCampaignRepository {
   /**
    * Create a new campaign
+   * Multi-tenant: Always associates campaign with user_id
    */
   async create(input: CreateCampaignInput): Promise<IEmailCampaign> {
     const result = await sql`
       INSERT INTO email_campaigns (
+        user_id,
         template_id,
         track_id,
         subject,
@@ -31,6 +33,7 @@ export class PostgresEmailCampaignRepository implements IEmailCampaignRepository
         scheduled_at
       )
       VALUES (
+        ${input.userId},
         ${input.templateId || null},
         ${input.trackId || null},
         ${input.subject},
@@ -66,10 +69,17 @@ export class PostgresEmailCampaignRepository implements IEmailCampaignRepository
 
   /**
    * Find all campaigns with optional filtering
+   * Multi-tenant: Always filters by user_id if provided
    */
   async findAll(options?: FindCampaignsOptions): Promise<IEmailCampaign[]> {
     let query = 'SELECT * FROM email_campaigns WHERE 1=1';
     const params: any[] = [];
+
+    // Multi-tenant isolation: Filter by user_id
+    if (options?.userId) {
+      params.push(options.userId);
+      query += ` AND user_id = $${params.length}`;
+    }
 
     if (options?.status) {
       params.push(options.status);

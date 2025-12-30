@@ -4,12 +4,18 @@ import { emailCampaignRepository } from '@/infrastructure/database/repositories'
 import { withErrorHandler, generateRequestId } from '@/lib/error-handler';
 import { successResponse, createdResponse } from '@/lib/api-response';
 import { CreateCampaignSchema } from '@/lib/validation-schemas';
+import { auth } from '@/lib/auth';
+import { UnauthorizedError } from '@/lib/errors';
 
 export const dynamic = 'force-dynamic';
 
 /**
  * GET /api/campaigns
- * List all email campaigns
+ * List all email campaigns for the authenticated user
+ *
+ * Security:
+ * - Requires authentication
+ * - Multi-tenant: Only returns campaigns belonging to the authenticated user
  *
  * Query parameters:
  * - status: 'draft' | 'sent' (optional) - Filter by campaign status
@@ -19,18 +25,32 @@ export const dynamic = 'force-dynamic';
  */
 export const GET = withErrorHandler(async (request: Request) => {
   const requestId = generateRequestId();
+
+  // 1. Authenticate user
+  const session = await auth();
+  if (!session?.user?.id) {
+    throw new UnauthorizedError('Authentication required');
+  }
+
+  const userId = parseInt(session.user.id);
+
+  // 2. Extract query parameters
   const { searchParams } = new URL(request.url);
   const status = searchParams.get('status') as 'draft' | 'sent' | null;
   const trackId = searchParams.get('trackId');
   const templateId = searchParams.get('templateId');
   const scheduledOnly = searchParams.get('scheduledOnly') === 'true';
 
+  // 3. Execute use case with user isolation
   const useCase = new GetCampaignsUseCase(emailCampaignRepository);
   const result = await useCase.execute({
-    status: status || undefined,
-    trackId: trackId || undefined,
-    templateId: templateId || undefined,
-    scheduledOnly
+    userId,
+    options: {
+      status: status || undefined,
+      trackId: trackId || undefined,
+      templateId: templateId || undefined,
+      scheduledOnly
+    }
   });
 
   return successResponse(
@@ -45,7 +65,11 @@ export const GET = withErrorHandler(async (request: Request) => {
 
 /**
  * POST /api/campaigns
- * Create a new email campaign or draft
+ * Create a new email campaign or draft for the authenticated user
+ *
+ * Security:
+ * - Requires authentication
+ * - Multi-tenant: Campaign is automatically associated with authenticated user
  *
  * Body:
  * - templateId: string (optional) - Template to base campaign on
@@ -57,9 +81,17 @@ export const GET = withErrorHandler(async (request: Request) => {
  */
 export const POST = withErrorHandler(async (request: Request) => {
   const requestId = generateRequestId();
-  const body = await request.json();
 
-  // Validate request body
+  // 1. Authenticate user
+  const session = await auth();
+  if (!session?.user?.id) {
+    throw new UnauthorizedError('Authentication required');
+  }
+
+  const userId = parseInt(session.user.id);
+
+  // 2. Parse and validate request body
+  const body = await request.json();
   const validation = CreateCampaignSchema.safeParse(body);
   if (!validation.success) {
     throw new Error(`Validation failed: ${JSON.stringify(validation.error.format())}`);
@@ -67,8 +99,10 @@ export const POST = withErrorHandler(async (request: Request) => {
 
   const validatedData = validation.data;
 
+  // 3. Execute use case with user isolation
   const useCase = new CreateCampaignUseCase(emailCampaignRepository);
   const result = await useCase.execute({
+    userId,
     templateId: validatedData.templateId,
     trackId: validatedData.trackId,
     subject: validatedData.subject,

@@ -23,6 +23,7 @@ export interface EmailCampaign {
 }
 
 export interface CreateCampaignInput {
+  userId: number;  // Multi-tenant: User who owns this campaign
   templateId?: string | null;
   trackId?: string | null;
   subject: string;
@@ -41,6 +42,7 @@ export interface UpdateCampaignInput {
 }
 
 export interface FindCampaignsOptions {
+  userId?: number;  // Multi-tenant: Filter by user ID
   status?: 'draft' | 'sent';
   trackId?: string;
   templateId?: string;

@@ -16,6 +16,11 @@ import {
   FindCampaignsOptions
 } from '@/domain/repositories/IEmailCampaignRepository';
 
+export interface GetCampaignsInput {
+  userId: number;
+  options?: FindCampaignsOptions;
+}
+
 export interface GetCampaignsResult {
   campaigns: EmailCampaign[];
   count: number;
@@ -25,10 +30,15 @@ export interface GetCampaignsResult {
  * Use case for retrieving email campaigns
  *
  * Business Rules:
- * - Returns all campaigns if no filters provided
+ * - Multi-tenant: Only returns campaigns for the authenticated user
+ * - Returns all user's campaigns if no filters provided
  * - Supports filtering by status (draft/sent)
  * - Supports filtering by track ID or template ID
  * - Can filter to only scheduled campaigns (future scheduled_at)
+ *
+ * Security:
+ * - Enforces user isolation (multi-tenant)
+ * - userId MUST be provided from authenticated session
  */
 export class GetCampaignsUseCase {
   constructor(
@@ -38,11 +48,14 @@ export class GetCampaignsUseCase {
   /**
    * Execute the use case
    *
-   * @param options - Optional filters for campaigns
-   * @returns List of campaigns matching filters
+   * @param input - User ID (required) and optional filters
+   * @returns List of campaigns matching filters for the authenticated user
    */
-  async execute(options?: FindCampaignsOptions): Promise<GetCampaignsResult> {
-    const campaigns = await this.campaignRepository.findAll(options);
+  async execute(input: GetCampaignsInput): Promise<GetCampaignsResult> {
+    const campaigns = await this.campaignRepository.findAll({
+      ...input.options,
+      userId: input.userId
+    });
 
     return {
       campaigns,

@@ -15,6 +15,7 @@ import CustomEmail from '@/emails/custom-email';
 import { env, getAppUrl, getBaseUrl } from '@/lib/env';
 
 export interface SaveDraftInput {
+  userId: number; // Multi-tenant: User who owns this draft
   id?: string; // If provided, update existing draft
   templateId?: string | null;
   trackId?: string | null;
@@ -99,6 +100,7 @@ export class SaveDraftUseCase {
 
   private async createNewDraft(input: SaveDraftInput, htmlContent: string): Promise<SaveDraftResult> {
     const campaign = await this.campaignRepository.create({
+      userId: input.userId,
       templateId: input.templateId || null,
       trackId: input.trackId || null,
       subject: input.subject,

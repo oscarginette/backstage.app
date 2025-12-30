@@ -79,6 +79,7 @@ export class SendCustomEmailUseCase {
       // 3. If saving as draft, save and return
       if (input.saveAsDraft) {
         const campaign = await this.campaignRepository.create({
+          userId: input.userId,
           templateId: input.templateId || null,
           trackId: null,
           subject: input.subject,
@@ -108,6 +109,7 @@ export class SendCustomEmailUseCase {
 
       // 6. Create sent campaign record
       const campaign = await this.campaignRepository.create({
+        userId: input.userId,
         templateId: input.templateId || null,
         trackId: null,
         subject: input.subject,
