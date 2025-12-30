@@ -10,7 +10,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { X, DollarSign, User, Calendar } from 'lucide-react';
+import { X, DollarSign } from 'lucide-react';
+import Modal from '@/components/ui/Modal';
 import Toast from '@/components/ui/Toast';
 
 interface ManualPaymentFormProps {
@@ -154,40 +155,42 @@ export default function ManualPaymentForm({ isOpen, onClose, onSuccess }: Manual
     onClose();
   };
 
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        {toast && (
-          <Toast
-            message={toast.message}
-            type={toast.type}
-            isVisible={true}
-            onClose={() => setToast(null)}
-          />
-        )}
+    <>
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          isVisible={true}
+          onClose={() => setToast(null)}
+        />
+      )}
 
-        {/* Header */}
-        <div className="flex justify-between items-center p-6 border-b border-gray-200">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-indigo-100 rounded-lg">
-              <DollarSign className="text-indigo-600" size={24} />
+      <Modal
+        isOpen={isOpen}
+        onClose={handleClose}
+        size="2xl"
+        customHeader={
+          <div className="flex justify-between items-center p-6 border-b border-gray-200">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-indigo-100 rounded-lg">
+                <DollarSign className="text-indigo-600" size={24} />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-gray-900">Add Manual Payment</h2>
+                <p className="text-sm text-gray-600">Record a payment received outside of Stripe</p>
+              </div>
             </div>
-            <div>
-              <h2 className="text-xl font-bold text-gray-900">Add Manual Payment</h2>
-              <p className="text-sm text-gray-600">Record a payment received outside of Stripe</p>
-            </div>
+            <button
+              onClick={handleClose}
+              disabled={loading}
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50"
+            >
+              <X size={20} />
+            </button>
           </div>
-          <button
-            onClick={handleClose}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-          >
-            <X size={20} />
-          </button>
-        </div>
-
-        {/* Form */}
+        }
+      >
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
           {/* Customer Selection */}
           <div>
@@ -339,7 +342,7 @@ export default function ManualPaymentForm({ isOpen, onClose, onSuccess }: Manual
             </button>
           </div>
         </form>
-      </div>
-    </div>
+      </Modal>
+    </>
   );
 }
