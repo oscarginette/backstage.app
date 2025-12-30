@@ -1,22 +1,27 @@
 'use client';
 
 import React from 'react';
-import { LayoutDashboard, Rocket, Mail, Users } from 'lucide-react';
+import { LayoutDashboard, Rocket, Mail, Users, Shield } from 'lucide-react';
 
-export type TabType = 'overview' | 'growth' | 'engagement' | 'audience';
+export type TabType = 'overview' | 'growth' | 'engagement' | 'audience' | 'admin';
 
 interface DashboardTabsProps {
   activeTab: TabType;
   onTabChange: (tab: TabType) => void;
+  isAdmin?: boolean;
 }
 
-export default function DashboardTabs({ activeTab, onTabChange }: DashboardTabsProps) {
-  const tabs = [
+export default function DashboardTabs({ activeTab, onTabChange, isAdmin = false }: DashboardTabsProps) {
+  const allTabs = [
     { id: 'overview' as const, label: 'Overview', icon: LayoutDashboard },
     { id: 'growth' as const, label: 'Download Gates', icon: Rocket },
     { id: 'engagement' as const, label: 'Emails & Newsletters', icon: Mail },
     { id: 'audience' as const, label: 'Audience', icon: Users },
+    { id: 'admin' as const, label: 'Admin', icon: Shield, adminOnly: true },
   ];
+
+  // Filter tabs based on admin status
+  const tabs = allTabs.filter(tab => !tab.adminOnly || isAdmin);
 
   return (
     <div className="flex p-1.5 bg-white/40 backdrop-blur-md border border-[#E8E6DF] rounded-2xl w-fit">
