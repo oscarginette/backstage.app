@@ -59,7 +59,9 @@ export function useDashboardData() {
       const res = await fetch('/api/contacts');
       const data = await res.json();
       if (!data.error) {
-        setContactStats(data.stats || null);
+        // API uses successResponse wrapper: { success: true, data: { contacts, stats } }
+        const stats = data.data?.stats || data.stats || null;
+        setContactStats(stats);
       }
     } catch (error) {
       console.error('Error fetching contact stats:', error);

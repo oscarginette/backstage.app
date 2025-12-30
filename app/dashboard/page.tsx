@@ -89,7 +89,7 @@ function DashboardContent() {
 
   const derivedStats = useMemo(() => {
     return {
-      totalContacts: stats?.totalContacts || 0,
+      totalContacts: stats?.activeSubscribers || 0,
       totalDownloads: gates.reduce((acc, gate) => acc + (gate.stats?.totalDownloads || 0), 0),
       activeCampaigns: history.length,
       avgConversionRate: gates.length > 0
