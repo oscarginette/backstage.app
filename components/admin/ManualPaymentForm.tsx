@@ -163,6 +163,7 @@ export default function ManualPaymentForm({ isOpen, onClose, onSuccess }: Manual
           <Toast
             message={toast.message}
             type={toast.type}
+            isVisible={true}
             onClose={() => setToast(null)}
           />
         )}
