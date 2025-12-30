@@ -64,7 +64,6 @@ const envSchema = z.object({
   CLOUDINARY_API_SECRET: z.string().optional(),
 
   // Webhooks
-  HYPEDIT_WEBHOOK_SECRET: z.string().optional(),
   RESEND_WEBHOOK_SECRET: z.string().optional(),
 
   // Stripe (Payment Processing)

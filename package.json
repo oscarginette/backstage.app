@@ -13,7 +13,9 @@
     "test:run": "vitest run",
     "test:coverage": "vitest run --coverage",
     "migrate:multi-tenant": "tsx scripts/migrate-to-multi-tenant.ts",
-    "db:sync-schema": "tsx scripts/sync-database-schema.ts"
+    "db:sync-schema": "tsx scripts/sync-database-schema.ts",
+    "docs:entities": "tsx scripts/update-entity-docs.ts",
+    "docs:validate": "tsx scripts/validate-entity-docs.ts"
   },
   "dependencies": {
     "@getbrevo/brevo": "^3.0.1",

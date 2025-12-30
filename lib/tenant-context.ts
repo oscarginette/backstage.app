@@ -17,11 +17,12 @@
  */
 
 import { auth } from './auth';
+import { UserRole } from '@/domain/types/user-roles';
 
 export interface TenantContext {
   userId: number;
   userEmail: string;
-  role: 'user' | 'admin' | 'artist';
+  role: UserRole;
 }
 
 /**
@@ -80,7 +81,8 @@ export async function getTenantContextOrNull(): Promise<TenantContext | null> {
  */
 export async function isAdmin(): Promise<boolean> {
   const context = await getTenantContext();
-  return context.role === 'admin';
+  const { USER_ROLES } = await import('@/domain/types/user-roles');
+  return context.role === USER_ROLES.ADMIN;
 }
 
 /**
