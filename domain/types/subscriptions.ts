@@ -17,6 +17,17 @@
 export type SubscriptionPlanName = 'free' | 'pro' | 'business' | 'unlimited';
 
 /**
+ * Subscription Plan Constants
+ * Use these constants instead of string literals for type safety
+ */
+export const SUBSCRIPTION_PLANS = {
+  FREE: 'free' as const,
+  PRO: 'pro' as const,
+  BUSINESS: 'business' as const,
+  UNLIMITED: 'unlimited' as const,
+} as const;
+
+/**
  * Pricing plan definition
  * Represents a subscription tier with its limits and pricing
  */

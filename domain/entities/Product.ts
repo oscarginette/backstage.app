@@ -2,6 +2,7 @@ import type {
   MarketingFeature,
   ProductMetadata,
 } from '../types/stripe';
+import { SUBSCRIPTION_PLANS } from '../types/subscriptions';
 
 /**
  * Product Entity (Stripe-compatible)
@@ -68,7 +69,7 @@ export class Product {
   }
 
   isFree(): boolean {
-    return this.name.toLowerCase() === 'free';
+    return this.name.toLowerCase() === SUBSCRIPTION_PLANS.FREE;
   }
 
   hasUnlimitedEmails(): boolean {

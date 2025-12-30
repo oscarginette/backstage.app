@@ -9,8 +9,11 @@
  */
 
 import bcrypt from 'bcrypt';
+import { UserRole, USER_ROLES } from '../types/user-roles';
 
-export type UserRole = 'artist' | 'admin';
+// Re-export for backward compatibility
+export type { UserRole };
+export { USER_ROLES };
 
 export interface UserProps {
   id: number;
@@ -116,7 +119,7 @@ export class User {
   }
 
   isAdmin(): boolean {
-    return this.props.role === 'admin';
+    return this.props.role === USER_ROLES.ADMIN;
   }
 
   // Business logic methods
@@ -193,7 +196,7 @@ export class User {
    * @param role - User role (default: 'artist')
    * @returns Promise<User> - User entity with hashed password
    */
-  static async createNew(email: string, password: string, role: UserRole = 'artist'): Promise<User> {
+  static async createNew(email: string, password: string, role: UserRole = USER_ROLES.ARTIST): Promise<User> {
     // Validate password strength
     if (!password || password.length < 8) {
       throw new Error('Password must be at least 8 characters long');

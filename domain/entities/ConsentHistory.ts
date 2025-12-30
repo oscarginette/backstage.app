@@ -14,6 +14,19 @@ export type ConsentAction =
   | 'bounce'
   | 'spam_complaint';
 
+/**
+ * Consent Action Constants
+ * Use these constants instead of string literals for type safety
+ */
+export const CONSENT_ACTIONS = {
+  SUBSCRIBE: 'subscribe' as const,
+  UNSUBSCRIBE: 'unsubscribe' as const,
+  RESUBSCRIBE: 'resubscribe' as const,
+  DELETE_REQUEST: 'delete_request' as const,
+  BOUNCE: 'bounce' as const,
+  SPAM_COMPLAINT: 'spam_complaint' as const,
+} as const;
+
 export type ConsentSource =
   | 'email_link'
   | 'api_request'
@@ -21,6 +34,19 @@ export type ConsentSource =
   | 'webhook_bounce'
   | 'hypedit_signup'
   | 'manual_import';
+
+/**
+ * Consent Source Constants
+ * Use these constants instead of string literals for type safety
+ */
+export const CONSENT_SOURCES = {
+  EMAIL_LINK: 'email_link' as const,
+  API_REQUEST: 'api_request' as const,
+  ADMIN_ACTION: 'admin_action' as const,
+  WEBHOOK_BOUNCE: 'webhook_bounce' as const,
+  HYPEDIT_SIGNUP: 'hypedit_signup' as const,
+  MANUAL_IMPORT: 'manual_import' as const,
+} as const;
 
 // Re-export for backward compatibility
 export type ConsentMetadata = ConsentHistoryMetadata;
@@ -77,9 +103,9 @@ export class ConsentHistory {
   ): Omit<ConsentHistory, 'id' | 'createdAt' | 'isUnsubscribe' | 'isResubscribe' | 'getDescription'> {
     return {
       contactId,
-      action: 'unsubscribe',
+      action: CONSENT_ACTIONS.UNSUBSCRIBE,
       timestamp: new Date(),
-      source: 'email_link',
+      source: CONSENT_SOURCES.EMAIL_LINK,
       ipAddress,
       userAgent,
       metadata: reason ? { reason } : null
@@ -96,9 +122,9 @@ export class ConsentHistory {
   ): Omit<ConsentHistory, 'id' | 'createdAt' | 'isUnsubscribe' | 'isResubscribe' | 'getDescription'> {
     return {
       contactId,
-      action: 'resubscribe',
+      action: CONSENT_ACTIONS.RESUBSCRIBE,
       timestamp: new Date(),
-      source: 'email_link',
+      source: CONSENT_SOURCES.EMAIL_LINK,
       ipAddress,
       userAgent,
       metadata: null
@@ -115,9 +141,9 @@ export class ConsentHistory {
   ): Omit<ConsentHistory, 'id' | 'createdAt' | 'isUnsubscribe' | 'isResubscribe' | 'getDescription'> {
     return {
       contactId,
-      action: 'bounce',
+      action: CONSENT_ACTIONS.BOUNCE,
       timestamp: new Date(),
-      source: 'webhook_bounce',
+      source: CONSENT_SOURCES.WEBHOOK_BOUNCE,
       ipAddress: null,
       userAgent: null,
       metadata: { bounce_type: bounceType, reason }
@@ -128,14 +154,14 @@ export class ConsentHistory {
    * Check if this is an unsubscribe action
    */
   isUnsubscribe(): boolean {
-    return this.action === 'unsubscribe';
+    return this.action === CONSENT_ACTIONS.UNSUBSCRIBE;
   }
 
   /**
    * Check if this is a resubscribe action
    */
   isResubscribe(): boolean {
-    return this.action === 'resubscribe';
+    return this.action === CONSENT_ACTIONS.RESUBSCRIBE;
   }
 
   /**
@@ -143,12 +169,12 @@ export class ConsentHistory {
    */
   getDescription(): string {
     const actionDescriptions: Record<ConsentAction, string> = {
-      subscribe: 'Subscribed to mailing list',
-      unsubscribe: 'Unsubscribed from mailing list',
-      resubscribe: 'Re-subscribed to mailing list',
-      delete_request: 'Requested data deletion (GDPR)',
-      bounce: 'Email bounced',
-      spam_complaint: 'Marked email as spam'
+      [CONSENT_ACTIONS.SUBSCRIBE]: 'Subscribed to mailing list',
+      [CONSENT_ACTIONS.UNSUBSCRIBE]: 'Unsubscribed from mailing list',
+      [CONSENT_ACTIONS.RESUBSCRIBE]: 'Re-subscribed to mailing list',
+      [CONSENT_ACTIONS.DELETE_REQUEST]: 'Requested data deletion (GDPR)',
+      [CONSENT_ACTIONS.BOUNCE]: 'Email bounced',
+      [CONSENT_ACTIONS.SPAM_COMPLAINT]: 'Marked email as spam'
     };
 
     return actionDescriptions[this.action];
