@@ -172,10 +172,111 @@ export class PostgresContactRepository implements IContactRepository {
       return { inserted: 0, updated: 0, skipped: 0, errors: [] };
     }
 
-    // For Neon compatibility, use fallback approach directly
-    // Neon with pooling doesn't support sql.array() in production
-    console.log('[BulkImport] Processing contacts individually (Neon compatible)');
-    return this.bulkImportFallback(contacts);
+    // Process in smaller batches to avoid parameter limits and improve performance
+    // Neon/Postgres can handle batch INSERT with VALUES efficiently
+    const BATCH_SIZE = 100;
+    const batches: BulkImportContactInput[][] = [];
+
+    for (let i = 0; i < contacts.length; i += BATCH_SIZE) {
+      batches.push(contacts.slice(i, i + BATCH_SIZE));
+    }
+
+    console.log(`[BulkImport] Processing ${contacts.length} contacts in ${batches.length} batches of ${BATCH_SIZE}`);
+
+    let totalInserted = 0;
+    let totalUpdated = 0;
+    let totalSkipped = 0;
+    const allErrors: Array<{ email: string; error: string }> = [];
+
+    for (let batchIndex = 0; batchIndex < batches.length; batchIndex++) {
+      const batch = batches[batchIndex];
+
+      try {
+        const result = await this.bulkImportBatch(batch);
+        totalInserted += result.inserted;
+        totalUpdated += result.updated;
+        totalSkipped += result.skipped;
+        allErrors.push(...result.errors);
+
+        if ((batchIndex + 1) % 5 === 0) {
+          console.log(`[BulkImport] Progress: ${batchIndex + 1}/${batches.length} batches (${totalInserted + totalUpdated} contacts)`);
+        }
+      } catch (error: unknown) {
+        // If batch fails entirely, fall back to individual inserts for this batch
+        console.error(`[BulkImport] Batch ${batchIndex + 1} failed, using fallback:`, error);
+        const fallbackResult = await this.bulkImportFallback(batch);
+        totalInserted += fallbackResult.inserted;
+        totalUpdated += fallbackResult.updated;
+        totalSkipped += fallbackResult.skipped;
+        allErrors.push(...fallbackResult.errors);
+      }
+    }
+
+    console.log(`[BulkImport] Complete: ${totalInserted} inserted, ${totalUpdated} updated, ${totalSkipped} skipped, ${allErrors.length} errors`);
+
+    return {
+      inserted: totalInserted,
+      updated: totalUpdated,
+      skipped: totalSkipped,
+      errors: allErrors
+    };
+  }
+
+  /**
+   * Process a single batch using true batch INSERT with VALUES
+   * Much faster than individual inserts (1 query vs N queries)
+   */
+  private async bulkImportBatch(contacts: BulkImportContactInput[]): Promise<BulkImportResult> {
+    if (contacts.length === 0) {
+      return { inserted: 0, updated: 0, skipped: 0, errors: [] };
+    }
+
+    // Build VALUES clause manually (Vercel Postgres doesn't support sql.array() in production)
+    const values = contacts.map((contact, idx) => {
+      const email = contact.email.toLowerCase().trim();
+      const name = contact.name || null;
+      const metadata = JSON.stringify(contact.metadata || {});
+
+      return `(
+        ${contact.userId},
+        '${email.replace(/'/g, "''")}',
+        ${name ? `'${name.replace(/'/g, "''")}'` : 'NULL'},
+        '${contact.source}',
+        ${contact.subscribed},
+        '${metadata.replace(/'/g, "''")}'::jsonb
+      )`;
+    }).join(',\n      ');
+
+    const query = `
+      INSERT INTO contacts (
+        user_id,
+        email,
+        name,
+        source,
+        subscribed,
+        metadata
+      )
+      VALUES ${values}
+      ON CONFLICT (user_id, email) DO UPDATE SET
+        name = EXCLUDED.name,
+        subscribed = EXCLUDED.subscribed,
+        source = EXCLUDED.source,
+        metadata = contacts.metadata || COALESCE(EXCLUDED.metadata, '{}'::jsonb)
+      RETURNING (xmax = 0) AS inserted
+    `;
+
+    const result = await sql.query(query);
+
+    // Count inserts vs updates
+    const inserted = result.rows.filter((row: any) => row.inserted).length;
+    const updated = result.rows.length - inserted;
+
+    return {
+      inserted,
+      updated,
+      skipped: 0,
+      errors: []
+    };
   }
 
   /**
