@@ -432,4 +432,32 @@ export class PostgresUserRepository implements IUserRepository {
       );
     }
   }
+
+  /**
+   * Update user's monthly email quota
+   * Admin-only operation to adjust email sending limits
+   * SECURITY: Uses parameterized queries to prevent SQL injection
+   */
+  async updateQuota(userId: number, monthlyQuota: number): Promise<void> {
+    try {
+      const result = await sql`
+        UPDATE users
+        SET
+          monthly_quota = ${monthlyQuota},
+          max_monthly_emails = ${monthlyQuota},
+          updated_at = NOW()
+        WHERE id = ${userId}
+        RETURNING id
+      `;
+
+      if (result.rowCount === 0) {
+        throw new Error(`User not found: ${userId}`);
+      }
+    } catch (error) {
+      console.error('PostgresUserRepository.updateQuota error:', error);
+      throw new Error(
+        `Failed to update quota: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
+    }
+  }
 }

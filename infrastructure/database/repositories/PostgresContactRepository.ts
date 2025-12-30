@@ -168,16 +168,86 @@ export class PostgresContactRepository implements IContactRepository {
   }
 
   async bulkImport(contacts: BulkImportContactInput[]): Promise<BulkImportResult> {
+    if (contacts.length === 0) {
+      return { inserted: 0, updated: 0, skipped: 0, errors: [] };
+    }
+
+    try {
+      // Build VALUES clause for batch insert
+      // Format: (user_id, email, name, source, subscribed, metadata)
+      const values = contacts.map((contact) => {
+        return sql`(
+          ${contact.userId},
+          ${contact.email.toLowerCase().trim()},
+          ${contact.name || null},
+          ${contact.source},
+          ${contact.subscribed},
+          ${JSON.stringify(contact.metadata || {})}::jsonb
+        )`;
+      });
+
+      // Execute batch insert with ON CONFLICT
+      // Uses unnest() to join multiple value sets
+      const result = await sql`
+        INSERT INTO contacts (
+          user_id,
+          email,
+          name,
+          source,
+          subscribed,
+          metadata
+        )
+        SELECT * FROM unnest(
+          ${sql.array(contacts.map(c => c.userId), 'int4')},
+          ${sql.array(contacts.map(c => c.email.toLowerCase().trim()), 'text')},
+          ${sql.array(contacts.map(c => c.name || null), 'text')},
+          ${sql.array(contacts.map(c => c.source), 'text')},
+          ${sql.array(contacts.map(c => c.subscribed), 'bool')},
+          ${sql.array(contacts.map(c => JSON.stringify(c.metadata || {})), 'jsonb')}
+        ) AS t(user_id, email, name, source, subscribed, metadata)
+        ON CONFLICT (user_id, email) DO UPDATE SET
+          name = EXCLUDED.name,
+          subscribed = EXCLUDED.subscribed,
+          source = EXCLUDED.source,
+          metadata = contacts.metadata || COALESCE(EXCLUDED.metadata, '{}'::jsonb)
+        RETURNING (xmax = 0) AS is_insert
+      `;
+
+      // Count inserts vs updates
+      const inserted = result.rows.filter((row: any) => row.is_insert).length;
+      const updated = result.rows.length - inserted;
+
+      console.log(`[BulkImport] Processed ${contacts.length} contacts: ${inserted} inserted, ${updated} updated`);
+
+      return {
+        inserted,
+        updated,
+        skipped: 0,
+        errors: []
+      };
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      console.error('[BulkImport] Batch insert failed:', errorMessage);
+
+      // If batch insert fails, fall back to individual inserts for error handling
+      return this.bulkImportFallback(contacts);
+    }
+  }
+
+  /**
+   * Fallback: Process contacts individually when batch insert fails
+   * Used for error handling and reporting which specific contacts failed
+   */
+  private async bulkImportFallback(contacts: BulkImportContactInput[]): Promise<BulkImportResult> {
+    console.log('[BulkImport] Using fallback individual inserts');
+
     let inserted = 0;
     let updated = 0;
     let skipped = 0;
     const errors: Array<{ email: string; error: string }> = [];
 
-    // Process each contact individually to handle errors gracefully
     for (const contact of contacts) {
       try {
-        // Insert or update contact with ON CONFLICT
-        // Override all fields including subscription status (per user requirement)
         const result = await sql`
           INSERT INTO contacts (
             user_id,
@@ -190,10 +260,10 @@ export class PostgresContactRepository implements IContactRepository {
           VALUES (
             ${contact.userId},
             ${contact.email.toLowerCase().trim()},
-            ${contact.name},
+            ${contact.name || null},
             ${contact.source},
             ${contact.subscribed},
-            ${JSON.stringify(contact.metadata)}::jsonb
+            ${JSON.stringify(contact.metadata || {})}::jsonb
           )
           ON CONFLICT (user_id, email) DO UPDATE SET
             name = EXCLUDED.name,
@@ -203,8 +273,6 @@ export class PostgresContactRepository implements IContactRepository {
           RETURNING (xmax = 0) AS inserted
         `;
 
-        // Check if it was an insert or update
-        // xmax = 0 means INSERT, xmax > 0 means UPDATE
         if (result.rows.length > 0 && result.rows[0].inserted) {
           inserted++;
         } else {
@@ -212,7 +280,7 @@ export class PostgresContactRepository implements IContactRepository {
         }
       } catch (error: unknown) {
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-        console.error(`Error importing contact ${contact.email}:`, errorMessage);
+        console.error(`[BulkImport] Error importing contact ${contact.email}:`, errorMessage);
         errors.push({
           email: contact.email,
           error: errorMessage
