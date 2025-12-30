@@ -332,7 +332,7 @@ function DashboardContent() {
           )}
 
           {activeTab === 'admin' && isAdmin && (
-            <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="flex flex-col gap-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
               {/* Admin Stats - Reusing StatCards */}
               <StatCards
                 stats={{
@@ -356,12 +356,12 @@ function DashboardContent() {
               />
 
               {/* User Management */}
-              <div className="space-y-4">
+              <div className="space-y-6">
                 <div className="flex items-center justify-between px-2">
                   <h3 className="text-2xl font-serif text-[#1c1c1c]">User Management</h3>
                   <button
                     onClick={fetchAdminUsers}
-                    className="px-4 py-2 bg-[#1c1c1c] text-white rounded-xl hover:bg-black transition-all active:scale-95 flex items-center gap-2 text-sm font-bold"
+                    className="px-4 py-2 bg-[#1c1c1c] text-white rounded-xl hover:bg-black transition-all active:scale-95 flex items-center gap-2 text-sm font-bold shadow-lg shadow-black/5"
                   >
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -370,23 +370,17 @@ function DashboardContent() {
                   </button>
                 </div>
 
-                {loadingAdminUsers ? (
-                  <div className="bg-white/60 backdrop-blur-xl border-2 border-gray-200 rounded-2xl p-12 shadow-lg">
-                    <div className="flex items-center justify-center">
-                      <div className="w-8 h-8 border-4 border-gray-200 border-t-[#FF5500] rounded-full animate-spin"></div>
-                    </div>
-                  </div>
-                ) : (
-                  <UserManagementTable users={adminUsers} onRefresh={fetchAdminUsers} />
-                )}
+                <UserManagementTable 
+                  users={adminUsers} 
+                  onRefresh={fetchAdminUsers} 
+                  loading={loadingAdminUsers}
+                />
               </div>
 
               {/* Quota Management */}
-              <div className="space-y-4">
+              <div className="space-y-6">
                 <h3 className="text-2xl font-serif text-[#1c1c1c] px-2">Quota Management</h3>
-                {!loadingAdminUsers && (
-                  <UserTable users={adminUsers} onRefresh={fetchAdminUsers} />
-                )}
+                <UserTable users={adminUsers} onRefresh={fetchAdminUsers} />
               </div>
             </div>
           )}

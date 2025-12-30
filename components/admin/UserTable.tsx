@@ -1,15 +1,7 @@
-/**
- * UserTable Component
- *
- * Admin component to display and manage users.
- * Provides quota editing and active status toggling.
- *
- * Clean Code: Client component with clear separation of concerns.
- */
-
 'use client';
 
 import { useState } from 'react';
+import { Mail, Shield, Calendar, AlertCircle } from 'lucide-react';
 
 interface UserQuota {
   emailsSentToday: number;
@@ -114,13 +106,14 @@ export default function UserTable({ users, onRefresh }: UserTableProps) {
   };
 
   return (
-    <div className="bg-white shadow-md rounded-lg overflow-hidden">
+    <div className="w-full bg-white/40 backdrop-blur-xl rounded-[2.5rem] border border-[#E8E6DF]/50 overflow-hidden shadow-2xl shadow-black/[0.02] flex flex-col">
       {error && (
-        <div className="bg-red-50 border-l-4 border-red-500 p-4 m-4">
-          <p className="text-sm text-red-700">{error}</p>
+        <div className="bg-red-50 border-b border-red-100 p-4 flex items-center gap-3">
+          <AlertCircle className="w-5 h-5 text-red-500" />
+          <p className="text-sm text-red-700 font-medium">{error}</p>
           <button
             onClick={() => setError(null)}
-            className="mt-2 text-sm text-red-600 underline hover:no-underline"
+            className="ml-auto text-xs font-bold text-red-500 hover:text-red-700 uppercase tracking-wider"
           >
             Dismiss
           </button>
@@ -128,55 +121,60 @@ export default function UserTable({ users, onRefresh }: UserTableProps) {
       )}
 
       <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+        <table className="w-full">
+          <thead className="bg-[#FDFCF9]/50 border-b border-[#E8E6DF]/40">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Email
+              <th className="px-8 py-5 text-left text-[11px] font-black text-gray-400 uppercase tracking-[0.2em]">
+                User Account
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-8 py-5 text-left text-[11px] font-black text-gray-400 uppercase tracking-[0.2em]">
                 Role
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Quota Used
+              <th className="px-8 py-5 text-left text-[11px] font-black text-gray-400 uppercase tracking-[0.2em]">
+                Quota Usage
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Quota Limit
+              <th className="px-8 py-5 text-left text-[11px] font-black text-gray-400 uppercase tracking-[0.2em]">
+                Monthly Limit
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-8 py-5 text-left text-[11px] font-black text-gray-400 uppercase tracking-[0.2em]">
                 Status
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-8 py-5 text-right text-[11px] font-black text-gray-400 uppercase tracking-[0.2em]">
                 Actions
               </th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
+          <tbody className="divide-y divide-[#E8E6DF]/30">
             {users.map((user) => (
-              <tr key={user.id} className={!user.active ? 'bg-gray-50' : ''}>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm font-medium text-gray-900">
-                    {user.email}
-                  </div>
-                  <div className="text-xs text-gray-500">
-                    ID: {user.id}
+              <tr 
+                key={user.id} 
+                className={`group transition-colors duration-300 hover:bg-[#F5F3ED]/40 ${!user.active ? 'opacity-60' : ''}`}
+              >
+                <td className="px-8 py-5">
+                  <div className="flex flex-col">
+                    <div className="text-sm font-bold text-[#1c1c1c]">{user.email}</div>
+                    <div className="text-[10px] font-mono text-gray-400">ID: {user.id}</div>
                   </div>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap">
+                <td className="px-8 py-5">
                   <span
-                    className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                    className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
                       user.role === 'admin'
-                        ? 'bg-purple-100 text-purple-800'
-                        : 'bg-gray-100 text-gray-800'
+                        ? 'bg-purple-100 text-purple-700'
+                        : 'bg-gray-100/50 text-gray-500'
                     }`}
                   >
+                    {user.role === 'admin' && <Shield className="w-3 h-3" />}
                     {user.role}
                   </span>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {user.quota ? user.quota.emailsSentToday : '-'}
+                <td className="px-8 py-5">
+                  <div className="flex items-center gap-2 text-sm font-medium text-[#1c1c1c]">
+                     <Mail className="w-4 h-4 text-gray-300" />
+                     {user.quota ? user.quota.emailsSentToday.toLocaleString() : '-'}
+                  </div>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                <td className="px-8 py-5">
                   {editingUserId === user.id ? (
                     <div className="flex items-center gap-2">
                       <input
@@ -185,65 +183,59 @@ export default function UserTable({ users, onRefresh }: UserTableProps) {
                         onChange={(e) => setNewQuota(e.target.value)}
                         min="1"
                         max="10000"
-                        className="w-24 px-2 py-1 border border-gray-300 rounded text-sm"
+                        className="w-24 px-3 py-1.5 border border-[#FF5500]/30 rounded-lg text-sm font-bold text-[#1c1c1c] focus:outline-none focus:ring-2 focus:ring-[#FF5500]/20 bg-white"
                         disabled={loading === user.id}
+                        autoFocus
                       />
                       <button
                         onClick={() => handleSaveQuota(user.id)}
                         disabled={loading === user.id}
-                        className="text-green-600 hover:text-green-800 text-xs font-medium disabled:opacity-50"
+                        className="p-1.5 bg-[#FF5500] text-white rounded-lg hover:bg-[#e64d00]"
                       >
-                        {loading === user.id ? 'Saving...' : 'Save'}
+                         <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
                       </button>
                       <button
                         onClick={handleCancelEdit}
                         disabled={loading === user.id}
-                        className="text-gray-600 hover:text-gray-800 text-xs font-medium disabled:opacity-50"
+                        className="p-1.5 bg-gray-100 text-gray-500 rounded-lg hover:bg-gray-200"
                       >
-                        Cancel
+                        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" /></svg>
                       </button>
                     </div>
                   ) : (
-                    <span>{user.quota?.monthlyLimit || '-'}</span>
+                    <span className="text-sm font-bold text-gray-500">{user.quota?.monthlyLimit.toLocaleString() || '-'}</span>
                   )}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <span
-                    className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                      user.active
-                        ? 'bg-green-100 text-green-800'
-                        : 'bg-red-100 text-red-800'
-                    }`}
-                  >
+                <td className="px-8 py-5">
+                  <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest ${
+                    user.active ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'
+                  }`}>
+                    <div className={`w-1.5 h-1.5 rounded-full ${user.active ? 'bg-emerald-500' : 'bg-red-500'}`} />
                     {user.active ? 'Active' : 'Inactive'}
-                  </span>
+                  </div>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+                <td className="px-8 py-5 text-right">
                   {editingUserId !== user.id && (
-                    <>
+                    <div className="flex items-center justify-end gap-2">
                       <button
                         onClick={() => handleEditQuota(user)}
                         disabled={loading === user.id}
-                        className="text-blue-600 hover:text-blue-800 disabled:opacity-50"
+                        className="px-3 py-1.5 rounded-lg border border-[#E8E6DF] text-[10px] font-bold text-gray-500 hover:text-[#1c1c1c] hover:bg-white hover:border-[#1c1c1c]/20 transition-all uppercase tracking-wide"
                       >
-                        Edit Quota
+                        Edit Limit
                       </button>
                       <button
                         onClick={() => handleToggleActive(user.id, user.active)}
                         disabled={loading === user.id}
-                        className={`${
+                        className={`px-3 py-1.5 rounded-lg border text-[10px] font-bold transition-all uppercase tracking-wide ${
                           user.active
-                            ? 'text-red-600 hover:text-red-800'
-                            : 'text-green-600 hover:text-green-800'
-                        } disabled:opacity-50`}
+                            ? 'border-red-100 text-red-500 hover:bg-red-50 hover:border-red-200'
+                            : 'border-emerald-100 text-emerald-500 hover:bg-emerald-50 hover:border-emerald-200'
+                        }`}
                       >
-                        {loading === user.id
-                          ? 'Processing...'
-                          : user.active
-                          ? 'Deactivate'
-                          : 'Activate'}
+                        {user.active ? 'Deactivate' : 'Activate'}
                       </button>
-                    </>
+                    </div>
                   )}
                 </td>
               </tr>
@@ -253,8 +245,8 @@ export default function UserTable({ users, onRefresh }: UserTableProps) {
       </div>
 
       {users.length === 0 && (
-        <div className="text-center py-8 text-gray-500">
-          No users found
+        <div className="text-center py-12 text-gray-400">
+           <p className="font-serif italic">No users found.</p>
         </div>
       )}
     </div>
