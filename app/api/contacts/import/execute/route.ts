@@ -63,17 +63,8 @@ export async function POST(request: Request) {
     );
 
     // 4. Validate data
-    console.log('[Import Execute] Validating data:', {
-      rowCount: rawData.length,
-      mapping: columnMapping
-    });
     const validateUseCase = new ValidateImportDataUseCase();
     const validationResult = validateUseCase.execute(rawData, mapping);
-
-    console.log('[Import Execute] Validation complete:', {
-      valid: validationResult.validContacts.length,
-      errors: validationResult.errors.length
-    });
 
     if (validationResult.validContacts.length === 0) {
       return NextResponse.json(
@@ -87,7 +78,6 @@ export async function POST(request: Request) {
     }
 
     // 4.5. Check quota (informational, doesn't block import)
-    console.log('[Import Execute] Initializing repositories');
     const contactRepository = new PostgresContactRepository();
     const userRepository = new PostgresUserRepository();
 
@@ -96,16 +86,9 @@ export async function POST(request: Request) {
       contactRepository
     );
 
-    console.log('[Import Execute] Checking quota');
     const quotaCheck = await checkQuotaUseCase.execute({
       userId,
       additionalContacts: validationResult.validContacts.length,
-    });
-
-    console.log('[Import Execute] Quota check result:', {
-      allowed: quotaCheck.allowed,
-      currentCount: quotaCheck.currentCount,
-      limit: quotaCheck.limit
     });
 
     // 5. Execute import with Dependency Injection (always allow)
@@ -116,7 +99,6 @@ export async function POST(request: Request) {
       importHistoryRepository
     );
 
-    console.log('[Import Execute] Starting import');
     const importResult = await importUseCase.execute({
       userId,
       contacts: validationResult.validContacts,
@@ -127,13 +109,6 @@ export async function POST(request: Request) {
         totalRows: rawData.length
       },
       columnMapping: mapping
-    });
-
-    console.log('[Import Execute] Import complete:', {
-      inserted: importResult.contactsInserted,
-      updated: importResult.contactsUpdated,
-      skipped: importResult.contactsSkipped,
-      hasErrors: importResult.hasErrors
     });
 
     // 6. Get updated contact count AFTER import

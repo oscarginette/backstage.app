@@ -1,0 +1,166 @@
+{
+  "admin": {
+    "users": {
+      "columns": {
+        "user": "User",
+        "plan": "Plan",
+        "quota": "Quota",
+        "emailUsage": "Email Usage",
+        "activated": "Activated",
+        "expires": "Expires",
+        "status": "Status"
+      },
+      "badges": {
+        "admin": "Admin"
+      },
+      "status": {
+        "active": "Active",
+        "inactive": "Inactive"
+      },
+      "searchPlaceholder": "Search users...",
+      "emptyMessage": "No users found matching your search.",
+      "quotaEditHint": "Double-click to edit",
+      "perMonth": "/mo",
+      "noData": "No data",
+      "resets": "Resets {date}",
+      "never": "Never",
+      "active": "Active",
+      "activate": "Activate ({count})",
+      "delete": "Delete ({count})",
+      "deleting": "Deleting...",
+      "activationSuccess": "Successfully activated {count} user(s) with {plan} plan",
+      "activationError": "Failed to activate users",
+      "quotaUpdateSuccess": "Quota updated successfully",
+      "quotaUpdateError": "Failed to update quota",
+      "deleteSuccess": "Successfully deleted {count} user(s)",
+      "deleteError": "Failed to delete users",
+      "deleteModal": {
+        "title": "Delete Users",
+        "warning": "This action cannot be undone. This will permanently delete the selected user(s).",
+        "confirmation": "You are about to delete {count} user(s).",
+        "cancel": "Cancel",
+        "confirm": "Delete Users"
+      },
+      "table": {
+        "userAccount": "User Account",
+        "role": "Role",
+        "quotaUsage": "Quota Usage",
+        "monthlyLimit": "Monthly Limit",
+        "status": "Status",
+        "actions": "Actions"
+      },
+      "quotaValidationError": "Quota must be between 1 and 10,000",
+      "toggleConfirm": "Are you sure you want to {action} this user?",
+      "deactivate": "Deactivate",
+      "editLimit": "Edit Limit",
+      "dismiss": "Dismiss",
+      "noUsers": "No users found."
+    },
+    "payments": {
+      "title": "Payment History",
+      "total": "Total: {count} payments",
+      "addManualPayment": "Add Manual Payment",
+      "searchPlaceholder": "Search by email, name, reference...",
+      "loadError": "Failed to load payment history",
+      "na": "N/A",
+      "created": "Created",
+      "by": "by {email}",
+      "loading": "Loading...",
+      "noPayments": "No payments found",
+      "previous": "Previous",
+      "next": "Next",
+      "pagination": "Page {page} of {total}",
+      "filters": {
+        "allMethods": "All Payment Methods",
+        "bankTransfer": "Bank Transfer",
+        "paypal": "PayPal",
+        "cash": "Cash",
+        "crypto": "Crypto",
+        "other": "Other",
+        "allSources": "All Sources",
+        "manualOnly": "Manual Only",
+        "stripeOnly": "Stripe Only"
+      },
+      "table": {
+        "customer": "Customer",
+        "amount": "Amount",
+        "method": "Method",
+        "status": "Status",
+        "date": "Date",
+        "reference": "Reference"
+      },
+      "form": {
+        "title": "Add Manual Payment",
+        "description": "Record a payment received outside of Stripe",
+        "fields": {
+          "customer": "Customer",
+          "selectCustomer": "Select a customer...",
+          "amount": "Amount",
+          "currency": "Currency",
+          "method": "Payment Method",
+          "reference": "Payment Reference",
+          "referencePlaceholder": "Transaction ID, check number, etc.",
+          "date": "Payment Date",
+          "description": "Description",
+          "descriptionPlaceholder": "What is this payment for?",
+          "notes": "Internal Notes",
+          "notesPlaceholder": "Add any internal notes about this payment..."
+        },
+        "methods": {
+          "bankTransfer": "Bank Transfer",
+          "paypal": "PayPal",
+          "cash": "Cash",
+          "crypto": "Cryptocurrency",
+          "other": "Other"
+        },
+        "actions": {
+          "cancel": "Cancel",
+          "create": "Create Payment",
+          "creating": "Creating..."
+        },
+        "errors": {
+          "loadUsers": "Failed to load users",
+          "selectCustomer": "Please select a customer",
+          "invalidAmount": "Please enter a valid amount",
+          "selectMethod": "Please select a payment method",
+          "createFailed": "Failed to create payment"
+        },
+        "success": "Manual payment created successfully"
+      }
+    },
+    "subscriptions": {
+      "title": "Activate Subscription",
+      "activatingFor": "Activating for {count} user(s)",
+      "plan": {
+        "label": "Subscription Plan"
+      },
+      "billing": {
+        "label": "Billing Cycle",
+        "monthly": "Monthly",
+        "annual": "Annual",
+        "save": "Save 17%"
+      },
+      "duration": {
+        "label": "Duration",
+        "months": "months",
+        "years": "years"
+      },
+      "summary": {
+        "title": "Summary",
+        "planPrice": "Plan Price",
+        "mo": "mo",
+        "yr": "yr",
+        "duration": "Duration",
+        "yearsCount": "{count} year(s)",
+        "monthsCount": "{count} month(s)",
+        "users": "Users",
+        "total": "Total"
+      },
+      "actions": {
+        "confirm": "Confirm Activation",
+        "activating": "Activating...",
+        "cancel": "Cancel"
+      }
+    }
+  }
+}

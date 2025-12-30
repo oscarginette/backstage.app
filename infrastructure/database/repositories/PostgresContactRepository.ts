@@ -181,8 +181,6 @@ export class PostgresContactRepository implements IContactRepository {
       batches.push(contacts.slice(i, i + BATCH_SIZE));
     }
 
-    console.log(`[BulkImport] Processing ${contacts.length} contacts in ${batches.length} batches of ${BATCH_SIZE}`);
-
     let totalInserted = 0;
     let totalUpdated = 0;
     let totalSkipped = 0;
@@ -197,13 +195,8 @@ export class PostgresContactRepository implements IContactRepository {
         totalUpdated += result.updated;
         totalSkipped += result.skipped;
         allErrors.push(...result.errors);
-
-        if ((batchIndex + 1) % 5 === 0) {
-          console.log(`[BulkImport] Progress: ${batchIndex + 1}/${batches.length} batches (${totalInserted + totalUpdated} contacts)`);
-        }
       } catch (error: unknown) {
         // If batch fails entirely, fall back to individual inserts for this batch
-        console.error(`[BulkImport] Batch ${batchIndex + 1} failed, using fallback:`, error);
         const fallbackResult = await this.bulkImportFallback(batch);
         totalInserted += fallbackResult.inserted;
         totalUpdated += fallbackResult.updated;
@@ -211,8 +204,6 @@ export class PostgresContactRepository implements IContactRepository {
         allErrors.push(...fallbackResult.errors);
       }
     }
-
-    console.log(`[BulkImport] Complete: ${totalInserted} inserted, ${totalUpdated} updated, ${totalSkipped} skipped, ${allErrors.length} errors`);
 
     return {
       inserted: totalInserted,
@@ -302,8 +293,6 @@ export class PostgresContactRepository implements IContactRepository {
    * Used for error handling and reporting which specific contacts failed
    */
   private async bulkImportFallback(contacts: BulkImportContactInput[]): Promise<BulkImportResult> {
-    console.log('[BulkImport] Using fallback individual inserts');
-
     let inserted = 0;
     let updated = 0;
     let skipped = 0;

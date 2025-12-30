@@ -1,0 +1,166 @@
+{
+  "admin": {
+    "users": {
+      "columns": {
+        "user": "Usuario",
+        "plan": "Plan",
+        "quota": "Cuota",
+        "emailUsage": "Uso de Emails",
+        "activated": "Activado",
+        "expires": "Expira",
+        "status": "Estado"
+      },
+      "badges": {
+        "admin": "Admin"
+      },
+      "status": {
+        "active": "Activo",
+        "inactive": "Inactivo"
+      },
+      "searchPlaceholder": "Buscar usuarios...",
+      "emptyMessage": "No se encontraron usuarios que coincidan con tu búsqueda.",
+      "quotaEditHint": "Doble clic para editar",
+      "perMonth": "/mes",
+      "noData": "Sin datos",
+      "resets": "Reinicia {date}",
+      "never": "Nunca",
+      "active": "Activo",
+      "activate": "Activar ({count})",
+      "delete": "Eliminar ({count})",
+      "deleting": "Eliminando...",
+      "activationSuccess": "Activados correctamente {count} usuario(s) con plan {plan}",
+      "activationError": "Error al activar usuarios",
+      "quotaUpdateSuccess": "Cuota actualizada correctamente",
+      "quotaUpdateError": "Error al actualizar cuota",
+      "deleteSuccess": "Eliminados correctamente {count} usuario(s)",
+      "deleteError": "Error al eliminar usuarios",
+      "deleteModal": {
+        "title": "Eliminar Usuarios",
+        "warning": "Esta acción no se puede deshacer. Esto eliminará permanentemente el/los usuario(s) seleccionado(s).",
+        "confirmation": "Estás a punto de eliminar {count} usuario(s).",
+        "cancel": "Cancelar",
+        "confirm": "Eliminar Usuarios"
+      },
+      "table": {
+        "userAccount": "Cuenta de Usuario",
+        "role": "Rol",
+        "quotaUsage": "Uso de Cuota",
+        "monthlyLimit": "Límite Mensual",
+        "status": "Estado",
+        "actions": "Acciones"
+      },
+      "quotaValidationError": "La cuota debe estar entre 1 y 10.000",
+      "toggleConfirm": "¿Estás seguro de que quieres {action} este usuario?",
+      "deactivate": "Desactivar",
+      "editLimit": "Editar Límite",
+      "dismiss": "Descartar",
+      "noUsers": "No se encontraron usuarios."
+    },
+    "payments": {
+      "title": "Historial de Pagos",
+      "total": "Total: {count} pagos",
+      "addManualPayment": "Añadir Pago Manual",
+      "searchPlaceholder": "Buscar por email, nombre, referencia...",
+      "loadError": "Error al cargar historial de pagos",
+      "na": "N/D",
+      "created": "Creado",
+      "by": "por {email}",
+      "loading": "Cargando...",
+      "noPayments": "No se encontraron pagos",
+      "previous": "Anterior",
+      "next": "Siguiente",
+      "pagination": "Página {page} de {total}",
+      "filters": {
+        "allMethods": "Todos los Métodos de Pago",
+        "bankTransfer": "Transferencia Bancaria",
+        "paypal": "PayPal",
+        "cash": "Efectivo",
+        "crypto": "Cripto",
+        "other": "Otro",
+        "allSources": "Todas las Fuentes",
+        "manualOnly": "Solo Manual",
+        "stripeOnly": "Solo Stripe"
+      },
+      "table": {
+        "customer": "Cliente",
+        "amount": "Cantidad",
+        "method": "Método",
+        "status": "Estado",
+        "date": "Fecha",
+        "reference": "Referencia"
+      },
+      "form": {
+        "title": "Añadir Pago Manual",
+        "description": "Registrar un pago recibido fuera de Stripe",
+        "fields": {
+          "customer": "Cliente",
+          "selectCustomer": "Seleccionar un cliente...",
+          "amount": "Cantidad",
+          "currency": "Moneda",
+          "method": "Método de Pago",
+          "reference": "Referencia de Pago",
+          "referencePlaceholder": "ID de transacción, número de cheque, etc.",
+          "date": "Fecha de Pago",
+          "description": "Descripción",
+          "descriptionPlaceholder": "¿Para qué es este pago?",
+          "notes": "Notas Internas",
+          "notesPlaceholder": "Añade notas internas sobre este pago..."
+        },
+        "methods": {
+          "bankTransfer": "Transferencia Bancaria",
+          "paypal": "PayPal",
+          "cash": "Efectivo",
+          "crypto": "Criptomoneda",
+          "other": "Otro"
+        },
+        "actions": {
+          "cancel": "Cancelar",
+          "create": "Crear Pago",
+          "creating": "Creando..."
+        },
+        "errors": {
+          "loadUsers": "Error al cargar usuarios",
+          "selectCustomer": "Por favor selecciona un cliente",
+          "invalidAmount": "Por favor ingresa una cantidad válida",
+          "selectMethod": "Por favor selecciona un método de pago",
+          "createFailed": "Error al crear el pago"
+        },
+        "success": "Pago manual creado correctamente"
+      }
+    },
+    "subscriptions": {
+      "title": "Activar Suscripción",
+      "activatingFor": "Activando para {count} usuario(s)",
+      "plan": {
+        "label": "Plan de Suscripción"
+      },
+      "billing": {
+        "label": "Ciclo de Facturación",
+        "monthly": "Mensual",
+        "annual": "Anual",
+        "save": "Ahorra 17%"
+      },
+      "duration": {
+        "label": "Duración",
+        "months": "meses",
+        "years": "años"
+      },
+      "summary": {
+        "title": "Resumen",
+        "planPrice": "Precio del Plan",
+        "mo": "mes",
+        "yr": "año",
+        "duration": "Duración",
+        "yearsCount": "{count} año(s)",
+        "monthsCount": "{count} mes(es)",
+        "users": "Usuarios",
+        "total": "Total"
+      },
+      "actions": {
+        "confirm": "Confirmar Activación",
+        "activating": "Activando...",
+        "cancel": "Cancelar"
+      }
+    }
+  }
+}

@@ -1,0 +1,279 @@
+{
+  "nav": {
+    "brand": "Backstage",
+    "product": "Producto",
+    "whyBackstage": "Por qué Backstage",
+    "features": "Características",
+    "pricing": "Precios",
+    "calculator": "Calculadora",
+    "getStarted": "Comenzar",
+    "dashboard": "Ir al Dashboard",
+    "settings": "Ajustes"
+  },
+  "hero": {
+    "badge": "Backstage para Artistas",
+    "launchBadge": "Promoción de Lanzamiento: Gates Ilimitados",
+    "title": {
+      "line1": "Haz música.",
+      "line2": "Crece",
+      "line3": "automáticamente.",
+      "main": "Convierte tu música en",
+      "accent": "una base de fans leal."
+    },
+    "subtitle": "Deja de preocuparte por el marketing. Te ayudamos a convertir oyentes en una comunidad dedicada a través de listas de correo automatizadas mientras te mantienes en tu flujo creativo.",
+    "newSubtitle": "La primera plataforma de email marketing diseñada para DJs. Intercambia descargas por emails, sé dueño de tu audiencia, y llena tu próximo show.",
+    "cta": "Empieza a Crecer",
+    "startFree": "Comenzar Gratis",
+    "noCreditCard": "Sin tarjeta de crédito. Pura automatización.",
+    "noCardRequired": "No se requiere tarjeta de crédito"
+  },
+  "problem": {
+    "title": {
+      "line1": "Eres DJ, no",
+      "line2": "Director de Marketing"
+    },
+    "subtitle": "Conocemos la lucha. Pasas horas en el estudio, perfeccionando cada transición y sonido. Lo último que quieres es descubrir cómo gestionar un newsletter o rastrear quién realmente está escuchando.",
+    "step1": {
+      "title": "Abandona el Trabajo Manual",
+      "description": "No más exportaciones manuales o hojas de cálculo desordenadas de contactos."
+    },
+    "step2": {
+      "title": "Enfócate en el Contenido",
+      "description": "Tu único trabajo es subir tu música. El crecimiento sucede en segundo plano."
+    },
+    "illustration": "Enfócate en la música",
+    "quote": "Muy ocupado haciendo hits"
+  },
+  "valueProp": {
+    "flywheel": {
+      "title": "Más Gates =",
+      "titleAccent": "Más Crecimiento",
+      "subtitle": "El Volante de Backstage: Usa gates ilimitados para construir tu audiencia. A diferencia de otros, no te cobramos por las herramientas que necesitas para crecer.",
+      "words": {
+        "moreGigs": "Más Bolos",
+        "moreFans": "Más Fans",
+        "moreReach": "Más Alcance"
+      }
+    },
+    "title": {
+      "line1": "1,000 Emails son mucho mejor",
+      "line2": "que",
+      "line3": "10k Seguidores"
+    },
+    "subtitle": "La propiedad es tu superpoder. Los algoritmos cambian, pero tu línea directa con tus fans nunca lo hace.",
+    "directReach": {
+      "title": "Alcance Directo",
+      "description": "Las plataformas sociales limitan tu alcance orgánico al 3-5%. El email alcanza al 99% de tu audiencia directamente."
+    },
+    "totalOwnership": {
+      "title": "Propiedad Total",
+      "description": "Alquila tu audiencia en Instagram o SoundCloud. Hazla tuya con tu lista de correo. Si una plataforma desaparece, tus fans no."
+    },
+    "trueCommunity": {
+      "title": "Comunidad Verdadera",
+      "description": "Un like es barato. Un email es un compromiso. Construye una base de seguidores que realmente vayan a tus shows y compren tu merch."
+    },
+    "engagement": {
+      "title": "Las Matemáticas del Engagement",
+      "description": "Tu lista de correo es tu activo más valioso como artista. Te ayudamos a construirla sin que siquiera lo intentes.",
+      "socialReach": "Alcance Social",
+      "emailOpenRate": "Tasa de Apertura Email"
+    }
+  },
+  "features": {
+    "title": {
+      "line1": "Herramientas potentes,",
+      "line2": "invisible",
+      "line3": "trabajo."
+    },
+    "subtitle": "Hemos construido todo lo que necesitas para escalar tu comunidad mientras te mantienes creativo.",
+    "smartGate": {
+      "title": "Sistema de Smart Gate",
+      "description": "Los fans intercambian su email por tu último track. No más envío manual de enlaces."
+    },
+    "autoNewsletter": {
+      "title": "Auto-Newsletter",
+      "description": "Notifica a toda tu comunidad automáticamente cada vez que lances algo nuevo."
+    },
+    "analytics": {
+      "title": "Analytics de Audiencia",
+      "description": "Ve quién está vibrando más con tu música. Datos reales para artistas reales."
+    },
+    "zeroEffort": {
+      "title": "Configuración Sin Esfuerzo",
+      "description": "Conecta tu SoundCloud y listo. Con nuestro sistema de newsletter nativo, no necesitas configurar herramientas externas."
+    }
+  },
+  "pricing": {
+    "title": {
+      "line1": "Precios simples para",
+      "line2": "cada etapa",
+      "line3": "de tu carrera.",
+      "accent": "cada etapa"
+    },
+    "subtitle": "Todos los planes incluyen Download Gates Ilimitados. Solo pagas a medida que creces tu base de fans.",
+    "allInclude": "Todos los planes incluyen",
+    "unlimitedGates": "Download Gates Ilimitados",
+    "payAsGrow": "Solo pagas a medida que creces tu base de fans.",
+    "monthly": "Mensual",
+    "annual": "Anual",
+    "save": "Ahorra 20%",
+    "mostPopular": "Más Popular",
+    "recommended": "Recomendado",
+    "bigLeagues": "Grandes Ligas",
+    "includes": "Incluye",
+    "perYear": "/año",
+    "free": {
+      "name": "Free",
+      "description": "Perfecto para validar tu proyecto",
+      "price": "€0",
+      "period": "/mes",
+      "cta": "Comenzar Gratis",
+      "features": {
+        "contacts": "500 Contactos",
+        "emails": "2,000 Emails / mes",
+        "smartGates": "Download Gates Ilimitados",
+        "basicAnalytics": "Analytics Básicos",
+        "prioritySupport": "Soporte Prioritario"
+      }
+    },
+    "pro": {
+      "name": "Pro",
+      "description": "Para artistas en crecimiento",
+      "price": "€9.99",
+      "period": "/mes",
+      "cta": "Comenzar Prueba Gratis",
+      "features": {
+        "contacts": "2,500 Contactos",
+        "emails": "10,000 Emails / mes",
+        "smartGates": "Download Gates Ilimitados",
+        "advancedInsights": "Insights Avanzados",
+        "prioritySupport": "Soporte Prioritario"
+      }
+    },
+    "business": {
+      "name": "Business",
+      "description": "Escala tu base de fans",
+      "price": "€19.99",
+      "period": "/mes",
+      "cta": "Comenzar Prueba Gratis",
+      "features": {
+        "contacts": "15,000 Contactos",
+        "emails": "60,000 Emails / mes",
+        "smartGates": "Download Gates Ilimitados",
+        "advancedInsights": "Insights Avanzados",
+        "prioritySupport": "Soporte Prioritario"
+      }
+    },
+    "unlimited": {
+      "name": "Unlimited",
+      "description": "Máximo poder",
+      "price": "€39.99",
+      "period": "/mes",
+      "cta": "Contactar Ventas",
+      "features": {
+        "contacts": "15,000+ Contactos",
+        "emails": "Emails Ilimitados",
+        "smartGates": "Download Gates Ilimitados",
+        "advancedInsights": "Insights Avanzados",
+        "dedicatedManager": "Manager Dedicado"
+      }
+    },
+    "featuresLabel": "Características",
+    "enterprise": {
+      "text": "¿Necesidades diferentes?",
+      "link": "Contáctanos",
+      "for": "para planes empresariales personalizados."
+    }
+  },
+  "savings": {
+    "title": {
+      "line1": "Deja de pagar por",
+      "line2": "herramientas que no usas."
+    },
+    "subtitle": "Calcula cuánto te ahorras hoy mismo al unificar tu stack de marketing en Backstage.",
+    "replaces": "Reemplaza a:",
+    "calculator": {
+      "currentAudience": "Tu audiencia actual",
+      "subscribers": "suscriptores",
+      "externalCosts": "Desglose de costes actuales (Stack externo)",
+      "hypeddit": "Hypeddit (Pro)",
+      "make": "Make.com (Automations)",
+      "brevo": "Brevo (Email Marketing)",
+      "estimatedTotal": "Coste total estimado",
+      "yourPlan": "Tu plan en Backstage",
+      "perMonth": "/mes",
+      "allIncluded": "Todo incluido. Sin sorpresas.",
+      "annualSavings": "Tu ahorro anual",
+      "monthlySavings": "Ahorro mensual",
+      "startSaving": "Empezar a ahorrar",
+      "disclaimer": "*Comparativa basada en planes estándar de terceros para {subscribers} suscriptores."
+    }
+  },
+  "footer": {
+    "title": {
+      "line1": "¿Listo para construir tu comunidad en",
+      "line2": "autopilot",
+      "line3": "?"
+    },
+    "cta": "Empezar Gratis",
+    "brand": "Backstage",
+    "copyright": "© 2025",
+    "privacy": "Privacidad",
+    "terms": "Términos",
+    "contact": "Contacto"
+  },
+  "login": {
+    "title": "Bienvenido de nuevo",
+    "subtitle": "Inicia sesión en tu centro de comando de artista",
+    "signup_title": "Crea tu cuenta",
+    "signup_subtitle": "Empieza a hacer crecer tu comunidad",
+    "email": "Correo electrónico",
+    "password": "Contraseña",
+    "name": "Nombre completo",
+    "submit": "Iniciar Sesión",
+    "signup_submit": "Crear Cuenta",
+    "forgotPassword": "¿Olvidaste tu contraseña?",
+    "noAccount": "¿No tienes una cuenta?",
+    "signup": "Regístrate",
+    "haveAccount": "¿Ya tienes una cuenta?",
+    "signin": "Inicia sesión",
+    "back": "Volver al inicio",
+    "invalidCredentials": "Correo electrónico o contraseña incorrectos. Por favor, inténtalo de nuevo."
+  },
+  "settings": {
+    "title": "Ajustes",
+    "subtitle": "Gestiona tu cuenta y conexiones de plataforma",
+    "personalInfo": "Información Personal",
+    "personalSubtitle": "Gestiona tu identidad en la plataforma",
+    "fullName": "Nombre Completo",
+    "email": "Correo Electrónico",
+    "platforms": "Conexiones de Plataforma",
+    "platformsSubtitle": "Utilizado para automatización y obtención de datos",
+    "soundcloud": "SoundCloud ID",
+    "spotify": "Spotify Artist ID",
+    "save": "Guardar Cambios",
+    "saving": "Guardando...",
+    "saved": "¡Guardado correctamente!",
+    "back": "Volver al Dashboard",
+    "logout": "Cerrar Sesión",
+    "logoutDescription": "Finaliza tu sesión",
+    "confirmLogout": "¿Estás seguro de que quieres cerrar sesión?",
+    "confirmLogoutMessage": "Necesitarás iniciar sesión nuevamente para acceder a tus ajustes.",
+    "cancel": "Cancelar",
+    "signOut": "Cerrar Sesión"
+  },
+  "downloadGates": {
+    "title": "Download Gates",
+    "subtitle": "Gestiona tus pasarelas de descarga y aumenta tu audiencia.",
+    "create": "Crear Gate",
+    "back": "Volver al Dashboard",
+    "backToList": "Volver a mis Gates",
+    "trackTitle": "Título del Track",
+    "views": "Vistas",
+    "submissions": "Envíos",
+    "downloads": "Descargas",
+    "conversion": "Conv %",
+    "actions": "Acciones"
+  }
+}
