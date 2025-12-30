@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import { PATHS } from '@/lib/paths';
+import { SUBSCRIPTION_PLANS } from '@/domain/types/subscriptions';
 
 interface Price {
   id: string;
@@ -163,8 +164,8 @@ function PricingCard({
   isAuthenticated: boolean;
 }) {
   const pricing = product.pricing[billingPeriod];
-  const isFree = product.name.toLowerCase() === 'free';
-  const isPopular = product.name.toLowerCase() === 'pro';
+  const isFree = product.name.toLowerCase() === SUBSCRIPTION_PLANS.FREE;
+  const isPopular = product.name.toLowerCase() === SUBSCRIPTION_PLANS.PRO;
 
   if (!pricing) {
     return null;

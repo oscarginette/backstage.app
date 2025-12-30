@@ -9,6 +9,7 @@
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
+import { USER_ROLES } from '@/domain/types/user-roles';
 
 interface QuotaInfo {
   currentContacts: number;
@@ -40,7 +41,7 @@ export function useQuotaAccess(): UseQuotaAccessResult {
   const [error, setError] = useState<string | null>(null);
 
   // ADMIN BYPASS: Admins have unlimited access
-  const isAdmin = session?.user?.role === 'admin';
+  const isAdmin = session?.user?.role === USER_ROLES.ADMIN;
 
   useEffect(() => {
     fetchQuotaInfo();
