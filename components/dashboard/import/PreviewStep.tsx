@@ -42,29 +42,29 @@ export default function PreviewStep({ preview, columnMapping, onConfirm, onBack 
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Summary Stats */}
-      <div className="grid grid-cols-2 gap-4">
-        <div className="bg-blue-50 rounded-xl p-4 border border-blue-200">
-          <p className="text-xs font-bold uppercase tracking-wider text-blue-600">Total Rows</p>
-          <p className="text-2xl font-bold text-blue-900 mt-1">{preview.totalRows.toLocaleString()}</p>
+      <div className="grid grid-cols-2 gap-3">
+        <div className="bg-blue-50 rounded-xl p-3 border border-blue-200">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-blue-600">Total Rows</p>
+          <p className="text-xl font-bold text-blue-900 mt-0.5">{preview.totalRows.toLocaleString()}</p>
         </div>
-        <div className="bg-emerald-50 rounded-xl p-4 border border-emerald-200">
-          <p className="text-xs font-bold uppercase tracking-wider text-emerald-600">Source</p>
-          <p className="text-2xl font-bold text-emerald-900 mt-1 uppercase">
+        <div className="bg-emerald-50 rounded-xl p-3 border border-emerald-200">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-600">Source</p>
+          <p className="text-xl font-bold text-emerald-900 mt-0.5 uppercase">
             {preview.fileType === 'brevo' ? 'Brevo API' : preview.fileType}
           </p>
         </div>
       </div>
 
       {/* Column Mapping Confirmation */}
-      <div className="space-y-3">
-        <h3 className="text-sm font-bold uppercase tracking-wider text-gray-600">Column Mapping</h3>
-        <div className="bg-gray-50 rounded-xl p-4 border border-gray-200 space-y-2">
+      <div className="space-y-2">
+        <h3 className="text-[11px] font-bold uppercase tracking-wider text-gray-600">Column Mapping</h3>
+        <div className="bg-gray-50 rounded-xl p-3 border border-gray-200 space-y-1.5">
           {getMappedColumns().map((col, idx) => (
-            <div key={idx} className="flex justify-between items-center py-2">
-              <span className="text-sm font-medium text-gray-700">{col.label}:</span>
-              <span className="text-sm text-gray-900 font-mono bg-white px-3 py-1 rounded-lg border border-gray-200">
+            <div key={idx} className="flex justify-between items-center py-1.5">
+              <span className="text-xs font-medium text-gray-700">{col.label}:</span>
+              <span className="text-xs text-gray-900 font-mono bg-white px-2.5 py-1 rounded-lg border border-gray-200">
                 {col.value}
               </span>
             </div>
@@ -73,8 +73,8 @@ export default function PreviewStep({ preview, columnMapping, onConfirm, onBack 
       </div>
 
       {/* Sample Data Preview */}
-      <div className="space-y-3">
-        <h3 className="text-sm font-bold uppercase tracking-wider text-gray-600">
+      <div className="space-y-2">
+        <h3 className="text-[11px] font-bold uppercase tracking-wider text-gray-600">
           Sample Data (First 5 Rows)
         </h3>
         <div className="overflow-x-auto rounded-xl border border-gray-200">

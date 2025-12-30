@@ -220,8 +220,8 @@ function DashboardContent() {
                        </div>
                        Active Gates
                     </h3>
-                    <Link href={PATHS.DASHBOARD.DOWNLOAD_GATES.NEW} className="group flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#1c1c1c] text-white text-[10px] font-bold hover:bg-black transition-all active:scale-95">
-                      <Plus className="w-3 h-3" /> Create New
+                    <Link href={PATHS.DASHBOARD.DOWNLOAD_GATES.NEW} className="group flex items-center gap-2 px-4 py-2 rounded-lg bg-[#1c1c1c] text-white text-xs font-bold hover:bg-black transition-all active:scale-95">
+                      <Plus className="w-4 h-4" /> Create New
                     </Link>
                   </div>
                   <div className="bg-white/40 backdrop-blur-2xl border border-[#E8E6DF]/50 rounded-3xl p-6 shadow-xl shadow-black/[0.01]">

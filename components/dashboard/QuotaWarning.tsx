@@ -15,6 +15,7 @@ import Link from 'next/link';
 import { PATHS } from '@/lib/paths';
 import { useSession } from 'next-auth/react';
 import { SUBSCRIPTION_PLANS } from '@/domain/types/subscriptions';
+import { USER_ROLES } from '@/domain/types/user-roles';
 
 interface QuotaWarningProps {
   contactsUsed: number;
@@ -34,7 +35,7 @@ export default function QuotaWarning({
   const { data: session } = useSession();
 
   // ADMIN BYPASS: Admins never see quota warnings
-  const isAdmin = session?.user?.role === 'admin';
+  const isAdmin = session?.user?.role === USER_ROLES.ADMIN;
   if (isAdmin) {
     return null;
   }
