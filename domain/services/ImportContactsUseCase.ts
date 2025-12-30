@@ -71,22 +71,33 @@ export class ImportContactsUseCase {
       });
 
       // 1. Create import history record (status: pending)
+      console.log('[ImportContactsUseCase] Creating import history record');
       importHistory = await this.importHistoryRepository.create({
-      userId: input.userId,
-      originalFilename: input.fileMetadata.filename,
-      fileSizeBytes: input.fileMetadata.fileSizeBytes || null,
-      fileType: input.fileMetadata.fileType,
-      rowsTotal: input.fileMetadata.totalRows,
-      columnMapping: {
-        sourceFormat: input.fileMetadata.fileType,
-        fileName: input.fileMetadata.filename,
-        fileSize: input.fileMetadata.fileSizeBytes || undefined,
-        hasHeaders: true,
-        rowCount: input.fileMetadata.totalRows
+        userId: input.userId,
+        originalFilename: input.fileMetadata.filename,
+        fileSizeBytes: input.fileMetadata.fileSizeBytes || null,
+        fileType: input.fileMetadata.fileType,
+        rowsTotal: input.fileMetadata.totalRows,
+        columnMapping: {
+          sourceFormat: input.fileMetadata.fileType,
+          fileName: input.fileMetadata.filename,
+          fileSize: input.fileMetadata.fileSizeBytes || undefined,
+          hasHeaders: true,
+          rowCount: input.fileMetadata.totalRows
+        }
+      });
+
+      console.log('[ImportContactsUseCase] Import history created:', {
+        id: importHistory?.id,
+        hasId: !!importHistory?.id
+      });
+
+      if (!importHistory || !importHistory.id) {
+        throw new Error('Failed to create import history: returned null or missing id');
       }
-    });
 
       // 2. Update status to importing
+      console.log('[ImportContactsUseCase] Updating status to importing');
       await this.importHistoryRepository.updateStatus(importHistory.id, 'importing');
 
       // 3. Process contacts in batches
