@@ -27,7 +27,44 @@ export async function POST() {
       WHERE max_contacts IS NULL OR max_monthly_emails IS NULL
     `;
 
-    // 2. Ejecutar migración de email_events
+    // 2. Create contact_import_history table
+    console.log('[Migration] Creating contact_import_history table...');
+    await sql`
+      CREATE TABLE IF NOT EXISTS contact_import_history (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+
+        -- File metadata
+        original_filename VARCHAR(500) NOT NULL,
+        file_size_bytes INTEGER,
+        file_type VARCHAR(20) NOT NULL CHECK (file_type IN ('csv', 'json', 'brevo')),
+
+        -- Import statistics
+        rows_total INTEGER DEFAULT 0,
+        contacts_inserted INTEGER DEFAULT 0,
+        contacts_updated INTEGER DEFAULT 0,
+        contacts_skipped INTEGER DEFAULT 0,
+
+        -- Column mapping (for CSV - stores user-confirmed mapping)
+        column_mapping JSONB,
+
+        -- Execution tracking
+        status VARCHAR(50) DEFAULT 'pending' CHECK (status IN ('pending', 'parsing', 'importing', 'completed', 'failed')),
+        started_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        completed_at TIMESTAMP,
+        duration_ms INTEGER,
+
+        -- Error tracking
+        error_message TEXT,
+        errors_detail JSONB
+      )
+    `;
+
+    await sql`CREATE INDEX IF NOT EXISTS idx_contact_import_history_user_id ON contact_import_history(user_id)`;
+    await sql`CREATE INDEX IF NOT EXISTS idx_contact_import_history_status ON contact_import_history(status)`;
+    await sql`CREATE INDEX IF NOT EXISTS idx_contact_import_history_started_at ON contact_import_history(started_at DESC)`;
+
+    // 3. Ejecutar migración de email_events
     console.log('[Migration] Creating email_events table...');
     await sql`
       CREATE TABLE IF NOT EXISTS email_events (
@@ -58,6 +95,7 @@ export async function POST() {
       message: 'Migration completed successfully',
       details: {
         subscription_columns_added: true,
+        contact_import_history_table_created: true,
         email_events_table_created: true
       }
     });
