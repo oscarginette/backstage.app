@@ -49,11 +49,8 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Initialize repositories
-    const quotaRepository = new PostgresQuotaTrackingRepository();
-
     // Execute use case
-    const useCase = new GetAllUsersUseCase(userRepository, quotaRepository);
+    const useCase = new GetAllUsersUseCase(userRepository);
     const users = await useCase.execute(adminUser.id);
     console.log('[Admin Users API] Users fetched:', users.length);
 

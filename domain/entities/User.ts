@@ -21,6 +21,14 @@ export interface UserProps {
   active: boolean;
   createdAt: Date;
   updatedAt: Date;
+
+  // Subscription & Quota
+  subscriptionPlan: string;
+  subscriptionStartedAt?: Date;
+  subscriptionExpiresAt?: Date;
+  maxMonthlyEmails: number;
+  emailsSentThisMonth: number;
+  quotaResetAt: Date;
 }
 
 export interface CreateUserInput {
@@ -83,6 +91,30 @@ export class User {
     return this.props.updatedAt;
   }
 
+  get subscriptionPlan(): string {
+    return this.props.subscriptionPlan;
+  }
+
+  get subscriptionStartedAt(): Date | undefined {
+    return this.props.subscriptionStartedAt;
+  }
+
+  get subscriptionExpiresAt(): Date | undefined {
+    return this.props.subscriptionExpiresAt;
+  }
+
+  get maxMonthlyEmails(): number {
+    return this.props.maxMonthlyEmails;
+  }
+
+  get emailsSentThisMonth(): number {
+    return this.props.emailsSentThisMonth;
+  }
+
+  get quotaResetAt(): Date {
+    return this.props.quotaResetAt;
+  }
+
   isAdmin(): boolean {
     return this.props.role === 'admin';
   }
@@ -127,7 +159,13 @@ export class User {
     active: boolean,
     createdAt: Date,
     updatedAt: Date,
-    name?: string
+    subscriptionPlan: string,
+    maxMonthlyEmails: number,
+    emailsSentThisMonth: number,
+    quotaResetAt: Date,
+    name?: string,
+    subscriptionStartedAt?: Date,
+    subscriptionExpiresAt?: Date
   ): User {
     return new User({
       id,
@@ -138,6 +176,12 @@ export class User {
       active,
       createdAt,
       updatedAt,
+      subscriptionPlan,
+      subscriptionStartedAt,
+      subscriptionExpiresAt,
+      maxMonthlyEmails,
+      emailsSentThisMonth,
+      quotaResetAt,
     });
   }
 
