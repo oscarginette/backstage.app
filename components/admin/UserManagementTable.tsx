@@ -1,9 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import { UserCheck, Mail, Calendar, Users, Shield } from 'lucide-react';
+import { UserCheck, Mail, Calendar, Users, Shield, Trash2 } from 'lucide-react';
 import Toast from '@/components/ui/Toast';
 import DataTable from '@/components/dashboard/DataTable';
+import Modal, { ModalBody, ModalFooter } from '@/components/ui/Modal';
 import ActivateSubscriptionModal from './ActivateSubscriptionModal';
 import { useActivateSubscription } from '@/hooks/useActivateSubscription';
 import { SUBSCRIPTION_PLANS } from '@/domain/types/subscriptions';
@@ -49,6 +50,8 @@ export default function UserManagementTable({ users, onRefresh, loading }: UserM
   const [selectedUsers, setSelectedUsers] = useState<number[]>([]);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
   const [showActivationModal, setShowActivationModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   // Inline editing state
   const [editingQuotaUserId, setEditingQuotaUserId] = useState<number | null>(null);
@@ -124,6 +127,49 @@ export default function UserManagementTable({ users, onRefresh, loading }: UserM
   const handleQuotaCancel = () => {
     setEditingQuotaUserId(null);
     setEditingQuotaValue(0);
+  };
+
+  // Handle delete functionality
+  const handleDeleteClick = () => {
+    setShowDeleteModal(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    setDeleting(true);
+    try {
+      const res = await fetch('/api/admin/users/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids: selectedUsers })
+      });
+
+      if (res.ok) {
+        const deletedCount = selectedUsers.length;
+        setSelectedUsers([]);
+        setShowDeleteModal(false);
+        setToast({
+          message: `Successfully deleted ${deletedCount} user${deletedCount !== 1 ? 's' : ''}`,
+          type: 'success',
+        });
+        onRefresh();
+      } else {
+        const errorData = await res.json();
+        setShowDeleteModal(false);
+        setToast({
+          message: errorData.error || 'Failed to delete users',
+          type: 'error',
+        });
+      }
+    } catch (error) {
+      console.error('Error deleting users:', error);
+      setShowDeleteModal(false);
+      setToast({
+        message: 'Error deleting users. Please try again.',
+        type: 'error',
+      });
+    } finally {
+      setDeleting(false);
+    }
   };
 
   const formatDate = (dateString: string) => {
@@ -315,20 +361,32 @@ export default function UserManagementTable({ users, onRefresh, loading }: UserM
         selectedIds={selectedUsers}
         onSelectionChange={setSelectedUsers}
         actions={
-          <button
-            onClick={() => setShowActivationModal(true)}
-            disabled={selectedUsers.length === 0}
-            className={`
-              flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all active:scale-95 shadow-lg
-              ${selectedUsers.length > 0
-                ? 'bg-[#FF5500] text-white hover:bg-[#e64d00] shadow-[#FF5500]/20'
-                : 'bg-gray-100 text-gray-400 cursor-not-allowed shadow-none'
-              }
-            `}
-          >
-            <UserCheck className="w-4 h-4" />
-            Activate ({selectedUsers.length})
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setShowActivationModal(true)}
+              disabled={selectedUsers.length === 0}
+              className={`
+                flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all active:scale-95 shadow-lg
+                ${selectedUsers.length > 0
+                  ? 'bg-emerald-600 text-white hover:bg-emerald-700 shadow-emerald-500/20'
+                  : 'bg-gray-100 text-gray-400 cursor-not-allowed shadow-none'
+                }
+              `}
+            >
+              <UserCheck className="w-4 h-4" />
+              Activate ({selectedUsers.length})
+            </button>
+            {selectedUsers.length > 0 && (
+              <button
+                onClick={handleDeleteClick}
+                disabled={deleting}
+                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-red-50 text-red-600 hover:bg-red-100 transition-all border border-red-200 text-xs font-bold active:scale-95 disabled:opacity-50"
+              >
+                <Trash2 className="w-4 h-4" />
+                {deleting ? 'Deleting...' : `Delete (${selectedUsers.length})`}
+              </button>
+            )}
+          </div>
         }
       />
 
@@ -341,6 +399,49 @@ export default function UserManagementTable({ users, onRefresh, loading }: UserM
           loading={activating}
         />
       )}
+
+      {/* Delete Confirmation Modal */}
+      <Modal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        size="md"
+        title="Delete Users"
+        showCloseButton={true}
+        closeOnBackdropClick={!deleting}
+      >
+        <ModalBody>
+          <div className="space-y-4">
+            <div className="flex items-center gap-3 p-4 bg-red-50 border border-red-100 rounded-xl">
+              <Trash2 className="w-5 h-5 text-red-600 flex-shrink-0" />
+              <p className="text-sm text-red-800">
+                This action cannot be undone. This will permanently delete the selected user{selectedUsers.length !== 1 ? 's' : ''}.
+              </p>
+            </div>
+            <p className="text-sm text-gray-600">
+              You are about to delete <span className="font-bold text-gray-900">{selectedUsers.length}</span> user{selectedUsers.length !== 1 ? 's' : ''}.
+            </p>
+          </div>
+        </ModalBody>
+        <ModalFooter>
+          <div className="flex gap-3 justify-end">
+            <button
+              onClick={() => setShowDeleteModal(false)}
+              disabled={deleting}
+              className="px-4 py-2 rounded-xl bg-gray-100 text-gray-700 hover:bg-gray-200 transition-all border border-gray-200 text-sm font-bold active:scale-95 disabled:opacity-50"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleDeleteConfirm}
+              disabled={deleting}
+              className="px-4 py-2 rounded-xl bg-red-600 text-white hover:bg-red-700 transition-all border border-red-700 text-sm font-bold active:scale-95 disabled:opacity-50 flex items-center gap-2"
+            >
+              <Trash2 className="w-4 h-4" />
+              {deleting ? 'Deleting...' : 'Delete Users'}
+            </button>
+          </div>
+        </ModalFooter>
+      </Modal>
     </div>
   );
 }
