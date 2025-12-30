@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Mail, Shield, Calendar, AlertCircle } from 'lucide-react';
+import { USER_ROLES } from '@/domain/types/user-roles';
 
 interface UserQuota {
   emailsSentToday: number;
@@ -159,12 +160,12 @@ export default function UserTable({ users, onRefresh }: UserTableProps) {
                 <td className="px-8 py-5">
                   <span
                     className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                      user.role === 'admin'
+                      user.role === USER_ROLES.ADMIN
                         ? 'bg-purple-100 text-purple-700'
                         : 'bg-gray-100/50 text-gray-500'
                     }`}
                   >
-                    {user.role === 'admin' && <Shield className="w-3 h-3" />}
+                    {user.role === USER_ROLES.ADMIN && <Shield className="w-3 h-3" />}
                     {user.role}
                   </span>
                 </td>

@@ -10,9 +10,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import UserTable from '@/components/admin/UserTable';
 import UserManagementTable from '@/components/admin/UserManagementTable';
-import Link from 'next/link';
+import { USER_ROLES } from '@/domain/types/user-roles';
+import { SUBSCRIPTION_PLANS } from '@/domain/types/subscriptions';
 
 interface UserQuota {
   emailsSentToday: number;
@@ -131,7 +131,7 @@ export default function AdminPage() {
   // Calculate stats
   const totalUsers = users.length;
   const activeUsers = users.filter((u) => u.active).length;
-  const adminUsers = users.filter((u) => u.role === 'admin').length;
+  const adminUsers = users.filter((u) => u.role === USER_ROLES.ADMIN).length;
   const totalEmailsSent = users.reduce(
     (sum, u) => sum + (u.quota?.emailsSentToday || 0),
     0
@@ -139,14 +139,14 @@ export default function AdminPage() {
 
   // Calculate subscription metrics
   const activeSubscriptions = users.filter(
-    (u) => u.subscriptionPlan !== 'free' && u.active
+    (u) => u.subscriptionPlan !== SUBSCRIPTION_PLANS.FREE && u.active
   ).length;
 
   const planPrices = {
-    free: 0,
-    pro: 29,
-    business: 79,
-    unlimited: 199,
+    [SUBSCRIPTION_PLANS.FREE]: 0,
+    [SUBSCRIPTION_PLANS.PRO]: 29,
+    [SUBSCRIPTION_PLANS.BUSINESS]: 79,
+    [SUBSCRIPTION_PLANS.UNLIMITED]: 199,
   };
 
   const estimatedMRR = users
@@ -355,12 +355,6 @@ export default function AdminPage() {
             </button>
           </div>
           <UserManagementTable users={users} onRefresh={fetchUsers} />
-        </div>
-
-        {/* Legacy User Table (Quota Management) */}
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Quota Management</h2>
-          <UserTable users={users} onRefresh={fetchUsers} />
         </div>
       </div>
     </div>
