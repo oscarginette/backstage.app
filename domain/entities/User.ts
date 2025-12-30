@@ -190,7 +190,7 @@ export class User {
    * Used when registering new users
    * @param email - User email
    * @param password - Plain text password (will be hashed)
-   * @param role - User role (default: 'user')
+   * @param role - User role (default: 'artist')
    * @returns Promise<User> - User entity with hashed password
    */
   static async createNew(email: string, password: string, role: UserRole = 'artist'): Promise<User> {
@@ -203,6 +203,9 @@ export class User {
     const passwordHash = await bcrypt.hash(password, 10);
 
     const now = new Date();
+    const nextMonth = new Date(now);
+    nextMonth.setMonth(nextMonth.getMonth() + 1);
+
     return new User({
       id: 0, // Will be set by database
       email: email.toLowerCase().trim(),
@@ -211,6 +214,10 @@ export class User {
       active: true,
       createdAt: now,
       updatedAt: now,
+      subscriptionPlan: 'free',
+      maxMonthlyEmails: 1000,
+      emailsSentThisMonth: 0,
+      quotaResetAt: nextMonth,
     });
   }
 
