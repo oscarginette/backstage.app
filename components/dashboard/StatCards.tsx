@@ -1,5 +1,6 @@
 import React from 'react';
 import { Users, Rocket, BarChart3, TrendingUp } from 'lucide-react';
+import { useTranslations } from '@/lib/i18n/context';
 
 interface StatCardsProps {
   stats: {
@@ -20,6 +21,8 @@ interface StatCardsProps {
 }
 
 export default function StatCards({ stats, labels, formatters }: StatCardsProps) {
+  const t = useTranslations('dashboard.stats');
+
   const safeStats = {
     totalContacts: stats?.totalContacts ?? 0,
     totalDownloads: stats?.totalDownloads ?? 0,
@@ -28,10 +31,10 @@ export default function StatCards({ stats, labels, formatters }: StatCardsProps)
   };
 
   const defaultLabels = {
-    totalContacts: 'Audience',
-    totalDownloads: 'Downloads',
-    activeCampaigns: 'Engagement',
-    avgConversionRate: 'Conversion',
+    totalContacts: t('audience'),
+    totalDownloads: t('downloads'),
+    activeCampaigns: t('engagement'),
+    avgConversionRate: t('conversion'),
   };
 
   const finalLabels = { ...defaultLabels, ...labels };
