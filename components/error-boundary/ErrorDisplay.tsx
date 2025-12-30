@@ -3,7 +3,7 @@
 /**
  * ErrorDisplay Component
  *
- * Displays user-friendly error messages with i18n support.
+ * Displays user-friendly error messages.
  * Maps error codes from error catalog to translated messages.
  *
  * Features:
@@ -12,11 +12,28 @@
  * - Technical details in development mode
  * - Retry and navigation actions
  * - Error code display for support
+ *
+ * Note: Uses direct Spanish messages instead of i18n hook since this
+ * component may be rendered outside of i18n context (in error boundaries).
  */
 
-import { useTranslations } from '@/lib/i18n/context';
 import { ERROR_CATALOG, isKnownErrorCode, type ErrorCode } from '@/lib/errors/error-catalog';
 import { AlertCircle, Home, RefreshCw } from 'lucide-react';
+
+// Direct Spanish translations (since error boundary may be outside i18n context)
+const MESSAGES = {
+  'errors.auth.required': 'Debes iniciar sesión para acceder a este contenido',
+  'errors.auth.invalidCredentials': 'Credenciales inválidas. Por favor, verifica tu email y contraseña',
+  'errors.auth.sessionExpired': 'Tu sesión ha expirado. Por favor, inicia sesión nuevamente',
+  'errors.settings.loadFailed': 'No pudimos cargar tu configuración. Por favor, recarga la página',
+  'errors.database.generic': 'Error de base de datos. Estamos trabajando para solucionarlo',
+  'errors.internal.unexpected': 'Ocurrió un error inesperado. Hemos registrado el problema',
+  'common.errorCode': 'Código de error',
+  'common.tryAgain': 'Intentar nuevamente',
+  'common.goHome': 'Ir al inicio',
+  'common.contactSupport': 'Si el problema persiste, contacta con soporte',
+  'common.technicalDetails': 'Detalles técnicos (solo para desarrollo)',
+} as const;
 
 interface ErrorDisplayProps {
   error: Error & { code?: string; digest?: string };
@@ -25,8 +42,6 @@ interface ErrorDisplayProps {
 }
 
 export default function ErrorDisplay({ error, reset, showTechnicalDetails = false }: ErrorDisplayProps) {
-  const t = useTranslations();
-
   // Determine error code
   const errorCode: ErrorCode | string = error.code || 'UNEXPECTED_ERROR';
   const isKnown = isKnownErrorCode(errorCode);
@@ -34,18 +49,13 @@ export default function ErrorDisplay({ error, reset, showTechnicalDetails = fals
   // Get error metadata from catalog
   const errorMetadata = isKnown ? ERROR_CATALOG[errorCode] : null;
 
-  // Get user-friendly message from i18n
+  // Get translated message from MESSAGES constant
   const getMessage = (): string => {
     if (isKnown && errorMetadata) {
-      // Get translated message using full messageKey from catalog
-      const translatedMessage = t(errorMetadata.messageKey as any);
-      // If translation returns the key itself, fallback to error message
-      if (translatedMessage === errorMetadata.messageKey) {
-        return error.message || 'Ocurrió un error inesperado';
-      }
-      return translatedMessage;
+      const messageKey = errorMetadata.messageKey as keyof typeof MESSAGES;
+      return MESSAGES[messageKey] || error.message || 'Ocurrió un error inesperado';
     }
-    return error.message || t('errors.internal.unexpected' as any) || 'Ocurrió un error inesperado';
+    return error.message || MESSAGES['errors.internal.unexpected'] || 'Ocurrió un error inesperado';
   };
 
   const message = getMessage();
@@ -77,7 +87,7 @@ export default function ErrorDisplay({ error, reset, showTechnicalDetails = fals
           {errorCode && (
             <div className="mt-4 pt-4 border-t border-gray-100">
               <p className="text-xs text-gray-500 text-center">
-                {t('errors.common.errorCode' as any) || 'Código de error'}: <span className="font-mono font-semibold">{errorCode}</span>
+                {MESSAGES['common.errorCode']}: <span className="font-mono font-semibold">{errorCode}</span>
                 {error.digest && ` (${error.digest})`}
               </p>
             </div>
@@ -88,7 +98,7 @@ export default function ErrorDisplay({ error, reset, showTechnicalDetails = fals
         {(isDev || showTechnicalDetails) && error.message && (
           <div className="mb-6 rounded-lg bg-red-50 border border-red-200 p-4">
             <h3 className="font-semibold text-red-800 mb-2 text-sm">
-              {t('errors.common.technicalDetails' as any) || 'Detalles técnicos (solo para desarrollo)'}
+              {MESSAGES['common.technicalDetails']}
             </h3>
             <pre className="overflow-x-auto text-xs text-red-700 whitespace-pre-wrap break-words">
               {error.message}
@@ -105,7 +115,7 @@ export default function ErrorDisplay({ error, reset, showTechnicalDetails = fals
               className="w-full flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-3 font-semibold text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
             >
               <RefreshCw className="h-5 w-5" />
-              {t('errors.common.tryAgain' as any) || 'Intentar nuevamente'}
+              {MESSAGES['common.tryAgain']}
             </button>
           )}
 
@@ -114,13 +124,13 @@ export default function ErrorDisplay({ error, reset, showTechnicalDetails = fals
             className="w-full flex items-center justify-center gap-2 rounded-lg bg-gray-200 px-4 py-3 font-semibold text-gray-800 hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 transition-colors"
           >
             <Home className="h-5 w-5" />
-            {t('errors.common.goHome' as any) || 'Ir al inicio'}
+            {MESSAGES['common.goHome']}
           </button>
         </div>
 
         {/* Support Message */}
         <p className="mt-6 text-sm text-gray-500 text-center">
-          {t('errors.common.contactSupport' as any) || 'Si el problema persiste, contacta con soporte'}
+          {MESSAGES['common.contactSupport']}
         </p>
       </div>
     </div>
