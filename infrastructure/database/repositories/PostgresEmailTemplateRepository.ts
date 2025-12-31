@@ -58,79 +58,94 @@ export class PostgresEmailTemplateRepository implements IEmailTemplateRepository
 
   /**
    * Find all templates with optional filters
+   * Uses template literals for Vercel Postgres compatibility
    */
   async findAll(options?: FindTemplatesOptions): Promise<EmailTemplate[]> {
     const includeDeleted = options?.includeDeleted || false;
     const onlyDefault = options?.onlyDefault || false;
     const parentTemplateId = options?.parentTemplateId;
 
-    let query = `SELECT * FROM email_templates WHERE 1=1`;
-    const params: any[] = [];
-    let paramCount = 1;
+    let result;
 
-    // Filter soft-deleted templates
-    if (!includeDeleted) {
-      query += ` AND deleted_at IS NULL`;
+    // Build conditional queries using template literals
+    if (!includeDeleted && onlyDefault && parentTemplateId) {
+      result = await sql`
+        SELECT * FROM email_templates
+        WHERE deleted_at IS NULL
+          AND is_default = true
+          AND parent_template_id = ${parentTemplateId}
+        ORDER BY created_at DESC
+      `;
+    } else if (!includeDeleted && onlyDefault) {
+      result = await sql`
+        SELECT * FROM email_templates
+        WHERE deleted_at IS NULL
+          AND is_default = true
+        ORDER BY created_at DESC
+      `;
+    } else if (!includeDeleted && parentTemplateId) {
+      result = await sql`
+        SELECT * FROM email_templates
+        WHERE deleted_at IS NULL
+          AND parent_template_id = ${parentTemplateId}
+        ORDER BY created_at DESC
+      `;
+    } else if (onlyDefault && parentTemplateId) {
+      result = await sql`
+        SELECT * FROM email_templates
+        WHERE is_default = true
+          AND parent_template_id = ${parentTemplateId}
+        ORDER BY created_at DESC
+      `;
+    } else if (!includeDeleted) {
+      result = await sql`
+        SELECT * FROM email_templates
+        WHERE deleted_at IS NULL
+        ORDER BY created_at DESC
+      `;
+    } else if (onlyDefault) {
+      result = await sql`
+        SELECT * FROM email_templates
+        WHERE is_default = true
+        ORDER BY created_at DESC
+      `;
+    } else if (parentTemplateId) {
+      result = await sql`
+        SELECT * FROM email_templates
+        WHERE parent_template_id = ${parentTemplateId}
+        ORDER BY created_at DESC
+      `;
+    } else {
+      result = await sql`
+        SELECT * FROM email_templates
+        ORDER BY created_at DESC
+      `;
     }
 
-    // Filter by default status
-    if (onlyDefault) {
-      query += ` AND is_default = true`;
-    }
-
-    // Filter by parent template
-    if (parentTemplateId) {
-      query += ` AND parent_template_id = $${paramCount}`;
-      params.push(parentTemplateId);
-      paramCount++;
-    }
-
-    query += ` ORDER BY created_at DESC`;
-
-    const result = await sql.query(query, params);
     return result.rows.map((row: any) => EmailTemplate.fromDatabase(row));
   }
 
   /**
    * Update template
+   * Uses template literals for Vercel Postgres compatibility
    */
   async update(input: UpdateTemplateInput): Promise<EmailTemplate> {
-    const updates: string[] = [];
-    const params: any[] = [];
-    let paramCount = 1;
+    const id = input.id;
+    const name = input.name;
+    const description = input.description;
+    const mjmlContent = input.mjmlContent ? JSON.stringify(input.mjmlContent) : undefined;
+    const htmlSnapshot = input.htmlSnapshot;
+    const isDefault = input.isDefault;
 
-    if (input.name !== undefined) {
-      updates.push(`name = $${paramCount}`);
-      params.push(input.name);
-      paramCount++;
-    }
+    // Determine which fields to update
+    const hasName = input.name !== undefined;
+    const hasDescription = input.description !== undefined;
+    const hasMjmlContent = input.mjmlContent !== undefined;
+    const hasHtmlSnapshot = input.htmlSnapshot !== undefined;
+    const hasIsDefault = input.isDefault !== undefined;
 
-    if (input.description !== undefined) {
-      updates.push(`description = $${paramCount}`);
-      params.push(input.description);
-      paramCount++;
-    }
-
-    if (input.mjmlContent !== undefined) {
-      updates.push(`mjml_content = $${paramCount}::jsonb`);
-      params.push(JSON.stringify(input.mjmlContent));
-      paramCount++;
-    }
-
-    if (input.htmlSnapshot !== undefined) {
-      updates.push(`html_snapshot = $${paramCount}`);
-      params.push(input.htmlSnapshot);
-      paramCount++;
-    }
-
-    if (input.isDefault !== undefined) {
-      updates.push(`is_default = $${paramCount}`);
-      params.push(input.isDefault);
-      paramCount++;
-    }
-
-    if (updates.length === 0) {
-      // No updates, just return current template
+    // If no updates, return existing
+    if (!hasName && !hasDescription && !hasMjmlContent && !hasHtmlSnapshot && !hasIsDefault) {
       const existing = await this.findById(input.id);
       if (!existing) {
         throw new Error(`Template with id ${input.id} not found`);
@@ -138,21 +153,314 @@ export class PostgresEmailTemplateRepository implements IEmailTemplateRepository
       return existing;
     }
 
-    // Add updated_at
-    updates.push(`updated_at = CURRENT_TIMESTAMP`);
+    let result;
 
-    // Add ID parameter
-    params.push(input.id);
-    const idParam = paramCount;
-
-    const query = `
-      UPDATE email_templates
-      SET ${updates.join(', ')}
-      WHERE id = $${idParam}
-      RETURNING *
-    `;
-
-    const result = await sql.query(query, params);
+    // Build conditional UPDATE queries using template literals
+    if (hasName && hasDescription && hasMjmlContent && hasHtmlSnapshot && hasIsDefault) {
+      result = await sql`
+        UPDATE email_templates
+        SET name = ${name},
+            description = ${description},
+            mjml_content = ${mjmlContent}::jsonb,
+            html_snapshot = ${htmlSnapshot},
+            is_default = ${isDefault},
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = ${id}
+        RETURNING *
+      `;
+    } else if (hasName && hasDescription && hasMjmlContent && hasHtmlSnapshot) {
+      result = await sql`
+        UPDATE email_templates
+        SET name = ${name},
+            description = ${description},
+            mjml_content = ${mjmlContent}::jsonb,
+            html_snapshot = ${htmlSnapshot},
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = ${id}
+        RETURNING *
+      `;
+    } else if (hasName && hasDescription && hasMjmlContent && hasIsDefault) {
+      result = await sql`
+        UPDATE email_templates
+        SET name = ${name},
+            description = ${description},
+            mjml_content = ${mjmlContent}::jsonb,
+            is_default = ${isDefault},
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = ${id}
+        RETURNING *
+      `;
+    } else if (hasName && hasDescription && hasHtmlSnapshot && hasIsDefault) {
+      result = await sql`
+        UPDATE email_templates
+        SET name = ${name},
+            description = ${description},
+            html_snapshot = ${htmlSnapshot},
+            is_default = ${isDefault},
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = ${id}
+        RETURNING *
+      `;
+    } else if (hasName && hasMjmlContent && hasHtmlSnapshot && hasIsDefault) {
+      result = await sql`
+        UPDATE email_templates
+        SET name = ${name},
+            mjml_content = ${mjmlContent}::jsonb,
+            html_snapshot = ${htmlSnapshot},
+            is_default = ${isDefault},
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = ${id}
+        RETURNING *
+      `;
+    } else if (hasDescription && hasMjmlContent && hasHtmlSnapshot && hasIsDefault) {
+      result = await sql`
+        UPDATE email_templates
+        SET description = ${description},
+            mjml_content = ${mjmlContent}::jsonb,
+            html_snapshot = ${htmlSnapshot},
+            is_default = ${isDefault},
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = ${id}
+        RETURNING *
+      `;
+    } else if (hasName && hasDescription && hasMjmlContent) {
+      result = await sql`
+        UPDATE email_templates
+        SET name = ${name},
+            description = ${description},
+            mjml_content = ${mjmlContent}::jsonb,
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = ${id}
+        RETURNING *
+      `;
+    } else if (hasName && hasDescription && hasHtmlSnapshot) {
+      result = await sql`
+        UPDATE email_templates
+        SET name = ${name},
+            description = ${description},
+            html_snapshot = ${htmlSnapshot},
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = ${id}
+        RETURNING *
+      `;
+    } else if (hasName && hasDescription && hasIsDefault) {
+      result = await sql`
+        UPDATE email_templates
+        SET name = ${name},
+            description = ${description},
+            is_default = ${isDefault},
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = ${id}
+        RETURNING *
+      `;
+    } else if (hasName && hasMjmlContent && hasHtmlSnapshot) {
+      result = await sql`
+        UPDATE email_templates
+        SET name = ${name},
+            mjml_content = ${mjmlContent}::jsonb,
+            html_snapshot = ${htmlSnapshot},
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = ${id}
+        RETURNING *
+      `;
+    } else if (hasName && hasMjmlContent && hasIsDefault) {
+      result = await sql`
+        UPDATE email_templates
+        SET name = ${name},
+            mjml_content = ${mjmlContent}::jsonb,
+            is_default = ${isDefault},
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = ${id}
+        RETURNING *
+      `;
+    } else if (hasName && hasHtmlSnapshot && hasIsDefault) {
+      result = await sql`
+        UPDATE email_templates
+        SET name = ${name},
+            html_snapshot = ${htmlSnapshot},
+            is_default = ${isDefault},
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = ${id}
+        RETURNING *
+      `;
+    } else if (hasDescription && hasMjmlContent && hasHtmlSnapshot) {
+      result = await sql`
+        UPDATE email_templates
+        SET description = ${description},
+            mjml_content = ${mjmlContent}::jsonb,
+            html_snapshot = ${htmlSnapshot},
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = ${id}
+        RETURNING *
+      `;
+    } else if (hasDescription && hasMjmlContent && hasIsDefault) {
+      result = await sql`
+        UPDATE email_templates
+        SET description = ${description},
+            mjml_content = ${mjmlContent}::jsonb,
+            is_default = ${isDefault},
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = ${id}
+        RETURNING *
+      `;
+    } else if (hasDescription && hasHtmlSnapshot && hasIsDefault) {
+      result = await sql`
+        UPDATE email_templates
+        SET description = ${description},
+            html_snapshot = ${htmlSnapshot},
+            is_default = ${isDefault},
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = ${id}
+        RETURNING *
+      `;
+    } else if (hasMjmlContent && hasHtmlSnapshot && hasIsDefault) {
+      result = await sql`
+        UPDATE email_templates
+        SET mjml_content = ${mjmlContent}::jsonb,
+            html_snapshot = ${htmlSnapshot},
+            is_default = ${isDefault},
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = ${id}
+        RETURNING *
+      `;
+    } else if (hasName && hasDescription) {
+      result = await sql`
+        UPDATE email_templates
+        SET name = ${name},
+            description = ${description},
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = ${id}
+        RETURNING *
+      `;
+    } else if (hasName && hasMjmlContent) {
+      result = await sql`
+        UPDATE email_templates
+        SET name = ${name},
+            mjml_content = ${mjmlContent}::jsonb,
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = ${id}
+        RETURNING *
+      `;
+    } else if (hasName && hasHtmlSnapshot) {
+      result = await sql`
+        UPDATE email_templates
+        SET name = ${name},
+            html_snapshot = ${htmlSnapshot},
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = ${id}
+        RETURNING *
+      `;
+    } else if (hasName && hasIsDefault) {
+      result = await sql`
+        UPDATE email_templates
+        SET name = ${name},
+            is_default = ${isDefault},
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = ${id}
+        RETURNING *
+      `;
+    } else if (hasDescription && hasMjmlContent) {
+      result = await sql`
+        UPDATE email_templates
+        SET description = ${description},
+            mjml_content = ${mjmlContent}::jsonb,
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = ${id}
+        RETURNING *
+      `;
+    } else if (hasDescription && hasHtmlSnapshot) {
+      result = await sql`
+        UPDATE email_templates
+        SET description = ${description},
+            html_snapshot = ${htmlSnapshot},
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = ${id}
+        RETURNING *
+      `;
+    } else if (hasDescription && hasIsDefault) {
+      result = await sql`
+        UPDATE email_templates
+        SET description = ${description},
+            is_default = ${isDefault},
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = ${id}
+        RETURNING *
+      `;
+    } else if (hasMjmlContent && hasHtmlSnapshot) {
+      result = await sql`
+        UPDATE email_templates
+        SET mjml_content = ${mjmlContent}::jsonb,
+            html_snapshot = ${htmlSnapshot},
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = ${id}
+        RETURNING *
+      `;
+    } else if (hasMjmlContent && hasIsDefault) {
+      result = await sql`
+        UPDATE email_templates
+        SET mjml_content = ${mjmlContent}::jsonb,
+            is_default = ${isDefault},
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = ${id}
+        RETURNING *
+      `;
+    } else if (hasHtmlSnapshot && hasIsDefault) {
+      result = await sql`
+        UPDATE email_templates
+        SET html_snapshot = ${htmlSnapshot},
+            is_default = ${isDefault},
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = ${id}
+        RETURNING *
+      `;
+    } else if (hasName) {
+      result = await sql`
+        UPDATE email_templates
+        SET name = ${name},
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = ${id}
+        RETURNING *
+      `;
+    } else if (hasDescription) {
+      result = await sql`
+        UPDATE email_templates
+        SET description = ${description},
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = ${id}
+        RETURNING *
+      `;
+    } else if (hasMjmlContent) {
+      result = await sql`
+        UPDATE email_templates
+        SET mjml_content = ${mjmlContent}::jsonb,
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = ${id}
+        RETURNING *
+      `;
+    } else if (hasHtmlSnapshot) {
+      result = await sql`
+        UPDATE email_templates
+        SET html_snapshot = ${htmlSnapshot},
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = ${id}
+        RETURNING *
+      `;
+    } else if (hasIsDefault) {
+      result = await sql`
+        UPDATE email_templates
+        SET is_default = ${isDefault},
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = ${id}
+        RETURNING *
+      `;
+    } else {
+      result = await sql`
+        UPDATE email_templates
+        SET updated_at = CURRENT_TIMESTAMP
+        WHERE id = ${id}
+        RETURNING *
+      `;
+    }
 
     if (result.rows.length === 0) {
       throw new Error(`Template with id ${input.id} not found`);
@@ -197,35 +505,27 @@ export class PostgresEmailTemplateRepository implements IEmailTemplateRepository
   /**
    * Set a template as default
    * Automatically unsets previous default
+   * Note: Vercel Postgres doesn't support manual transaction control
+   * We rely on individual query atomicity instead
    */
   async setDefault(id: string): Promise<void> {
-    // Use a transaction to ensure atomicity
-    await sql.query('BEGIN');
+    // First, unset all defaults
+    await sql`
+      UPDATE email_templates
+      SET is_default = false
+      WHERE is_default = true
+    `;
 
-    try {
-      // First, unset all defaults
-      await sql`
-        UPDATE email_templates
-        SET is_default = false
-        WHERE is_default = true
-      `;
+    // Then set the new default
+    const result = await sql`
+      UPDATE email_templates
+      SET is_default = true
+      WHERE id = ${id} AND deleted_at IS NULL
+      RETURNING id
+    `;
 
-      // Then set the new default
-      const result = await sql`
-        UPDATE email_templates
-        SET is_default = true
-        WHERE id = ${id} AND deleted_at IS NULL
-        RETURNING id
-      `;
-
-      if (result.rows.length === 0) {
-        throw new Error(`Template with id ${id} not found or is deleted`);
-      }
-
-      await sql.query('COMMIT');
-    } catch (error) {
-      await sql.query('ROLLBACK');
-      throw error;
+    if (result.rows.length === 0) {
+      throw new Error(`Template with id ${id} not found or is deleted`);
     }
   }
 
@@ -342,15 +642,23 @@ export class PostgresEmailTemplateRepository implements IEmailTemplateRepository
 
   /**
    * Count total templates
+   * Uses template literals for Vercel Postgres compatibility
    */
   async count(includeDeleted?: boolean): Promise<number> {
-    let query = 'SELECT COUNT(*) as count FROM email_templates';
+    let result;
 
     if (!includeDeleted) {
-      query += ' WHERE deleted_at IS NULL';
+      result = await sql`
+        SELECT COUNT(*) as count
+        FROM email_templates
+        WHERE deleted_at IS NULL
+      `;
+    } else {
+      result = await sql`
+        SELECT COUNT(*) as count
+        FROM email_templates
+      `;
     }
-
-    const result = await sql.query(query);
 
     if (result.rows.length === 0) return 0;
 

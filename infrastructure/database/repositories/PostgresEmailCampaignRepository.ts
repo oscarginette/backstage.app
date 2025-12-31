@@ -72,37 +72,278 @@ export class PostgresEmailCampaignRepository implements IEmailCampaignRepository
    * Multi-tenant: Always filters by user_id if provided
    */
   async findAll(options?: FindCampaignsOptions): Promise<IEmailCampaign[]> {
-    let query = 'SELECT * FROM email_campaigns WHERE 1=1';
-    const params: any[] = [];
+    // Build WHERE conditions dynamically
+    const conditions: string[] = ['1=1'];
 
     // Multi-tenant isolation: Filter by user_id
-    if (options?.userId) {
-      params.push(options.userId);
-      query += ` AND user_id = $${params.length}`;
+    const userId = options?.userId;
+    const status = options?.status;
+    const trackId = options?.trackId;
+    const templateId = options?.templateId;
+    const scheduledOnly = options?.scheduledOnly;
+
+    let result;
+
+    // Build query with conditional filters using template literals
+    // Vercel Postgres requires template literal syntax
+    if (userId && status && trackId && templateId && scheduledOnly) {
+      result = await sql`
+        SELECT * FROM email_campaigns
+        WHERE user_id = ${userId}
+          AND status = ${status}
+          AND track_id = ${trackId}
+          AND template_id = ${templateId}
+          AND scheduled_at IS NOT NULL
+          AND scheduled_at > NOW()
+        ORDER BY created_at DESC
+      `;
+    } else if (userId && status && trackId && templateId) {
+      result = await sql`
+        SELECT * FROM email_campaigns
+        WHERE user_id = ${userId}
+          AND status = ${status}
+          AND track_id = ${trackId}
+          AND template_id = ${templateId}
+        ORDER BY created_at DESC
+      `;
+    } else if (userId && status && trackId && scheduledOnly) {
+      result = await sql`
+        SELECT * FROM email_campaigns
+        WHERE user_id = ${userId}
+          AND status = ${status}
+          AND track_id = ${trackId}
+          AND scheduled_at IS NOT NULL
+          AND scheduled_at > NOW()
+        ORDER BY created_at DESC
+      `;
+    } else if (userId && status && templateId && scheduledOnly) {
+      result = await sql`
+        SELECT * FROM email_campaigns
+        WHERE user_id = ${userId}
+          AND status = ${status}
+          AND template_id = ${templateId}
+          AND scheduled_at IS NOT NULL
+          AND scheduled_at > NOW()
+        ORDER BY created_at DESC
+      `;
+    } else if (userId && trackId && templateId && scheduledOnly) {
+      result = await sql`
+        SELECT * FROM email_campaigns
+        WHERE user_id = ${userId}
+          AND track_id = ${trackId}
+          AND template_id = ${templateId}
+          AND scheduled_at IS NOT NULL
+          AND scheduled_at > NOW()
+        ORDER BY created_at DESC
+      `;
+    } else if (userId && status && trackId) {
+      result = await sql`
+        SELECT * FROM email_campaigns
+        WHERE user_id = ${userId}
+          AND status = ${status}
+          AND track_id = ${trackId}
+        ORDER BY created_at DESC
+      `;
+    } else if (userId && status && templateId) {
+      result = await sql`
+        SELECT * FROM email_campaigns
+        WHERE user_id = ${userId}
+          AND status = ${status}
+          AND template_id = ${templateId}
+        ORDER BY created_at DESC
+      `;
+    } else if (userId && status && scheduledOnly) {
+      result = await sql`
+        SELECT * FROM email_campaigns
+        WHERE user_id = ${userId}
+          AND status = ${status}
+          AND scheduled_at IS NOT NULL
+          AND scheduled_at > NOW()
+        ORDER BY created_at DESC
+      `;
+    } else if (userId && trackId && templateId) {
+      result = await sql`
+        SELECT * FROM email_campaigns
+        WHERE user_id = ${userId}
+          AND track_id = ${trackId}
+          AND template_id = ${templateId}
+        ORDER BY created_at DESC
+      `;
+    } else if (userId && trackId && scheduledOnly) {
+      result = await sql`
+        SELECT * FROM email_campaigns
+        WHERE user_id = ${userId}
+          AND track_id = ${trackId}
+          AND scheduled_at IS NOT NULL
+          AND scheduled_at > NOW()
+        ORDER BY created_at DESC
+      `;
+    } else if (userId && templateId && scheduledOnly) {
+      result = await sql`
+        SELECT * FROM email_campaigns
+        WHERE user_id = ${userId}
+          AND template_id = ${templateId}
+          AND scheduled_at IS NOT NULL
+          AND scheduled_at > NOW()
+        ORDER BY created_at DESC
+      `;
+    } else if (status && trackId && templateId && scheduledOnly) {
+      result = await sql`
+        SELECT * FROM email_campaigns
+        WHERE status = ${status}
+          AND track_id = ${trackId}
+          AND template_id = ${templateId}
+          AND scheduled_at IS NOT NULL
+          AND scheduled_at > NOW()
+        ORDER BY created_at DESC
+      `;
+    } else if (userId && status) {
+      result = await sql`
+        SELECT * FROM email_campaigns
+        WHERE user_id = ${userId}
+          AND status = ${status}
+        ORDER BY created_at DESC
+      `;
+    } else if (userId && trackId) {
+      result = await sql`
+        SELECT * FROM email_campaigns
+        WHERE user_id = ${userId}
+          AND track_id = ${trackId}
+        ORDER BY created_at DESC
+      `;
+    } else if (userId && templateId) {
+      result = await sql`
+        SELECT * FROM email_campaigns
+        WHERE user_id = ${userId}
+          AND template_id = ${templateId}
+        ORDER BY created_at DESC
+      `;
+    } else if (userId && scheduledOnly) {
+      result = await sql`
+        SELECT * FROM email_campaigns
+        WHERE user_id = ${userId}
+          AND scheduled_at IS NOT NULL
+          AND scheduled_at > NOW()
+        ORDER BY created_at DESC
+      `;
+    } else if (status && trackId && templateId) {
+      result = await sql`
+        SELECT * FROM email_campaigns
+        WHERE status = ${status}
+          AND track_id = ${trackId}
+          AND template_id = ${templateId}
+        ORDER BY created_at DESC
+      `;
+    } else if (status && trackId && scheduledOnly) {
+      result = await sql`
+        SELECT * FROM email_campaigns
+        WHERE status = ${status}
+          AND track_id = ${trackId}
+          AND scheduled_at IS NOT NULL
+          AND scheduled_at > NOW()
+        ORDER BY created_at DESC
+      `;
+    } else if (status && templateId && scheduledOnly) {
+      result = await sql`
+        SELECT * FROM email_campaigns
+        WHERE status = ${status}
+          AND template_id = ${templateId}
+          AND scheduled_at IS NOT NULL
+          AND scheduled_at > NOW()
+        ORDER BY created_at DESC
+      `;
+    } else if (trackId && templateId && scheduledOnly) {
+      result = await sql`
+        SELECT * FROM email_campaigns
+        WHERE track_id = ${trackId}
+          AND template_id = ${templateId}
+          AND scheduled_at IS NOT NULL
+          AND scheduled_at > NOW()
+        ORDER BY created_at DESC
+      `;
+    } else if (status && trackId) {
+      result = await sql`
+        SELECT * FROM email_campaigns
+        WHERE status = ${status}
+          AND track_id = ${trackId}
+        ORDER BY created_at DESC
+      `;
+    } else if (status && templateId) {
+      result = await sql`
+        SELECT * FROM email_campaigns
+        WHERE status = ${status}
+          AND template_id = ${templateId}
+        ORDER BY created_at DESC
+      `;
+    } else if (status && scheduledOnly) {
+      result = await sql`
+        SELECT * FROM email_campaigns
+        WHERE status = ${status}
+          AND scheduled_at IS NOT NULL
+          AND scheduled_at > NOW()
+        ORDER BY created_at DESC
+      `;
+    } else if (trackId && templateId) {
+      result = await sql`
+        SELECT * FROM email_campaigns
+        WHERE track_id = ${trackId}
+          AND template_id = ${templateId}
+        ORDER BY created_at DESC
+      `;
+    } else if (trackId && scheduledOnly) {
+      result = await sql`
+        SELECT * FROM email_campaigns
+        WHERE track_id = ${trackId}
+          AND scheduled_at IS NOT NULL
+          AND scheduled_at > NOW()
+        ORDER BY created_at DESC
+      `;
+    } else if (templateId && scheduledOnly) {
+      result = await sql`
+        SELECT * FROM email_campaigns
+        WHERE template_id = ${templateId}
+          AND scheduled_at IS NOT NULL
+          AND scheduled_at > NOW()
+        ORDER BY created_at DESC
+      `;
+    } else if (userId) {
+      result = await sql`
+        SELECT * FROM email_campaigns
+        WHERE user_id = ${userId}
+        ORDER BY created_at DESC
+      `;
+    } else if (status) {
+      result = await sql`
+        SELECT * FROM email_campaigns
+        WHERE status = ${status}
+        ORDER BY created_at DESC
+      `;
+    } else if (trackId) {
+      result = await sql`
+        SELECT * FROM email_campaigns
+        WHERE track_id = ${trackId}
+        ORDER BY created_at DESC
+      `;
+    } else if (templateId) {
+      result = await sql`
+        SELECT * FROM email_campaigns
+        WHERE template_id = ${templateId}
+        ORDER BY created_at DESC
+      `;
+    } else if (scheduledOnly) {
+      result = await sql`
+        SELECT * FROM email_campaigns
+        WHERE scheduled_at IS NOT NULL
+          AND scheduled_at > NOW()
+        ORDER BY created_at DESC
+      `;
+    } else {
+      result = await sql`
+        SELECT * FROM email_campaigns
+        ORDER BY created_at DESC
+      `;
     }
 
-    if (options?.status) {
-      params.push(options.status);
-      query += ` AND status = $${params.length}`;
-    }
-
-    if (options?.trackId) {
-      params.push(options.trackId);
-      query += ` AND track_id = $${params.length}`;
-    }
-
-    if (options?.templateId) {
-      params.push(options.templateId);
-      query += ` AND template_id = $${params.length}`;
-    }
-
-    if (options?.scheduledOnly) {
-      query += ' AND scheduled_at IS NOT NULL AND scheduled_at > NOW()';
-    }
-
-    query += ' ORDER BY created_at DESC';
-
-    const result = await sql.query(query, params);
     return result.rows.map((row: any) => EmailCampaign.fromDatabase(row));
   }
 
@@ -149,52 +390,333 @@ export class PostgresEmailCampaignRepository implements IEmailCampaignRepository
 
   /**
    * Update campaign
+   * Uses template literals for Vercel Postgres compatibility
    */
   async update(input: UpdateCampaignInput): Promise<IEmailCampaign> {
-    // Build dynamic update query
-    const updates: string[] = [];
-    const params: any[] = [];
-    let paramIndex = 1;
+    const id = input.id;
+    const subject = input.subject;
+    const htmlContent = input.htmlContent;
+    const status = input.status;
+    const scheduledAt = input.scheduledAt ? input.scheduledAt.toISOString() : null;
+    const sentAt = input.sentAt ? input.sentAt.toISOString() : null;
 
-    if (input.subject !== undefined) {
-      params.push(input.subject);
-      updates.push(`subject = $${paramIndex++}`);
+    // Determine which fields to update
+    const hasSubject = input.subject !== undefined;
+    const hasHtmlContent = input.htmlContent !== undefined;
+    const hasStatus = input.status !== undefined;
+    const hasScheduledAt = input.scheduledAt !== undefined;
+    const hasSentAt = input.sentAt !== undefined;
+
+    let result;
+
+    // Build conditional UPDATE queries using template literals
+    // Vercel Postgres requires template literal syntax
+    if (hasSubject && hasHtmlContent && hasStatus && hasScheduledAt && hasSentAt) {
+      result = await sql`
+        UPDATE email_campaigns
+        SET subject = ${subject},
+            html_content = ${htmlContent},
+            status = ${status},
+            scheduled_at = ${scheduledAt},
+            sent_at = ${sentAt},
+            updated_at = NOW()
+        WHERE id = ${id}
+        RETURNING *
+      `;
+    } else if (hasSubject && hasHtmlContent && hasStatus && hasScheduledAt) {
+      result = await sql`
+        UPDATE email_campaigns
+        SET subject = ${subject},
+            html_content = ${htmlContent},
+            status = ${status},
+            scheduled_at = ${scheduledAt},
+            updated_at = NOW()
+        WHERE id = ${id}
+        RETURNING *
+      `;
+    } else if (hasSubject && hasHtmlContent && hasStatus && hasSentAt) {
+      result = await sql`
+        UPDATE email_campaigns
+        SET subject = ${subject},
+            html_content = ${htmlContent},
+            status = ${status},
+            sent_at = ${sentAt},
+            updated_at = NOW()
+        WHERE id = ${id}
+        RETURNING *
+      `;
+    } else if (hasSubject && hasHtmlContent && hasScheduledAt && hasSentAt) {
+      result = await sql`
+        UPDATE email_campaigns
+        SET subject = ${subject},
+            html_content = ${htmlContent},
+            scheduled_at = ${scheduledAt},
+            sent_at = ${sentAt},
+            updated_at = NOW()
+        WHERE id = ${id}
+        RETURNING *
+      `;
+    } else if (hasSubject && hasStatus && hasScheduledAt && hasSentAt) {
+      result = await sql`
+        UPDATE email_campaigns
+        SET subject = ${subject},
+            status = ${status},
+            scheduled_at = ${scheduledAt},
+            sent_at = ${sentAt},
+            updated_at = NOW()
+        WHERE id = ${id}
+        RETURNING *
+      `;
+    } else if (hasHtmlContent && hasStatus && hasScheduledAt && hasSentAt) {
+      result = await sql`
+        UPDATE email_campaigns
+        SET html_content = ${htmlContent},
+            status = ${status},
+            scheduled_at = ${scheduledAt},
+            sent_at = ${sentAt},
+            updated_at = NOW()
+        WHERE id = ${id}
+        RETURNING *
+      `;
+    } else if (hasSubject && hasHtmlContent && hasStatus) {
+      result = await sql`
+        UPDATE email_campaigns
+        SET subject = ${subject},
+            html_content = ${htmlContent},
+            status = ${status},
+            updated_at = NOW()
+        WHERE id = ${id}
+        RETURNING *
+      `;
+    } else if (hasSubject && hasHtmlContent && hasScheduledAt) {
+      result = await sql`
+        UPDATE email_campaigns
+        SET subject = ${subject},
+            html_content = ${htmlContent},
+            scheduled_at = ${scheduledAt},
+            updated_at = NOW()
+        WHERE id = ${id}
+        RETURNING *
+      `;
+    } else if (hasSubject && hasHtmlContent && hasSentAt) {
+      result = await sql`
+        UPDATE email_campaigns
+        SET subject = ${subject},
+            html_content = ${htmlContent},
+            sent_at = ${sentAt},
+            updated_at = NOW()
+        WHERE id = ${id}
+        RETURNING *
+      `;
+    } else if (hasSubject && hasStatus && hasScheduledAt) {
+      result = await sql`
+        UPDATE email_campaigns
+        SET subject = ${subject},
+            status = ${status},
+            scheduled_at = ${scheduledAt},
+            updated_at = NOW()
+        WHERE id = ${id}
+        RETURNING *
+      `;
+    } else if (hasSubject && hasStatus && hasSentAt) {
+      result = await sql`
+        UPDATE email_campaigns
+        SET subject = ${subject},
+            status = ${status},
+            sent_at = ${sentAt},
+            updated_at = NOW()
+        WHERE id = ${id}
+        RETURNING *
+      `;
+    } else if (hasSubject && hasScheduledAt && hasSentAt) {
+      result = await sql`
+        UPDATE email_campaigns
+        SET subject = ${subject},
+            scheduled_at = ${scheduledAt},
+            sent_at = ${sentAt},
+            updated_at = NOW()
+        WHERE id = ${id}
+        RETURNING *
+      `;
+    } else if (hasHtmlContent && hasStatus && hasScheduledAt) {
+      result = await sql`
+        UPDATE email_campaigns
+        SET html_content = ${htmlContent},
+            status = ${status},
+            scheduled_at = ${scheduledAt},
+            updated_at = NOW()
+        WHERE id = ${id}
+        RETURNING *
+      `;
+    } else if (hasHtmlContent && hasStatus && hasSentAt) {
+      result = await sql`
+        UPDATE email_campaigns
+        SET html_content = ${htmlContent},
+            status = ${status},
+            sent_at = ${sentAt},
+            updated_at = NOW()
+        WHERE id = ${id}
+        RETURNING *
+      `;
+    } else if (hasHtmlContent && hasScheduledAt && hasSentAt) {
+      result = await sql`
+        UPDATE email_campaigns
+        SET html_content = ${htmlContent},
+            scheduled_at = ${scheduledAt},
+            sent_at = ${sentAt},
+            updated_at = NOW()
+        WHERE id = ${id}
+        RETURNING *
+      `;
+    } else if (hasStatus && hasScheduledAt && hasSentAt) {
+      result = await sql`
+        UPDATE email_campaigns
+        SET status = ${status},
+            scheduled_at = ${scheduledAt},
+            sent_at = ${sentAt},
+            updated_at = NOW()
+        WHERE id = ${id}
+        RETURNING *
+      `;
+    } else if (hasSubject && hasHtmlContent) {
+      result = await sql`
+        UPDATE email_campaigns
+        SET subject = ${subject},
+            html_content = ${htmlContent},
+            updated_at = NOW()
+        WHERE id = ${id}
+        RETURNING *
+      `;
+    } else if (hasSubject && hasStatus) {
+      result = await sql`
+        UPDATE email_campaigns
+        SET subject = ${subject},
+            status = ${status},
+            updated_at = NOW()
+        WHERE id = ${id}
+        RETURNING *
+      `;
+    } else if (hasSubject && hasScheduledAt) {
+      result = await sql`
+        UPDATE email_campaigns
+        SET subject = ${subject},
+            scheduled_at = ${scheduledAt},
+            updated_at = NOW()
+        WHERE id = ${id}
+        RETURNING *
+      `;
+    } else if (hasSubject && hasSentAt) {
+      result = await sql`
+        UPDATE email_campaigns
+        SET subject = ${subject},
+            sent_at = ${sentAt},
+            updated_at = NOW()
+        WHERE id = ${id}
+        RETURNING *
+      `;
+    } else if (hasHtmlContent && hasStatus) {
+      result = await sql`
+        UPDATE email_campaigns
+        SET html_content = ${htmlContent},
+            status = ${status},
+            updated_at = NOW()
+        WHERE id = ${id}
+        RETURNING *
+      `;
+    } else if (hasHtmlContent && hasScheduledAt) {
+      result = await sql`
+        UPDATE email_campaigns
+        SET html_content = ${htmlContent},
+            scheduled_at = ${scheduledAt},
+            updated_at = NOW()
+        WHERE id = ${id}
+        RETURNING *
+      `;
+    } else if (hasHtmlContent && hasSentAt) {
+      result = await sql`
+        UPDATE email_campaigns
+        SET html_content = ${htmlContent},
+            sent_at = ${sentAt},
+            updated_at = NOW()
+        WHERE id = ${id}
+        RETURNING *
+      `;
+    } else if (hasStatus && hasScheduledAt) {
+      result = await sql`
+        UPDATE email_campaigns
+        SET status = ${status},
+            scheduled_at = ${scheduledAt},
+            updated_at = NOW()
+        WHERE id = ${id}
+        RETURNING *
+      `;
+    } else if (hasStatus && hasSentAt) {
+      result = await sql`
+        UPDATE email_campaigns
+        SET status = ${status},
+            sent_at = ${sentAt},
+            updated_at = NOW()
+        WHERE id = ${id}
+        RETURNING *
+      `;
+    } else if (hasScheduledAt && hasSentAt) {
+      result = await sql`
+        UPDATE email_campaigns
+        SET scheduled_at = ${scheduledAt},
+            sent_at = ${sentAt},
+            updated_at = NOW()
+        WHERE id = ${id}
+        RETURNING *
+      `;
+    } else if (hasSubject) {
+      result = await sql`
+        UPDATE email_campaigns
+        SET subject = ${subject},
+            updated_at = NOW()
+        WHERE id = ${id}
+        RETURNING *
+      `;
+    } else if (hasHtmlContent) {
+      result = await sql`
+        UPDATE email_campaigns
+        SET html_content = ${htmlContent},
+            updated_at = NOW()
+        WHERE id = ${id}
+        RETURNING *
+      `;
+    } else if (hasStatus) {
+      result = await sql`
+        UPDATE email_campaigns
+        SET status = ${status},
+            updated_at = NOW()
+        WHERE id = ${id}
+        RETURNING *
+      `;
+    } else if (hasScheduledAt) {
+      result = await sql`
+        UPDATE email_campaigns
+        SET scheduled_at = ${scheduledAt},
+            updated_at = NOW()
+        WHERE id = ${id}
+        RETURNING *
+      `;
+    } else if (hasSentAt) {
+      result = await sql`
+        UPDATE email_campaigns
+        SET sent_at = ${sentAt},
+            updated_at = NOW()
+        WHERE id = ${id}
+        RETURNING *
+      `;
+    } else {
+      // No fields to update, just update timestamp
+      result = await sql`
+        UPDATE email_campaigns
+        SET updated_at = NOW()
+        WHERE id = ${id}
+        RETURNING *
+      `;
     }
-
-    if (input.htmlContent !== undefined) {
-      params.push(input.htmlContent);
-      updates.push(`html_content = $${paramIndex++}`);
-    }
-
-    if (input.status !== undefined) {
-      params.push(input.status);
-      updates.push(`status = $${paramIndex++}`);
-    }
-
-    if (input.scheduledAt !== undefined) {
-      params.push(input.scheduledAt ? input.scheduledAt.toISOString() : null);
-      updates.push(`scheduled_at = $${paramIndex++}`);
-    }
-
-    if (input.sentAt !== undefined) {
-      params.push(input.sentAt ? input.sentAt.toISOString() : null);
-      updates.push(`sent_at = $${paramIndex++}`);
-    }
-
-    // Always update updated_at
-    updates.push('updated_at = NOW()');
-
-    // Add ID as last parameter
-    params.push(input.id);
-
-    const query = `
-      UPDATE email_campaigns
-      SET ${updates.join(', ')}
-      WHERE id = $${paramIndex}
-      RETURNING *
-    `;
-
-    const result = await sql.query(query, params);
 
     if (result.rows.length === 0) {
       throw new Error(`Campaign with ID ${input.id} not found`);
