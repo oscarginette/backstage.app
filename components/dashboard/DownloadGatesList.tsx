@@ -61,6 +61,7 @@ export default function DownloadGatesList() {
           </div>
         </div>
       ),
+      sortKey: (gate: DownloadGate) => gate.title.toLowerCase(),
     },
     {
       header: t('reach'),
@@ -78,6 +79,7 @@ export default function DownloadGatesList() {
           </div>
         </div>
       ),
+      sortKey: (gate: DownloadGate) => gate.stats.views,
     },
     {
       header: t('audienceGrowth'),
@@ -93,6 +95,7 @@ export default function DownloadGatesList() {
           </div>
         </div>
       ),
+      sortKey: (gate: DownloadGate) => gate.stats.submissions,
     },
     {
       header: t('conversion'),
@@ -103,13 +106,14 @@ export default function DownloadGatesList() {
             <span className="text-xs font-bold text-[#1c1c1c]">{gate.stats.conversionRate}%</span>
           </div>
           <div className="w-24 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-            <div 
-              className="h-full bg-[#FF5500] rounded-full transition-all duration-1000" 
+            <div
+              className="h-full bg-[#FF5500] rounded-full transition-all duration-1000"
               style={{ width: `${Math.min(gate.stats.conversionRate, 100)}%` }}
             />
           </div>
         </div>
       ),
+      sortKey: (gate: DownloadGate) => gate.stats.conversionRate,
     },
     {
       header: t('status'),
@@ -125,6 +129,7 @@ export default function DownloadGatesList() {
           {gate.active ? t('active') : t('paused')}
         </div>
       ),
+      sortKey: (gate: DownloadGate) => gate.active ? 1 : 0,
     },
     {
       header: '',
