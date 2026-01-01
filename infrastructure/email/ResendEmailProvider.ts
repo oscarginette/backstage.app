@@ -29,14 +29,34 @@ export class ResendEmailProvider implements IEmailProvider {
         };
       }
 
+      console.log('[ResendEmailProvider] Sending email:', {
+        to: params.to,
+        subject: params.subject,
+        from: emailPayload.from,
+        hasUnsubscribe: !!params.unsubscribeUrl,
+        htmlLength: params.html?.length || 0,
+      });
+
       const { data, error } = await this.resend.emails.send(emailPayload);
 
       if (error) {
+        console.error('[ResendEmailProvider] Resend API error:', {
+          to: params.to,
+          error: error,
+          errorMessage: error.message,
+          errorName: error.name,
+        });
+
         return {
           success: false,
           error: error.message
         };
       }
+
+      console.log('[ResendEmailProvider] Email sent successfully:', {
+        to: params.to,
+        emailId: data?.id,
+      });
 
       return {
         success: true,
@@ -44,6 +64,12 @@ export class ResendEmailProvider implements IEmailProvider {
       };
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to send email';
+      console.error('[ResendEmailProvider] Exception:', {
+        to: params.to,
+        error,
+        errorMessage,
+      });
+
       return {
         success: false,
         error: errorMessage

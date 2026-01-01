@@ -40,10 +40,19 @@ export class SendNewTrackEmailsUseCase {
   async execute(input: SendNewTrackEmailsInput): Promise<SendNewTrackEmailsResult> {
     const startTime = Date.now();
 
+    console.log('[SendNewTrackEmailsUseCase] START:', {
+      userId: input.userId,
+      trackId: input.track.trackId,
+      trackTitle: input.track.title,
+      subject: input.subject,
+    });
+
     // 1. Fetch all subscribed contacts
     const contacts = await this.contactRepository.getSubscribed(input.userId);
+    console.log('[SendNewTrackEmailsUseCase] Fetched contacts:', contacts.length);
 
     if (contacts.length === 0) {
+      console.log('[SendNewTrackEmailsUseCase] No subscribers, skipping send');
       // Log execution even if no subscribers
       await this.executionLogRepository.create({
         newTracks: 1,
@@ -78,11 +87,16 @@ export class SendNewTrackEmailsUseCase {
 
       try {
         const result = await this.emailProvider.send(emailParams);
-        return { success: result.success, email: contact.email };
+
+        if (!result.success) {
+          console.error(`[SendNewTrackEmailsUseCase] Email failed for ${contact.email}:`, result.error);
+        }
+
+        return { success: result.success, email: contact.email, error: result.error };
       } catch (error: unknown) {
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-        console.error(`Failed to send email to ${contact.email}:`, errorMessage);
-        return { success: false, email: contact.email };
+        console.error(`[SendNewTrackEmailsUseCase] Exception sending to ${contact.email}:`, errorMessage);
+        return { success: false, email: contact.email, error: errorMessage };
       }
     });
 
@@ -92,6 +106,13 @@ export class SendNewTrackEmailsUseCase {
     // 3. Count successes and failures
     const sent = results.filter((r) => r.success).length;
     const failed = results.filter((r) => !r.success).length;
+
+    console.log('[SendNewTrackEmailsUseCase] Results:', {
+      sent,
+      failed,
+      total: contacts.length,
+      firstFailureReason: results.find((r) => !r.success)?.error
+    });
 
     // 4. Save track to database
     await this.trackRepository.save(input.track, input.userId);
