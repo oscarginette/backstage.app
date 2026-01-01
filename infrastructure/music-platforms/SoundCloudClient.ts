@@ -19,6 +19,8 @@ interface RSSItem {
   'itunes:author'?: string;
   'itunes:duration'?: string;
   'itunes:image'?: { '@_href': string };
+  'itunes:summary'?: string;
+  description?: string;
   enclosure?: { '@_url': string; '@_type': string };
 }
 
@@ -72,7 +74,10 @@ export class SoundCloudClient implements IMusicPlatformClient {
       }
 
       console.log('[SoundCloudClient] First track:', items[0]?.title);
-      return items;
+
+      // Parse tracks to normalize structure
+      const parsedTracks = items.map(item => this.parseTrackData(item));
+      return parsedTracks;
     } catch (error) {
       console.error('[SoundCloudClient] Error fetching tracks:', error);
       throw new Error(`Failed to fetch SoundCloud tracks: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -87,6 +92,8 @@ export class SoundCloudClient implements IMusicPlatformClient {
       pubDate: rawData.pubDate,
       creator: rawData['dc:creator'],
       author: rawData['itunes:author'],
+      contentSnippet: rawData['itunes:summary'] || rawData.description,
+      content: rawData.description || rawData['itunes:summary'],
       itunes: {
         duration: rawData['itunes:duration'],
         image: rawData['itunes:image']?.['@_href'],
