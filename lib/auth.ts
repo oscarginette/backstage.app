@@ -15,6 +15,7 @@ import NextAuth from 'next-auth';
 import Credentials from 'next-auth/providers/credentials';
 import { PostgresUserRepository } from '@/infrastructure/database/repositories/PostgresUserRepository';
 import type { User } from '@/domain/entities/User';
+import type { UserRole } from '@/domain/types/user-roles';
 import { isDevelopment } from '@/lib/env';
 
 const userRepository = new PostgresUserRepository();
@@ -64,10 +65,11 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           }
 
           // Return user data (NextAuth will create JWT)
+          // IMPORTANT: Access role via getter BEFORE returning
           return {
             id: user.id.toString(),
             email: user.email,
-            role: user.role,
+            role: user.role, // Access getter here, not in JWT callback
           };
         } catch (error) {
           console.error('NextAuth authorize error:', error);
@@ -94,7 +96,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (user) {
         token.id = user.id;
         token.email = user.email;
-        token.role = (user as any).role || 'artist';
+        token.role = user.role; // Role already extracted in authorize()
       }
 
       // Session update (e.g., user changes profile)
@@ -123,7 +125,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (token) {
         session.user.id = token.id as string;
         session.user.email = token.email as string;
-        session.user.role = (token.role as 'artist' | 'admin') || 'artist';
+        session.user.role = token.role as UserRole;
       }
       return session;
     },
@@ -140,14 +142,14 @@ declare module 'next-auth' {
     user: {
       id: string;
       email: string;
-      role: 'artist' | 'admin';
+      role: UserRole;
     };
   }
 
   interface User {
     id: string;
     email: string;
-    role: 'artist' | 'admin';
+    role: UserRole;
   }
 }
 
@@ -155,6 +157,6 @@ declare module '@auth/core/jwt' {
   interface JWT {
     id: string;
     email: string;
-    role: 'artist' | 'admin';
+    role: UserRole;
   }
 }

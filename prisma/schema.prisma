@@ -1,0 +1,652 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model app_config {
+  id         Int       @id @default(1)
+  updated_at DateTime? @default(now()) @db.Timestamp(6)
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model brevo_import_history {
+  id                 Int                @id @default(autoincrement())
+  user_id            Int
+  integration_id     Int
+  contacts_fetched   Int?               @default(0)
+  contacts_inserted  Int?               @default(0)
+  contacts_updated   Int?               @default(0)
+  contacts_skipped   Int?               @default(0)
+  lists_processed    Int?               @default(0)
+  status             String?            @default("pending") @db.VarChar(50)
+  started_at         DateTime?          @default(now()) @db.Timestamp(6)
+  completed_at       DateTime?          @db.Timestamp(6)
+  duration_ms        Int?
+  error_message      String?
+  errors_detail      Json?
+  metadata           Json?
+  preview_used       Boolean?           @default(false)
+  brevo_integrations brevo_integrations @relation(fields: [integration_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users              users              @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([integration_id, started_at(sort: Desc)], map: "idx_brevo_import_history_integration_id")
+  @@index([user_id, started_at(sort: Desc)], map: "idx_brevo_import_history_user_id")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model brevo_integrations {
+  id                   Int                    @id @default(autoincrement())
+  user_id              Int                    @unique(map: "unique_user_brevo")
+  api_key_encrypted    String
+  account_email        String?                @db.VarChar(255)
+  account_name         String?                @db.VarChar(255)
+  company_name         String?                @db.VarChar(255)
+  is_active            Boolean?               @default(true)
+  last_sync_at         DateTime?              @db.Timestamp(6)
+  last_error           String?
+  created_at           DateTime?              @default(now()) @db.Timestamp(6)
+  updated_at           DateTime?              @default(now()) @db.Timestamp(6)
+  brevo_import_history brevo_import_history[]
+  users                users                  @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([user_id], map: "idx_brevo_integrations_user_id")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model consent_history {
+  id         Int       @id @default(autoincrement())
+  user_id    Int?
+  contact_id Int?
+  action     String    @db.VarChar(50)
+  timestamp  DateTime? @default(now()) @db.Timestamp(6)
+  source     String?   @db.VarChar(100)
+  ip_address String?   @db.VarChar(45)
+  user_agent String?
+  metadata   Json?
+  contacts   contacts? @relation(fields: [contact_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users      users?    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([action], map: "idx_consent_history_action")
+  @@index([contact_id], map: "idx_consent_history_contact_id")
+  @@index([source], map: "idx_consent_history_source")
+  @@index([timestamp(sort: Desc)], map: "idx_consent_history_timestamp")
+  @@index([user_id], map: "idx_consent_history_user_id")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model contact_import_history {
+  id                Int       @id @default(autoincrement())
+  user_id           Int
+  original_filename String    @db.VarChar(500)
+  file_size_bytes   Int?
+  file_type         String    @db.VarChar(20)
+  rows_total        Int?      @default(0)
+  contacts_inserted Int?      @default(0)
+  contacts_updated  Int?      @default(0)
+  contacts_skipped  Int?      @default(0)
+  column_mapping    Json?
+  status            String?   @default("pending") @db.VarChar(50)
+  started_at        DateTime? @default(now()) @db.Timestamp(6)
+  completed_at      DateTime? @db.Timestamp(6)
+  duration_ms       Int?
+  error_message     String?
+  errors_detail     Json?
+  users             users     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([user_id, started_at(sort: Desc)], map: "idx_contact_import_history_user_id")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model contacts {
+  id                Int               @id @default(autoincrement())
+  user_id           Int?
+  email             String            @db.VarChar(255)
+  name              String?           @db.VarChar(255)
+  source            String?           @default("hypedit") @db.VarChar(100)
+  subscribed        Boolean?          @default(true)
+  created_at        DateTime?         @default(now()) @db.Timestamp(6)
+  unsubscribed_at   DateTime?         @db.Timestamp(6)
+  unsubscribe_token String?           @unique @db.VarChar(64)
+  metadata          Json?
+  brevo_list_ids    Int[]
+  brevo_id          String?           @db.VarChar(255)
+  consent_history   consent_history[]
+  users             users?            @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  email_logs        email_logs[]
+
+  @@unique([user_id, email])
+  @@index([email], map: "idx_contacts_email")
+  @@index([source], map: "idx_contacts_source")
+  @@index([subscribed], map: "idx_contacts_subscribed")
+  @@index([unsubscribe_token], map: "idx_contacts_unsubscribe_token")
+  @@index([user_id], map: "idx_contacts_user_id")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model download_gate_analytics {
+  id                   String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  gate_id              String                @db.Uuid
+  event_type           String                @db.VarChar(50)
+  session_id           String?               @db.VarChar(255)
+  submission_id        String?               @db.Uuid
+  referrer             String?
+  utm_source           String?               @db.VarChar(255)
+  utm_medium           String?               @db.VarChar(255)
+  utm_campaign         String?               @db.VarChar(255)
+  ip_address           String?               @db.VarChar(45)
+  user_agent           String?
+  country              String?               @db.VarChar(2)
+  created_at           DateTime?             @default(now()) @db.Timestamp(6)
+  download_gates       download_gates        @relation(fields: [gate_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  download_submissions download_submissions? @relation(fields: [submission_id], references: [id], onUpdate: NoAction)
+
+  @@index([created_at], map: "idx_download_gate_analytics_created_at")
+  @@index([event_type], map: "idx_download_gate_analytics_event_type")
+  @@index([gate_id], map: "idx_download_gate_analytics_gate_id")
+  @@index([session_id], map: "idx_download_gate_analytics_session_id")
+  @@index([submission_id], map: "idx_download_gate_analytics_submission_id")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model download_gates {
+  id                        String                    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id                   Int
+  slug                      String                    @unique @db.VarChar(255)
+  title                     String                    @db.VarChar(500)
+  artist_name               String?                   @db.VarChar(255)
+  genre                     String?                   @db.VarChar(100)
+  description               String?
+  artwork_url               String?
+  soundcloud_track_id       String?                   @db.VarChar(255)
+  soundcloud_track_url      String?
+  soundcloud_user_id        String?                   @db.VarChar(255)
+  file_url                  String
+  file_size_mb              Decimal?                  @db.Decimal(10, 2)
+  file_type                 String?                   @db.VarChar(50)
+  require_email             Boolean?                  @default(true)
+  require_soundcloud_repost Boolean?                  @default(true)
+  require_soundcloud_follow Boolean?                  @default(false)
+  require_spotify_connect   Boolean?                  @default(false)
+  active                    Boolean?                  @default(true)
+  max_downloads             Int?
+  expires_at                DateTime?                 @db.Timestamp(6)
+  created_at                DateTime?                 @default(now()) @db.Timestamp(6)
+  updated_at                DateTime?                 @default(now()) @db.Timestamp(6)
+  download_gate_analytics   download_gate_analytics[]
+  users                     users                     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  download_submissions      download_submissions[]
+  oauth_states              oauth_states[]
+
+  @@index([active], map: "idx_download_gates_active")
+  @@index([slug], map: "idx_download_gates_slug")
+  @@index([soundcloud_track_id], map: "idx_download_gates_soundcloud_track_id")
+  @@index([user_id], map: "idx_download_gates_user_id")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model download_submissions {
+  id                            String                    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  gate_id                       String                    @db.Uuid
+  email                         String                    @db.VarChar(255)
+  first_name                    String?                   @db.VarChar(255)
+  soundcloud_user_id            String?                   @db.VarChar(255)
+  soundcloud_username           String?                   @db.VarChar(255)
+  soundcloud_permalink          String?                   @db.VarChar(255)
+  spotify_user_id               String?                   @db.VarChar(255)
+  spotify_display_name          String?                   @db.VarChar(255)
+  email_verified                Boolean?                  @default(false)
+  soundcloud_repost_verified    Boolean?                  @default(false)
+  soundcloud_repost_verified_at DateTime?                 @db.Timestamp(6)
+  soundcloud_follow_verified    Boolean?                  @default(false)
+  soundcloud_follow_verified_at DateTime?                 @db.Timestamp(6)
+  spotify_connected             Boolean?                  @default(false)
+  spotify_connected_at          DateTime?                 @db.Timestamp(6)
+  download_token                String?                   @unique @db.VarChar(255)
+  download_token_generated_at   DateTime?                 @db.Timestamp(6)
+  download_token_expires_at     DateTime?                 @db.Timestamp(6)
+  download_completed            Boolean?                  @default(false)
+  download_completed_at         DateTime?                 @db.Timestamp(6)
+  consent_marketing             Boolean?                  @default(true)
+  ip_address                    String?                   @db.VarChar(45)
+  user_agent                    String?
+  created_at                    DateTime?                 @default(now()) @db.Timestamp(6)
+  updated_at                    DateTime?                 @default(now()) @db.Timestamp(6)
+  download_gate_analytics       download_gate_analytics[]
+  download_gates                download_gates            @relation(fields: [gate_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  oauth_states                  oauth_states[]
+
+  @@index([created_at], map: "idx_download_submissions_created_at")
+  @@index([download_token], map: "idx_download_submissions_download_token")
+  @@index([email], map: "idx_download_submissions_email")
+  @@index([gate_id], map: "idx_download_submissions_gate_id")
+  @@index([soundcloud_user_id], map: "idx_download_submissions_soundcloud_user_id")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model email_campaigns {
+  id               Int              @id @default(autoincrement())
+  user_id          Int?
+  template_id      Int?
+  track_id         String?          @db.VarChar(500)
+  subject          String           @db.VarChar(500)
+  html_content     String
+  status           String?          @default("draft") @db.VarChar(20)
+  scheduled_at     DateTime?        @db.Timestamp(6)
+  sent_at          DateTime?        @db.Timestamp(6)
+  recipients_count Int?             @default(0)
+  opened_count     Int?             @default(0)
+  clicked_count    Int?             @default(0)
+  created_at       DateTime?        @default(now()) @db.Timestamp(6)
+  updated_at       DateTime?        @default(now()) @db.Timestamp(6)
+  email_templates  email_templates? @relation(fields: [template_id], references: [id], onUpdate: NoAction)
+  users            users?           @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  email_logs       email_logs[]
+
+  @@index([status], map: "idx_email_campaigns_status")
+  @@index([user_id], map: "idx_email_campaigns_user_id")
+}
+
+model email_events {
+  id           Int         @id @default(autoincrement())
+  user_id      Int?
+  email_log_id Int?
+  event_type   String      @db.VarChar(50)
+  event_data   Json?
+  created_at   DateTime?   @default(now()) @db.Timestamp(6)
+  email_logs   email_logs? @relation(fields: [email_log_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users        users?      @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([created_at(sort: Desc)], map: "idx_email_events_created_at")
+  @@index([email_log_id], map: "idx_email_events_email_log_id")
+  @@index([event_type], map: "idx_email_events_type")
+  @@index([user_id], map: "idx_email_events_user_id")
+}
+
+model email_logs {
+  id              Int              @id @default(autoincrement())
+  user_id         Int?
+  contact_id      Int?
+  campaign_id     Int?
+  track_id        String?          @db.VarChar(500)
+  sent_at         DateTime?        @default(now()) @db.Timestamp(6)
+  resend_email_id String?          @db.VarChar(255)
+  status          String?          @default("sent") @db.VarChar(50)
+  error           String?
+  email_events    email_events[]
+  email_campaigns email_campaigns? @relation(fields: [campaign_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  contacts        contacts?        @relation(fields: [contact_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users           users?           @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([campaign_id], map: "idx_email_logs_campaign_id")
+  @@index([contact_id], map: "idx_email_logs_contact_id")
+  @@index([sent_at(sort: Desc)], map: "idx_email_logs_sent_at")
+  @@index([track_id], map: "idx_email_logs_track_id")
+  @@index([user_id], map: "idx_email_logs_user_id")
+}
+
+model email_templates {
+  id              Int               @id @default(autoincrement())
+  user_id         Int?
+  name            String            @db.VarChar(255)
+  subject         String            @db.VarChar(500)
+  html_content    String
+  variables       Json?             @default("[]")
+  is_default      Boolean?          @default(false)
+  created_at      DateTime?         @default(now()) @db.Timestamp(6)
+  updated_at      DateTime?         @default(now()) @db.Timestamp(6)
+  email_campaigns email_campaigns[]
+  users           users?            @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([created_at(sort: Desc)], map: "idx_email_templates_created")
+  @@index([user_id], map: "idx_email_templates_user_id")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model events {
+  id               String   @id @db.VarChar(255)
+  object           String   @default("event") @db.VarChar(50)
+  type             String   @db.VarChar(100)
+  data_object_id   String?  @db.VarChar(255)
+  data_object_type String?  @db.VarChar(50)
+  data             Json
+  created          DateTime @default(now()) @db.Timestamp(6)
+  livemode         Boolean  @default(false)
+  api_version      String?  @default("2025-01-01") @db.VarChar(20)
+  pending_webhooks Int?     @default(0)
+  request_id       String?  @db.VarChar(255)
+
+  @@index([created], map: "idx_events_created")
+  @@index([data_object_id], map: "idx_events_data_object_id")
+  @@index([type], map: "idx_events_type")
+}
+
+model execution_logs {
+  id          Int       @id @default(autoincrement())
+  user_id     Int?
+  executed_at DateTime? @default(now()) @db.Timestamp(6)
+  new_tracks  Int?      @default(0)
+  emails_sent Int?      @default(0)
+  duration_ms Int?
+  error       String?
+  track_id    String?   @db.VarChar(500)
+  track_title String?   @db.VarChar(500)
+  users       users?    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([executed_at(sort: Desc)], map: "idx_execution_logs_executed_at")
+  @@index([user_id], map: "idx_execution_logs_user_id")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model invoices {
+  id                                       String         @id @db.VarChar(255)
+  object                                   String         @default("invoice") @db.VarChar(50)
+  customer_id                              Int
+  subscription_id                          String?        @db.VarChar(255)
+  amount_due                               Int
+  amount_paid                              Int?           @default(0)
+  amount_remaining                         Int?           @default(0)
+  subtotal                                 Int
+  total                                    Int
+  tax                                      Int?           @default(0)
+  currency                                 String         @default("eur") @db.VarChar(3)
+  status                                   String?        @default("draft") @db.VarChar(50)
+  billing_reason                           String?        @db.VarChar(50)
+  created                                  DateTime       @default(now()) @db.Timestamp(6)
+  period_start                             DateTime?      @db.Timestamp(6)
+  period_end                               DateTime?      @db.Timestamp(6)
+  due_date                                 DateTime?      @db.Timestamp(6)
+  paid                                     Boolean?       @default(false)
+  paid_at                                  DateTime?      @db.Timestamp(6)
+  payment_intent_id                        String?        @db.VarChar(255)
+  metadata                                 Json?          @default("{}")
+  description                              String?
+  invoice_pdf                              String?        @db.VarChar(500)
+  hosted_invoice_url                       String?        @db.VarChar(500)
+  livemode                                 Boolean        @default(false)
+  payment_method                           String?        @db.VarChar(50)
+  payment_reference                        String?        @db.VarChar(255)
+  payment_notes                            String?
+  manually_created                         Boolean?       @default(false)
+  created_by_user_id                       Int?
+  users_invoices_created_by_user_idTousers users?         @relation("invoices_created_by_user_idTousers", fields: [created_by_user_id], references: [id], onUpdate: NoAction)
+  users_invoices_customer_idTousers        users          @relation("invoices_customer_idTousers", fields: [customer_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  subscriptions                            subscriptions? @relation(fields: [subscription_id], references: [id], onUpdate: NoAction)
+
+  @@index([created], map: "idx_invoices_created")
+  @@index([created_by_user_id], map: "idx_invoices_created_by_user")
+  @@index([customer_id], map: "idx_invoices_customer")
+  @@index([manually_created], map: "idx_invoices_manually_created")
+  @@index([payment_method], map: "idx_invoices_payment_method")
+  @@index([status], map: "idx_invoices_status")
+  @@index([subscription_id], map: "idx_invoices_subscription")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model oauth_states {
+  id                   String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  state_token          String               @unique @db.VarChar(255)
+  provider             String               @db.VarChar(50)
+  submission_id        String               @db.Uuid
+  gate_id              String               @db.Uuid
+  code_verifier        String?              @db.VarChar(255)
+  expires_at           DateTime             @db.Timestamp(6)
+  used                 Boolean?             @default(false)
+  created_at           DateTime?            @default(now()) @db.Timestamp(6)
+  download_gates       download_gates       @relation(fields: [gate_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  download_submissions download_submissions @relation(fields: [submission_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([expires_at], map: "idx_oauth_states_expires_at")
+  @@index([state_token], map: "idx_oauth_states_state_token")
+  @@index([submission_id], map: "idx_oauth_states_submission_id")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model prices {
+  id                       String               @id @db.VarChar(255)
+  object                   String               @default("price") @db.VarChar(50)
+  product_id               String               @db.VarChar(255)
+  active                   Boolean              @default(true)
+  currency                 String               @default("eur") @db.VarChar(3)
+  unit_amount              Int
+  unit_amount_decimal      String?              @db.VarChar(50)
+  type                     String               @default("recurring") @db.VarChar(20)
+  billing_scheme           String?              @default("per_unit") @db.VarChar(20)
+  recurring_interval       String?              @db.VarChar(10)
+  recurring_interval_count Int?                 @default(1)
+  recurring_usage_type     String?              @default("licensed") @db.VarChar(20)
+  metadata                 Json?                @default("{}")
+  created                  DateTime             @default(now()) @db.Timestamp(6)
+  updated                  DateTime             @default(now()) @db.Timestamp(6)
+  livemode                 Boolean              @default(false)
+  products                 products             @relation(fields: [product_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  subscription_items       subscription_items[]
+
+  @@index([active], map: "idx_prices_active")
+  @@index([product_id], map: "idx_prices_product")
+  @@index([recurring_interval], map: "idx_prices_recurring_interval")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model pricing_plans {
+  id                 Int       @id @default(autoincrement())
+  plan_name          String    @unique @db.VarChar(50)
+  max_contacts       Int
+  max_monthly_emails Int?
+  price_monthly_eur  Decimal   @db.Decimal(10, 2)
+  features           Json?     @default("[]")
+  active             Boolean?  @default(true)
+  created_at         DateTime? @default(now()) @db.Timestamp(6)
+  updated_at         DateTime? @default(now()) @db.Timestamp(6)
+
+  @@index([active], map: "idx_pricing_plans_active")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model products {
+  id                 String   @id @db.VarChar(255)
+  object             String   @default("product") @db.VarChar(50)
+  name               String   @db.VarChar(255)
+  description        String?
+  active             Boolean  @default(true)
+  marketing_features Json?    @default("[]")
+  metadata           Json?    @default("{}")
+  created            DateTime @default(now()) @db.Timestamp(6)
+  updated            DateTime @default(now()) @db.Timestamp(6)
+  livemode           Boolean  @default(false)
+  prices             prices[]
+
+  @@index([active], map: "idx_products_active")
+  @@index([name], map: "idx_products_name")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model sessions {
+  id            Int       @id @default(autoincrement())
+  user_id       Int
+  session_token String    @unique @db.VarChar(255)
+  expires       DateTime  @db.Timestamp(6)
+  created_at    DateTime? @default(now()) @db.Timestamp(6)
+  users         users     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([expires], map: "idx_sessions_expires")
+  @@index([session_token], map: "idx_sessions_token")
+  @@index([user_id], map: "idx_sessions_user_id")
+}
+
+model soundcloud_tracks {
+  id           Int       @id @default(autoincrement())
+  user_id      Int?
+  track_id     String    @db.VarChar(500)
+  title        String    @db.VarChar(500)
+  url          String    @db.VarChar(1000)
+  published_at DateTime  @db.Timestamp(6)
+  cover_image  String?   @db.VarChar(1000)
+  description  String?
+  created_at   DateTime? @default(now()) @db.Timestamp(6)
+  users        users?    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([user_id, track_id])
+  @@index([published_at(sort: Desc)], map: "idx_published_at")
+  @@index([track_id], map: "idx_soundcloud_tracks_track_id")
+  @@index([user_id], map: "idx_soundcloud_tracks_user_id")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model spotify_tracks {
+  id           Int       @id @default(autoincrement())
+  user_id      Int?
+  track_id     String    @db.VarChar(500)
+  title        String    @db.VarChar(500)
+  url          String    @db.VarChar(1000)
+  published_at DateTime  @db.Timestamp(6)
+  cover_image  String?   @db.VarChar(1000)
+  description  String?
+  album_type   String?   @db.VarChar(50)
+  total_tracks Int?
+  created_at   DateTime? @default(now()) @db.Timestamp(6)
+  users        users?    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([user_id, track_id])
+  @@index([published_at(sort: Desc)], map: "idx_spotify_tracks_published_at")
+  @@index([track_id], map: "idx_spotify_tracks_track_id")
+  @@index([user_id], map: "idx_spotify_tracks_user_id")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model subscription_history {
+  id                                                   Int       @id @default(autoincrement())
+  user_id                                              Int
+  change_type                                          String    @db.VarChar(50)
+  old_plan                                             String?   @db.VarChar(50)
+  new_plan                                             String?   @db.VarChar(50)
+  old_quota                                            Json?
+  new_quota                                            Json?
+  changed_by_user_id                                   Int?
+  change_reason                                        String?
+  ip_address                                           String?   @db.VarChar(45)
+  user_agent                                           String?
+  created_at                                           DateTime? @default(now()) @db.Timestamp(6)
+  users_subscription_history_changed_by_user_idTousers users?    @relation("subscription_history_changed_by_user_idTousers", fields: [changed_by_user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  users_subscription_history_user_idTousers            users     @relation("subscription_history_user_idTousers", fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([change_type], map: "idx_subscription_history_change_type")
+  @@index([created_at], map: "idx_subscription_history_created_at")
+  @@index([user_id], map: "idx_subscription_history_user_id")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model subscription_items {
+  id              String        @id @db.VarChar(255)
+  object          String        @default("subscription_item") @db.VarChar(50)
+  subscription_id String        @db.VarChar(255)
+  price_id        String        @db.VarChar(255)
+  quantity        Int           @default(1)
+  created         DateTime      @default(now()) @db.Timestamp(6)
+  metadata        Json?         @default("{}")
+  prices          prices        @relation(fields: [price_id], references: [id], onUpdate: NoAction)
+  subscriptions   subscriptions @relation(fields: [subscription_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([price_id], map: "idx_subscription_items_price")
+  @@index([subscription_id], map: "idx_subscription_items_subscription")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model subscriptions {
+  id                   String               @id @db.VarChar(255)
+  object               String               @default("subscription") @db.VarChar(50)
+  customer_id          Int
+  status               String               @default("active") @db.VarChar(50)
+  current_period_start DateTime             @db.Timestamp(6)
+  current_period_end   DateTime             @db.Timestamp(6)
+  billing_cycle_anchor DateTime             @db.Timestamp(6)
+  cancel_at_period_end Boolean?             @default(false)
+  cancel_at            DateTime?            @db.Timestamp(6)
+  canceled_at          DateTime?            @db.Timestamp(6)
+  ended_at             DateTime?            @db.Timestamp(6)
+  trial_start          DateTime?            @db.Timestamp(6)
+  trial_end            DateTime?            @db.Timestamp(6)
+  created              DateTime             @default(now()) @db.Timestamp(6)
+  start_date           DateTime             @db.Timestamp(6)
+  metadata             Json?                @default("{}")
+  collection_method    String?              @default("charge_automatically") @db.VarChar(20)
+  livemode             Boolean              @default(false)
+  invoices             invoices[]
+  subscription_items   subscription_items[]
+  users                users                @relation(fields: [customer_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([current_period_end], map: "idx_subscriptions_current_period_end")
+  @@index([customer_id], map: "idx_subscriptions_customer")
+  @@index([status], map: "idx_subscriptions_status")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model users {
+  id                                                                  Int                      @id @default(autoincrement())
+  email                                                               String                   @unique @db.VarChar(255)
+  password_hash                                                       String                   @db.VarChar(255)
+  name                                                                String?                  @db.VarChar(255)
+  role                                                                String                   @default("artist") @db.VarChar(20)
+  soundcloud_id                                                       String?                  @db.VarChar(255)
+  spotify_id                                                          String?                  @db.VarChar(255)
+  subscription_plan                                                   String                   @default("free") @db.VarChar(20)
+  monthly_quota                                                       Int                      @default(1000)
+  emails_sent_this_month                                              Int                      @default(0)
+  quota_reset_at                                                      DateTime?                @default(dbgenerated("(date_trunc('month'::text, CURRENT_TIMESTAMP) + '1 mon'::interval)")) @db.Timestamp(6)
+  active                                                              Boolean?                 @default(true)
+  email_verified                                                      Boolean?                 @default(false)
+  created_at                                                          DateTime?                @default(now()) @db.Timestamp(6)
+  updated_at                                                          DateTime?                @default(now()) @db.Timestamp(6)
+  last_login_at                                                       DateTime?                @db.Timestamp(6)
+  stripe_customer_id                                                  String?                  @db.VarChar(255)
+  stripe_subscription_id                                              String?                  @db.VarChar(255)
+  subscription_status                                                 String?                  @db.VarChar(50)
+  current_period_end                                                  DateTime?                @db.Timestamp(6)
+  cancel_at_period_end                                                Boolean?                 @default(false)
+  subscription_expires_at                                             DateTime?                @db.Timestamp(6)
+  max_contacts                                                        Int?                     @default(100)
+  max_monthly_emails                                                  Int?                     @default(500)
+  soundcloud_permalink                                                String?                  @db.VarChar(255)
+  subscription_started_at                                             DateTime?                @db.Timestamp(6)
+  brevo_import_history                                                brevo_import_history[]
+  brevo_integrations                                                  brevo_integrations?
+  consent_history                                                     consent_history[]
+  contact_import_history                                              contact_import_history[]
+  contacts                                                            contacts[]
+  download_gates                                                      download_gates[]
+  email_campaigns                                                     email_campaigns[]
+  email_events                                                        email_events[]
+  email_logs                                                          email_logs[]
+  email_templates                                                     email_templates[]
+  execution_logs                                                      execution_logs[]
+  invoices_invoices_created_by_user_idTousers                         invoices[]               @relation("invoices_created_by_user_idTousers")
+  invoices_invoices_customer_idTousers                                invoices[]               @relation("invoices_customer_idTousers")
+  sessions                                                            sessions[]
+  soundcloud_tracks                                                   soundcloud_tracks[]
+  spotify_tracks                                                      spotify_tracks[]
+  subscription_history_subscription_history_changed_by_user_idTousers subscription_history[]   @relation("subscription_history_changed_by_user_idTousers")
+  subscription_history_subscription_history_user_idTousers            subscription_history[]   @relation("subscription_history_user_idTousers")
+  subscriptions                                                       subscriptions[]
+
+  @@index([active], map: "idx_users_active")
+  @@index([email], map: "idx_users_email")
+  @@index([role], map: "idx_users_role")
+  @@index([soundcloud_id], map: "idx_users_soundcloud_id")
+  @@index([spotify_id], map: "idx_users_spotify_id")
+  @@index([subscription_expires_at], map: "idx_users_subscription_expires_at")
+  @@index([subscription_plan], map: "idx_users_subscription_plan")
+}

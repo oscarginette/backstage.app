@@ -10,6 +10,71 @@
 
 ---
 
+## 🎯 Decision-Making Philosophy
+
+**CRITICAL RULE: NEVER consider implementation time/speed when making decisions.**
+
+When presenting solutions or recommendations:
+
+- ❌ **FORBIDDEN**: "this will take 2 hours", "quick fix", "fast solution", "easy to implement"
+- ❌ **FORBIDDEN**: Comparing options by time/complexity ("Option A is faster", "Option B takes longer")
+- ❌ **FORBIDDEN**: Suggesting "quick wins" or "low-hanging fruit" based on implementation speed
+- ❌ **FORBIDDEN**: Time estimates in summaries, comparisons, or recommendations
+
+**ALWAYS optimize for:**
+1. **Robustness** - Will it handle edge cases, errors, and scale?
+2. **Correctness** - Does it solve the root problem completely?
+3. **Maintainability** - Will the next developer understand and be able to modify it?
+4. **Long-term quality** - Will this stand the test of time?
+
+**When presenting multiple options:**
+- Rank by **quality/robustness**, NOT by speed
+- Explain **trade-offs in quality**, NOT in time
+- Recommend the **best solution**, NOT the fastest
+
+**Examples:**
+
+❌ **WRONG**:
+```
+Option 1: Quick script (2 hours) - validates basic schema
+Option 2: Prisma migrations (1 day) - full schema management
+Option 3: Preview environments (3 days) - production parity
+
+Recommendation: Start with Option 1 for quick wins.
+```
+
+✅ **CORRECT**:
+```
+Option 1: Pre-deploy validation script
+- Robustness: Medium (manual schema maintenance, prone to drift)
+- Correctness: Partial (catches known issues only)
+- Maintainability: Low (requires updating script per schema change)
+
+Option 2: Prisma migrations + CI/CD
+- Robustness: High (automated, version-controlled schema)
+- Correctness: Complete (prevents all schema drift)
+- Maintainability: High (single source of truth)
+
+Option 3: Preview environments with DB clones
+- Robustness: Very High (tests in production-like environment)
+- Correctness: Complete (catches runtime + schema issues)
+- Maintainability: Very High (automated, zero manual intervention)
+
+Recommendation: Option 3 (best quality), fallback to Option 2 if preview envs not feasible.
+```
+
+**This applies to ALL interactions:**
+- Feature design
+- Architecture decisions
+- Refactoring strategies
+- Bug fixes
+- Tool selection
+- Testing approaches
+
+**The user will decide priorities and timelines. You optimize for quality.**
+
+---
+
 ## Architecture: Clean Architecture + SOLID Principles
 
 This project follows Clean Architecture principles with strict separation of concerns.
