@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { sql } from '@/lib/db';
-import Parser from 'rss-parser';
+import { XMLParser } from 'fast-xml-parser';
 import { env, getAppUrl, getBaseUrl } from '@/lib/env';
 
 export const dynamic = 'force-dynamic';
@@ -36,12 +36,23 @@ export async function GET() {
     `;
 
     // Obtener información adicional del RSS para imágenes y descripciones
-    const parser = new Parser();
+    const parser = new XMLParser({
+      ignoreAttributes: false,
+      attributeNamePrefix: '@_',
+    });
     const rssUrl = `https://feeds.soundcloud.com/users/soundcloud:users:${env.SOUNDCLOUD_USER_ID}/sounds.rss`;
 
-    let feed: Parser.Output<{ [key: string]: any }> | undefined;
+    let feedItems: any[] = [];
     try {
-      feed = await parser.parseURL(rssUrl);
+      const response = await fetch(rssUrl);
+      if (response.ok) {
+        const xmlText = await response.text();
+        const feed = parser.parse(xmlText);
+        const channel = feed.rss?.channel;
+        if (channel?.item) {
+          feedItems = Array.isArray(channel.item) ? channel.item : [channel.item];
+        }
+      }
     } catch (error) {
       console.error('Failed to fetch RSS feed:', error);
     }
@@ -53,14 +64,14 @@ export async function GET() {
       let description = row.description;
 
       // Si no, intentar obtener del RSS
-      if ((!coverImage || !description) && feed) {
-        const rssTrack = feed.items.find(
+      if ((!coverImage || !description) && feedItems.length > 0) {
+        const rssTrack = feedItems.find(
           (item: any) => item.link === row.url || item.guid === row.track_id
         );
 
         if (rssTrack) {
-          coverImage = coverImage || rssTrack.itunes?.image || rssTrack.enclosure?.url || null;
-          description = description || rssTrack.contentSnippet || rssTrack.content || null;
+          coverImage = coverImage || rssTrack['itunes:image']?.['@_href'] || rssTrack.enclosure?.['@_url'] || null;
+          description = description || rssTrack.description || null;
         }
       }
 

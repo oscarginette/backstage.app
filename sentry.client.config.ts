@@ -26,11 +26,11 @@ Sentry.init({
       blockAllMedia: true,
       maskAllInputs: true,
     }),
-    Sentry.browserTracingIntegration({
-      // Track navigation timing
-      tracePropagationTargets: ['localhost', /^\//],
-    }),
+    Sentry.browserTracingIntegration(),
   ],
+
+  // Trace propagation for distributed tracing
+  tracePropagationTargets: ['localhost', /^\//],
 
   // Ignore known browser extensions and common errors
   ignoreErrors: [

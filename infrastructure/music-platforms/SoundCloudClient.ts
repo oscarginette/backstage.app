@@ -1,11 +1,35 @@
-import Parser from 'rss-parser';
+import { XMLParser } from 'fast-xml-parser';
 import { IMusicPlatformClient } from './IMusicPlatformClient';
 
+interface RSSFeed {
+  rss: {
+    channel: {
+      title: string;
+      item?: RSSItem | RSSItem[];
+    };
+  };
+}
+
+interface RSSItem {
+  guid: string;
+  link: string;
+  title: string;
+  pubDate: string;
+  'dc:creator'?: string;
+  'itunes:author'?: string;
+  'itunes:duration'?: string;
+  'itunes:image'?: { '@_href': string };
+  enclosure?: { '@_url': string; '@_type': string };
+}
+
 export class SoundCloudClient implements IMusicPlatformClient {
-  private parser: Parser;
+  private parser: XMLParser;
 
   constructor() {
-    this.parser = new Parser();
+    this.parser = new XMLParser({
+      ignoreAttributes: false,
+      attributeNamePrefix: '@_',
+    });
   }
 
   async fetchTracks(userId: string): Promise<any[]> {
@@ -13,19 +37,42 @@ export class SoundCloudClient implements IMusicPlatformClient {
     console.log('[SoundCloudClient] Fetching from URL:', rssUrl);
 
     try {
-      const feed = await this.parser.parseURL(rssUrl);
+      const response = await fetch(rssUrl);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const xmlText = await response.text();
+      const feed = this.parser.parse(xmlText) as RSSFeed;
+
+      const channel = feed.rss?.channel;
+      if (!channel) {
+        throw new Error('Invalid RSS feed structure');
+      }
+
       console.log('[SoundCloudClient] Feed parsed:', {
-        title: feed.title,
-        itemCount: feed.items?.length || 0
+        title: channel.title,
+        itemCount: 0
       });
 
-      if (!feed.items || feed.items.length === 0) {
+      // Handle both single item and array of items
+      let items: RSSItem[] = [];
+      if (channel.item) {
+        items = Array.isArray(channel.item) ? channel.item : [channel.item];
+      }
+
+      console.log('[SoundCloudClient] Feed parsed:', {
+        title: channel.title,
+        itemCount: items.length
+      });
+
+      if (items.length === 0) {
         console.log('[SoundCloudClient] No tracks found in feed');
         return [];
       }
 
-      console.log('[SoundCloudClient] First track:', feed.items[0]?.title);
-      return feed.items;
+      console.log('[SoundCloudClient] First track:', items[0]?.title);
+      return items;
     } catch (error) {
       console.error('[SoundCloudClient] Error fetching tracks:', error);
       throw new Error(`Failed to fetch SoundCloud tracks: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -38,10 +85,16 @@ export class SoundCloudClient implements IMusicPlatformClient {
       link: rawData.link,
       title: rawData.title,
       pubDate: rawData.pubDate,
-      creator: rawData.creator,
-      author: rawData.author,
-      itunes: rawData.itunes,
-      enclosure: rawData.enclosure
+      creator: rawData['dc:creator'],
+      author: rawData['itunes:author'],
+      itunes: {
+        duration: rawData['itunes:duration'],
+        image: rawData['itunes:image']?.['@_href'],
+      },
+      enclosure: rawData.enclosure ? {
+        url: rawData.enclosure['@_url'],
+        type: rawData.enclosure['@_type'],
+      } : undefined
     };
   }
 }
