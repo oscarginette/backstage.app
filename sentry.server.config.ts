@@ -1,16 +1,13 @@
-/**
- * Sentry Server Configuration
- *
- * Monitors errors in server-side code (API routes, server components, middleware).
- * Configured with GDPR-compliant data sanitization.
- */
-
 import * as Sentry from '@sentry/nextjs';
 
+/**
+ * Sentry Server Configuration
+ * Runs on Next.js server - captures API route errors
+ */
 Sentry.init({
-  dsn: process.env.SENTRY_DSN,
+  dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
 
-  // Environment configuration
+  // Environment
   environment: process.env.NODE_ENV,
 
   // Performance Monitoring
@@ -19,111 +16,47 @@ Sentry.init({
   // Debug mode (only in development)
   debug: process.env.NODE_ENV === 'development',
 
-  // Server-side integrations
+  // Database instrumentation
   integrations: [
-    // HTTP tracking for API requests
-    Sentry.httpIntegration(),
+    Sentry.prismaIntegration(), // Si usas Prisma
+    Sentry.postgresIntegration(), // Para Postgres
   ],
 
-  // Privacy & GDPR Compliance
+  // Before sending, enrich events with server context
   beforeSend(event, hint) {
-    // Remove sensitive data from request
+    // Don't send events in development
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Sentry server event (dev):', event);
+      return null;
+    }
+
+    // Add server metadata
+    event.tags = {
+      ...event.tags,
+      server: 'vercel',
+      region: process.env.VERCEL_REGION || 'unknown',
+    };
+
+    // Filter sensitive data from request
     if (event.request) {
       // Remove sensitive headers
       if (event.request.headers) {
         delete event.request.headers['authorization'];
         delete event.request.headers['cookie'];
-        delete event.request.headers['set-cookie'];
-        delete event.request.headers['x-api-key'];
       }
 
-      // Remove sensitive query parameters
+      // Remove sensitive query params
       if (event.request.query_string) {
-        const params = new URLSearchParams(event.request.query_string);
-        const sensitiveParams = ['token', 'email', 'password', 'apiKey', 'secret'];
+        const sensitiveParams = ['token', 'password', 'api_key'];
         sensitiveParams.forEach((param) => {
-          if (params.has(param)) {
-            params.set(param, '[Filtered]');
-          }
+          event.request.query_string = event.request.query_string?.replace(
+            new RegExp(`${param}=[^&]*`, 'gi'),
+            `${param}=REDACTED`
+          );
         });
-        event.request.query_string = params.toString();
       }
-
-      // Sanitize request body
-      if (event.request.data) {
-        event.request.data = sanitizeData(event.request.data);
-      }
-    }
-
-    // Sanitize extra context
-    if (event.extra) {
-      event.extra = sanitizeData(event.extra) as Record<string, unknown>;
-    }
-
-    // Sanitize contexts
-    if (event.contexts) {
-      Object.keys(event.contexts).forEach((key) => {
-        const sanitized = sanitizeData(event.contexts![key]);
-        if (sanitized && typeof sanitized === 'object') {
-          event.contexts![key] = sanitized as Record<string, unknown>;
-        }
-      });
     }
 
     return event;
   },
-
-  // Ignore common errors
-  ignoreErrors: [
-    // Database connection timeouts (handled by infrastructure)
-    'ECONNREFUSED',
-    'ENOTFOUND',
-    // Client disconnections
-    'ECONNRESET',
-    'socket hang up',
-  ],
 });
-
-/**
- * Sanitize data to remove PII (Personal Identifiable Information)
- * GDPR compliant data filtering
- */
-function sanitizeData(data: unknown): unknown {
-  if (data === null || data === undefined) {
-    return data;
-  }
-
-  if (Array.isArray(data)) {
-    return data.map((item) => sanitizeData(item));
-  }
-
-  if (typeof data === 'object') {
-    const sanitized: Record<string, unknown> = {};
-
-    for (const [key, value] of Object.entries(data)) {
-      const lowerKey = key.toLowerCase();
-
-      // Filter out sensitive fields
-      if (
-        lowerKey.includes('email') ||
-        lowerKey.includes('password') ||
-        lowerKey.includes('token') ||
-        lowerKey.includes('secret') ||
-        lowerKey.includes('apikey') ||
-        lowerKey.includes('api_key') ||
-        lowerKey.includes('authorization') ||
-        lowerKey.includes('cookie')
-      ) {
-        sanitized[key] = '[Filtered]';
-      } else if (typeof value === 'object') {
-        sanitized[key] = sanitizeData(value);
-      } else {
-        sanitized[key] = value;
-      }
-    }
-
-    return sanitized;
-  }
-
-  return data;
-}
