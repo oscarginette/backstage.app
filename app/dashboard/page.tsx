@@ -17,6 +17,8 @@ import CompactGatesList from '../../components/dashboard/CompactGatesList';
 import QuotaWarning from '../../components/dashboard/QuotaWarning';
 import UserManagementTable from '../../components/admin/UserManagementTable';
 import UserTable from '../../components/admin/UserTable';
+import AudienceSubTabs, { AudienceSubTabType } from '../../components/dashboard/AudienceSubTabs';
+import ContactListsManager from '../../components/dashboard/ContactListsManager';
 import { Settings, Plus, Mail, Rocket, Users, ArrowRight, FileText, Settings as SettingsIcon } from 'lucide-react';
 import Link from 'next/link';
 import { useTranslations } from '@/lib/i18n/context';
@@ -31,6 +33,7 @@ function DashboardContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const activeTab = (searchParams.get('tab') as TabType) || 'overview';
+  const audienceSubTab = (searchParams.get('audienceTab') as AudienceSubTabType) || 'contacts';
   const { data: session } = useSession();
   const contactsListRef = useRef<ContactsListRef>(null);
   const { hasAccess, isExpired } = useQuotaAccess();
@@ -38,6 +41,12 @@ function DashboardContent() {
   const setActiveTab = (tab: TabType) => {
     const params = new URLSearchParams(searchParams.toString());
     params.set('tab', tab);
+    router.push(`/dashboard?${params.toString()}`, { scroll: false });
+  };
+
+  const setAudienceSubTab = (subTab: AudienceSubTabType) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('audienceTab', subTab);
     router.push(`/dashboard?${params.toString()}`, { scroll: false });
   };
 
@@ -317,21 +326,33 @@ function DashboardContent() {
                   </aside>
                </div>
 
-               <section className="space-y-6">
-                  <h3 className="text-2xl font-serif px-2">Campaign History</h3>
-                  <div className="bg-white/40 border border-[#E8E6DF]/60 rounded-3xl overflow-hidden shadow-sm">
-                     <ExecutionHistory history={history} />
-                  </div>
-               </section>
+                <section className="space-y-6">
+                   <ExecutionHistory history={history} />
+                </section>
             </div>
           )}
 
           {activeTab === 'audience' && (
-            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <ContactsList
-                ref={contactsListRef}
-                onImportClick={() => handleProtectedAction(() => setShowImportModal(true))}
-              />
+            <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+              {/* Sub-tabs */}
+              <div className="flex items-center justify-between">
+                <AudienceSubTabs
+                  activeSubTab={audienceSubTab}
+                  onSubTabChange={setAudienceSubTab}
+                />
+              </div>
+
+              {/* Sub-tab Content */}
+              {audienceSubTab === 'contacts' && (
+                <ContactsList
+                  ref={contactsListRef}
+                  onImportClick={() => handleProtectedAction(() => setShowImportModal(true))}
+                />
+              )}
+
+              {audienceSubTab === 'lists' && (
+                <ContactListsManager />
+              )}
             </div>
           )}
 
