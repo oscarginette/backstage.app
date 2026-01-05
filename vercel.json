@@ -1,6 +1,12 @@
 {
-  "crons": [{
-    "path": "/api/check-music-platforms",
-    "schedule": "0 19 * * *"
-  }]
+  "crons": [
+    {
+      "path": "/api/check-music-platforms",
+      "schedule": "0 19 * * *"
+    },
+    {
+      "path": "/api/cron/check-spotify-releases",
+      "schedule": "0 */6 * * *"
+    }
+  ]
 }

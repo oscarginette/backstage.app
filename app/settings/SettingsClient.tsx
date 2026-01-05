@@ -90,10 +90,10 @@ export default function SettingsClient({
   };
 
   return (
-    <div className="min-h-screen h-screen relative flex flex-col bg-[#FDFCF8] selection:bg-accent/30 selection:text-foreground overflow-hidden">
+    <div className="min-h-screen h-screen relative flex flex-col bg-background selection:bg-accent/30 selection:text-foreground overflow-hidden">
       {/* Background Aurora Effects */}
       <div className="fixed inset-0 pointer-events-none z-0">
-        <div className="absolute top-0 left-1/4 w-[1000px] h-[600px] bg-aurora-light opacity-30 blur-[120px] animate-blob" />
+        <div className="absolute top-0 left-1/4 w-[1000px] h-[600px] bg-aurora-light opacity-30 dark:opacity-10 blur-[120px] animate-blob" />
         <div className="absolute bottom-0 right-1/4 w-[800px] h-[500px] bg-accent/5 blur-[100px] animate-blob animation-delay-2000" />
       </div>
 
@@ -103,14 +103,14 @@ export default function SettingsClient({
           href={PATHS.DASHBOARD.ROOT}
           className="group inline-flex items-center gap-2 text-sm font-bold text-foreground/40 hover:text-foreground transition-all"
         >
-          <div className="w-8 h-8 rounded-full border border-border/40 flex items-center justify-center bg-white/40 backdrop-blur-md group-hover:border-accent group-hover:bg-accent/5 transition-all shadow-sm">
+          <div className="w-8 h-8 rounded-full border border-border/40 flex items-center justify-center bg-white/40 dark:bg-black/20 backdrop-blur-md group-hover:border-accent group-hover:bg-accent/5 transition-all shadow-sm">
             <ArrowLeft className="w-3.5 h-3.5 transition-transform group-hover:-translate-x-1" />
           </div>
           <span className="hidden sm:inline uppercase tracking-widest text-[9px]">{t("back")}</span>
         </Link>
 
         <div className="font-serif italic text-xl text-foreground/80">
-          The Backstage Settings
+          Backstage Settings
         </div>
 
         <div className="w-8 h-8" />
@@ -123,7 +123,7 @@ export default function SettingsClient({
           animate={{ opacity: 1, y: 0 }}
           className="mb-6"
         >
-          <div className="bg-white/60 backdrop-blur-2xl border border-white/80 rounded-2xl p-4 shadow-sm">
+          <div className="bg-white/60 dark:bg-black/40 backdrop-blur-2xl border border-white/80 dark:border-white/10 rounded-2xl p-4 shadow-sm">
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-lg font-serif text-foreground">
@@ -139,7 +139,7 @@ export default function SettingsClient({
                 type="button"
                 onClick={handleLogoutClick}
                 disabled={isLoggingOut}
-                className="group relative h-8 px-3 rounded-lg border border-border/40 bg-white/40 text-foreground/40 hover:text-foreground/70 hover:border-border/60 hover:bg-white/60 text-xs font-medium transition-all disabled:opacity-70"
+                className="group relative h-8 px-3 rounded-lg border border-border/40 bg-white/40 dark:bg-black/20 text-foreground/40 hover:text-foreground/70 hover:border-border/60 hover:bg-white/60 dark:hover:bg-white/10 text-xs font-medium transition-all disabled:opacity-70"
               >
                 <span className="flex items-center gap-1.5">
                   <LogOut className="w-3 h-3" />
@@ -156,10 +156,10 @@ export default function SettingsClient({
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="bg-white/40 backdrop-blur-2xl border border-white/60 rounded-2xl p-6 shadow-sm"
+            className="bg-white/40 dark:bg-black/30 backdrop-blur-2xl border border-white/60 dark:border-white/5 rounded-2xl p-6 shadow-sm"
           >
             <div className="mb-5">
-              <h2 className="text-base font-serif mb-1">{t("personalInfo")}</h2>
+              <h2 className="text-base font-serif mb-1 text-foreground">{t("personalInfo")}</h2>
               <p className="text-foreground/50 text-xs">{t("personalSubtitle")}</p>
             </div>
 
@@ -172,7 +172,7 @@ export default function SettingsClient({
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full h-10 px-4 rounded-xl border border-border/60 bg-white/50 focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent/40 focus:bg-white transition-all text-sm font-medium"
+                  className="w-full h-10 px-4 rounded-xl border border-border/60 bg-white/50 dark:bg-white/5 focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent/40 focus:bg-white dark:focus:bg-black/50 transition-all text-sm font-medium text-foreground"
                   placeholder="John Doe"
                 />
               </div>
@@ -181,7 +181,7 @@ export default function SettingsClient({
                 <label className="text-[9px] font-black uppercase tracking-[0.15em] text-foreground/40 ml-1">
                   {t("email")}
                 </label>
-                <div className="w-full h-10 px-4 rounded-xl border border-border/40 bg-black/5 flex items-center text-foreground/30 text-sm font-medium cursor-not-allowed select-none">
+                <div className="w-full h-10 px-4 rounded-xl border border-border/40 bg-black/5 dark:bg-white/5 flex items-center text-foreground/30 text-sm font-medium cursor-not-allowed select-none">
                   {userEmail}
                 </div>
                 <p className="text-[8px] text-foreground/30 ml-1 italic">Cannot be modified</p>
@@ -194,11 +194,11 @@ export default function SettingsClient({
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.15 }}
-            className="bg-white/40 backdrop-blur-2xl border border-white/60 rounded-2xl p-6 shadow-sm"
+            className="bg-white/40 dark:bg-black/30 backdrop-blur-2xl border border-white/60 dark:border-white/5 rounded-2xl p-6 shadow-sm"
           >
             <div className="mb-5">
-              <h2 className="text-base font-serif mb-1">Appearance</h2>
-              <p className="text-foreground/50 text-xs">Customize how The Backstage looks on your device</p>
+              <h2 className="text-base font-serif mb-1 text-foreground">Appearance</h2>
+              <p className="text-foreground/50 text-xs">Customize how Backstage looks on your device</p>
             </div>
 
             <ThemeSwitcher />
@@ -209,10 +209,10 @@ export default function SettingsClient({
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="bg-white/40 backdrop-blur-2xl border border-white/60 rounded-2xl p-6 shadow-sm"
+            className="bg-white/40 dark:bg-black/30 backdrop-blur-2xl border border-white/60 dark:border-white/5 rounded-2xl p-6 shadow-sm"
           >
             <div className="mb-5">
-              <h2 className="text-base font-serif mb-1">{t("platforms")}</h2>
+              <h2 className="text-base font-serif mb-1 text-foreground">{t("platforms")}</h2>
               <p className="text-foreground/50 text-xs">{t("platformsSubtitle")}</p>
             </div>
 
@@ -237,7 +237,7 @@ export default function SettingsClient({
                   type="text"
                   value={soundcloudUrl}
                   onChange={(e) => setSoundcloudUrl(e.target.value)}
-                  className="w-full h-10 px-4 rounded-xl border border-border/60 bg-white/50 focus:outline-none focus:ring-2 focus:ring-[#FF5500]/20 focus:border-[#FF5500]/40 focus:bg-white transition-all text-sm font-medium placeholder:text-foreground/20"
+                  className="w-full h-10 px-4 rounded-xl border border-border/60 bg-white/50 dark:bg-white/5 focus:outline-none focus:ring-2 focus:ring-[#FF5500]/20 focus:border-[#FF5500]/40 focus:bg-white dark:focus:bg-black/50 transition-all text-sm font-medium placeholder:text-foreground/20 text-foreground"
                   placeholder="https://soundcloud.com/geebeatmusic"
                 />
                 <p className="text-[10px] text-foreground/40 ml-1">
@@ -265,7 +265,7 @@ export default function SettingsClient({
                   type="text"
                   value={spotifyUrl}
                   onChange={(e) => setSpotifyUrl(e.target.value)}
-                  className="w-full h-10 px-4 rounded-xl border border-border/60 bg-white/50 focus:outline-none focus:ring-2 focus:ring-[#1DB954]/20 focus:border-[#1DB954]/40 focus:bg-white transition-all text-sm font-medium placeholder:text-foreground/20"
+                  className="w-full h-10 px-4 rounded-xl border border-border/60 bg-white/50 dark:bg-white/5 focus:outline-none focus:ring-2 focus:ring-[#1DB954]/20 focus:border-[#1DB954]/40 focus:bg-white dark:focus:bg-black/50 transition-all text-sm font-medium placeholder:text-foreground/20 text-foreground"
                   placeholder="https://open.spotify.com/artist/..."
                 />
                 <p className="text-[10px] text-foreground/40 ml-1">
@@ -329,7 +329,7 @@ export default function SettingsClient({
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: 10 }}
-                  className="flex items-center gap-2 text-emerald-600 font-bold bg-emerald-50 px-3 py-2 rounded-lg border border-emerald-100 text-xs"
+                  className="flex items-center gap-2 text-emerald-600 font-bold bg-emerald-50 dark:bg-emerald-900/30 px-3 py-2 rounded-lg border border-emerald-100 dark:border-emerald-500/20 text-xs"
                 >
                   <CheckCircle2 className="w-3 h-3" />
                   {t("saved")}
@@ -348,8 +348,8 @@ export default function SettingsClient({
                 transition={{ duration: 0.3 }}
                 className="overflow-hidden"
               >
-                <div className="bg-gradient-to-br from-[#FF5500]/5 to-[#FF5500]/10 border border-[#FF5500]/20 rounded-2xl p-6">
-                  <h3 className="text-sm font-bold text-[#1c1c1c] mb-4 flex items-center gap-2">
+                <div className="bg-gradient-to-br from-[#FF5500]/5 to-[#FF5500]/10 border border-[#FF5500]/20 rounded-2xl p-6 relative z-20 bg-background/95 backdrop-blur-md">
+                  <h3 className="text-sm font-bold text-foreground mb-4 flex items-center gap-2">
                     <Info className="w-4 h-4 text-[#FF5500]" />
                     Cómo obtener tu SoundCloud ID
                   </h3>
@@ -360,7 +360,7 @@ export default function SettingsClient({
                         1
                       </div>
                       <div>
-                        <p className="text-xs font-bold text-[#1c1c1c] mb-1">Abre tu perfil de SoundCloud</p>
+                        <p className="text-xs font-bold text-foreground mb-1">Abre tu perfil de SoundCloud</p>
                         <p className="text-xs text-foreground/60 leading-relaxed">
                           Ve a <a href="https://soundcloud.com" target="_blank" className="text-[#FF5500] hover:underline font-medium">soundcloud.com</a> e inicia sesión en tu cuenta.
                         </p>
@@ -372,9 +372,9 @@ export default function SettingsClient({
                         2
                       </div>
                       <div>
-                        <p className="text-xs font-bold text-[#1c1c1c] mb-1">Copia la URL de tu perfil</p>
+                        <p className="text-xs font-bold text-foreground mb-1">Copia la URL de tu perfil</p>
                         <p className="text-xs text-foreground/60 leading-relaxed">
-                          Haz clic en tu foto de perfil y copia la URL. Se verá así: <span className="font-mono bg-white px-1.5 py-0.5 rounded text-[10px]">soundcloud.com/tu-usuario</span>
+                          Haz clic en tu foto de perfil y copia la URL. Se verá así: <span className="font-mono bg-white dark:bg-black/20 px-1.5 py-0.5 rounded text-[10px]">soundcloud.com/tu-usuario</span>
                         </p>
                       </div>
                     </div>
@@ -384,13 +384,13 @@ export default function SettingsClient({
                         3
                       </div>
                       <div>
-                        <p className="text-xs font-bold text-[#1c1c1c] mb-1">Extrae tu ID de usuario</p>
+                        <p className="text-xs font-bold text-foreground mb-1">Extrae tu ID de usuario</p>
                         <p className="text-xs text-foreground/60 leading-relaxed mb-2">
                           Tu SoundCloud ID es la última parte de la URL (después del último "/"). Por ejemplo:
                         </p>
-                        <div className="bg-white rounded-lg p-3 border border-border/60">
+                        <div className="bg-white dark:bg-black/20 rounded-lg p-3 border border-border/60">
                           <p className="text-[10px] font-mono text-foreground/40 mb-1">URL completa:</p>
-                          <p className="text-[11px] font-mono text-[#1c1c1c] mb-2">https://soundcloud.com/<span className="bg-[#FF5500]/20 px-1">gee_beat</span></p>
+                          <p className="text-[11px] font-mono text-foreground mb-2">https://soundcloud.com/<span className="bg-[#FF5500]/20 px-1">gee_beat</span></p>
                           <p className="text-[10px] font-mono text-foreground/40 mb-1">Tu SoundCloud ID:</p>
                           <p className="text-[11px] font-mono font-bold text-[#FF5500]">gee_beat</p>
                         </div>
@@ -402,7 +402,7 @@ export default function SettingsClient({
                         4
                       </div>
                       <div>
-                        <p className="text-xs font-bold text-[#1c1c1c] mb-1">Pégalo arriba y guarda</p>
+                        <p className="text-xs font-bold text-foreground mb-1">Pégalo arriba y guarda</p>
                         <p className="text-xs text-foreground/60 leading-relaxed">
                           Copia ese ID y pégalo en el campo "SoundCloud ID" de arriba. Luego haz clic en "Save changes".
                         </p>
@@ -430,8 +430,8 @@ export default function SettingsClient({
                 transition={{ duration: 0.3 }}
                 className="overflow-hidden"
               >
-                <div className="bg-gradient-to-br from-[#1DB954]/5 to-[#1DB954]/10 border border-[#1DB954]/20 rounded-2xl p-6">
-                  <h3 className="text-sm font-bold text-[#1c1c1c] mb-4 flex items-center gap-2">
+                <div className="bg-gradient-to-br from-[#1DB954]/5 to-[#1DB954]/10 border border-[#1DB954]/20 rounded-2xl p-6 relative z-20 bg-background/95 backdrop-blur-md">
+                  <h3 className="text-sm font-bold text-foreground mb-4 flex items-center gap-2">
                     <Info className="w-4 h-4 text-[#1DB954]" />
                     Cómo obtener tu Spotify Artist ID
                   </h3>
@@ -442,7 +442,7 @@ export default function SettingsClient({
                         1
                       </div>
                       <div>
-                        <p className="text-xs font-bold text-[#1c1c1c] mb-1">Abre tu perfil de artista en Spotify</p>
+                        <p className="text-xs font-bold text-foreground mb-1">Abre tu perfil de artista en Spotify</p>
                         <p className="text-xs text-foreground/60 leading-relaxed">
                           Ve a <a href="https://open.spotify.com" target="_blank" className="text-[#1DB954] hover:underline font-medium">open.spotify.com</a> y busca tu nombre de artista.
                         </p>
@@ -454,9 +454,9 @@ export default function SettingsClient({
                         2
                       </div>
                       <div>
-                        <p className="text-xs font-bold text-[#1c1c1c] mb-1">Entra a tu perfil de artista</p>
+                        <p className="text-xs font-bold text-foreground mb-1">Entra a tu perfil de artista</p>
                         <p className="text-xs text-foreground/60 leading-relaxed">
-                          Haz clic en tu perfil de artista (no en una canción). La URL se verá así: <span className="font-mono bg-white px-1.5 py-0.5 rounded text-[10px]">open.spotify.com/artist/...</span>
+                          Haz clic en tu perfil de artista (no en una canción). La URL se verá así: <span className="font-mono bg-white dark:bg-black/20 px-1.5 py-0.5 rounded text-[10px]">open.spotify.com/artist/...</span>
                         </p>
                       </div>
                     </div>
@@ -466,13 +466,13 @@ export default function SettingsClient({
                         3
                       </div>
                       <div>
-                        <p className="text-xs font-bold text-[#1c1c1c] mb-1">Copia el Artist ID de la URL</p>
+                        <p className="text-xs font-bold text-foreground mb-1">Copia el Artist ID de la URL</p>
                         <p className="text-xs text-foreground/60 leading-relaxed mb-2">
                           Tu Spotify Artist ID está en la URL después de "/artist/". Es un código de 22 caracteres. Por ejemplo:
                         </p>
-                        <div className="bg-white rounded-lg p-3 border border-border/60">
+                        <div className="bg-white dark:bg-black/20 rounded-lg p-3 border border-border/60">
                           <p className="text-[10px] font-mono text-foreground/40 mb-1">URL completa:</p>
-                          <p className="text-[11px] font-mono text-[#1c1c1c] mb-2 break-all">https://open.spotify.com/artist/<span className="bg-[#1DB954]/20 px-1">3TVXtAsR1Inumwj472S9r4</span></p>
+                          <p className="text-[11px] font-mono text-foreground mb-2 break-all">https://open.spotify.com/artist/<span className="bg-[#1DB954]/20 px-1">3TVXtAsR1Inumwj472S9r4</span></p>
                           <p className="text-[10px] font-mono text-foreground/40 mb-1">Tu Spotify Artist ID:</p>
                           <p className="text-[11px] font-mono font-bold text-[#1DB954]">3TVXtAsR1Inumwj472S9r4</p>
                         </div>
@@ -484,7 +484,7 @@ export default function SettingsClient({
                         4
                       </div>
                       <div>
-                        <p className="text-xs font-bold text-[#1c1c1c] mb-1">Pégalo arriba y guarda</p>
+                        <p className="text-xs font-bold text-foreground mb-1">Pégalo arriba y guarda</p>
                         <p className="text-xs text-foreground/60 leading-relaxed">
                           Copia ese ID de 22 caracteres y pégalo en el campo "Spotify Artist ID" de arriba. Luego haz clic en "Save changes".
                         </p>
@@ -518,7 +518,7 @@ export default function SettingsClient({
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
                 onClick={(e) => e.stopPropagation()}
-                className="bg-white rounded-2xl p-6 shadow-xl max-w-sm mx-4 border border-white/80"
+                className="bg-white dark:bg-[#1A1A1A] rounded-2xl p-6 shadow-xl max-w-sm mx-4 border border-white/80 dark:border-white/10"
               >
                 <h3 className="text-lg font-serif text-foreground mb-2">
                   {t("confirmLogout")}
@@ -532,7 +532,7 @@ export default function SettingsClient({
                     type="button"
                     onClick={handleCancelLogout}
                     disabled={isLoggingOut}
-                    className="h-10 px-6 rounded-lg border border-border/60 text-foreground text-xs font-bold hover:bg-black/5 transition-all disabled:opacity-70"
+                    className="h-10 px-6 rounded-lg border border-border/60 text-foreground text-xs font-bold hover:bg-black/5 dark:hover:bg-white/5 transition-all disabled:opacity-70"
                   >
                     {t("cancel")}
                   </button>

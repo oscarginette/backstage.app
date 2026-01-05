@@ -13,6 +13,7 @@ interface SocialActionStepProps {
   onAction: () => Promise<void>;
   isCompleted?: boolean;
   isLoading?: boolean;
+  children?: React.ReactNode; // Allow additional content (e.g., opt-in checkbox)
 }
 
 export function SocialActionStep({
@@ -22,7 +23,8 @@ export function SocialActionStep({
   icon,
   onAction,
   isCompleted = false,
-  isLoading = false
+  isLoading = false,
+  children
 }: SocialActionStepProps) {
   const [internalLoading, setInternalLoading] = useState(false);
 
@@ -56,6 +58,13 @@ export function SocialActionStep({
 
       <h2 className="text-xl font-black uppercase mb-2 tracking-tight">{title}</h2>
       <p className="text-sm text-foreground/60 mb-8">{description}</p>
+
+      {/* Additional content (e.g., opt-in checkbox) */}
+      {children && (
+        <div className="mb-6">
+          {children}
+        </div>
+      )}
 
       <button
         onClick={handleAction}

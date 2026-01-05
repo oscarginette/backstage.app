@@ -11,8 +11,9 @@
  * 4. Get Spotify user profile
  * 5. Update submission with Spotify profile data
  * 6. Follow artist on Spotify (if artist has Spotify ID configured)
- * 7. Mark oauth_state as used
- * 8. Redirect user back to gate page
+ * 7. Create auto-save subscription (if user opted in)
+ * 8. Mark oauth_state as used
+ * 9. Redirect user back to gate page
  *
  * Clean Architecture: API route orchestrates, use cases contain business logic.
  *
@@ -21,6 +22,7 @@
  * - Uses PKCE code_verifier (prevents code interception)
  * - State is single-use (prevents replay attacks)
  * - State expires in 15 minutes
+ * - OAuth tokens encrypted at rest with AES-256-GCM
  */
 
 import { NextResponse } from 'next/server';
@@ -30,8 +32,11 @@ import { PostgresDownloadSubmissionRepository } from '@/infrastructure/database/
 import { PostgresDownloadAnalyticsRepository } from '@/infrastructure/database/repositories/PostgresDownloadAnalyticsRepository';
 import { PostgresDownloadGateRepository } from '@/infrastructure/database/repositories/PostgresDownloadGateRepository';
 import { PostgresUserRepository } from '@/infrastructure/database/repositories/PostgresUserRepository';
+import { PostgresAutoSaveSubscriptionRepository } from '@/infrastructure/database/repositories/PostgresAutoSaveSubscriptionRepository';
 import { ConnectSpotifyUseCase } from '@/domain/services/ConnectSpotifyUseCase';
 import { FollowSpotifyArtistUseCase } from '@/domain/services/FollowSpotifyArtistUseCase';
+import { CreateAutoSaveSubscriptionUseCase } from '@/domain/services/CreateAutoSaveSubscriptionUseCase';
+import { TokenEncryption } from '@/infrastructure/encryption/TokenEncryption';
 import { SpotifyProfile } from '@/domain/types/download-gates';
 
 // Singleton instances
@@ -41,6 +46,8 @@ const submissionRepository = new PostgresDownloadSubmissionRepository();
 const analyticsRepository = new PostgresDownloadAnalyticsRepository();
 const downloadGateRepository = new PostgresDownloadGateRepository();
 const userRepository = new PostgresUserRepository();
+const autoSaveSubscriptionRepository = new PostgresAutoSaveSubscriptionRepository();
+const tokenEncryption = new TokenEncryption();
 
 export const dynamic = 'force-dynamic';
 
@@ -239,17 +246,53 @@ export async function GET(request: Request) {
               // Log error but don't fail the connection
               console.error('[Spotify OAuth] Failed to follow artist (non-critical):', followResult.error);
             }
+
+            // 7. Create auto-save subscription (if user opted in and refresh token available)
+            if (oauthState.autoSaveOptIn && tokenResponse.refresh_token) {
+              try {
+                console.log('[Spotify OAuth] Creating auto-save subscription:', {
+                  spotifyUserId: userProfile.id,
+                  artistSpotifyId: artistUser.spotifyId,
+                });
+
+                const createAutoSaveSubscriptionUseCase = new CreateAutoSaveSubscriptionUseCase(
+                  autoSaveSubscriptionRepository,
+                  tokenEncryption
+                );
+
+                const subscriptionResult = await createAutoSaveSubscriptionUseCase.execute({
+                  submissionId: oauthState.submissionId,
+                  spotifyUserId: userProfile.id,
+                  artistUserId: gate.userId,
+                  artistSpotifyId: artistUser.spotifyId,
+                  accessToken: tokenResponse.access_token,
+                  refreshToken: tokenResponse.refresh_token,
+                  expiresIn: tokenResponse.expires_in,
+                });
+
+                if (subscriptionResult.success) {
+                  console.log('[Spotify OAuth] Successfully created auto-save subscription:', {
+                    subscriptionId: subscriptionResult.subscriptionId,
+                    alreadyExists: subscriptionResult.alreadyExists,
+                  });
+                } else {
+                  console.error('[Spotify OAuth] Failed to create auto-save subscription (non-critical):', subscriptionResult.error);
+                }
+              } catch (error) {
+                console.error('[Spotify OAuth] Error creating auto-save subscription (non-critical):', error);
+              }
+            }
           } else {
-            console.log('[Spotify OAuth] Artist has no Spotify ID configured, skipping follow');
+            console.log('[Spotify OAuth] Artist has no Spotify ID configured, skipping follow and auto-save');
           }
         }
       } catch (error) {
-        // Non-critical: connection succeeds even if follow fails
+        // Non-critical: connection succeeds even if follow or auto-save fails
         console.error('[Spotify OAuth] Error following artist (non-critical):', error);
       }
     }
 
-    // 7. Mark oauth_state as used (prevent replay attacks)
+    // 8. Mark oauth_state as used (prevent replay attacks)
     await oauthStateRepository.markAsUsed(oauthState.id);
 
     console.log('[Spotify OAuth] Successfully connected Spotify:', {
@@ -258,7 +301,7 @@ export async function GET(request: Request) {
       alreadyConnected: result.alreadyConnected,
     });
 
-    // 8. Redirect back to gate page with success
+    // 9. Redirect back to gate page with success
     // Note: The frontend will need to know which gate to redirect to
     // For now, redirect to a generic success page or back to the gate
     return NextResponse.redirect(

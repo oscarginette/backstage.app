@@ -212,7 +212,7 @@ export class PostgresContactListRepository implements IContactListRepository {
 
     const result = await sql`
       DELETE FROM contact_list_members
-      WHERE list_id = ${listId} AND contact_id = ANY(${contactIds})
+      WHERE list_id = ${listId} AND contact_id = ANY(ARRAY[${contactIds.join(',')}]::integer[])
     `;
 
     return result.rowCount || 0;

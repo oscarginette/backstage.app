@@ -19,6 +19,7 @@ export default function DownloadGatePage({ params }: { params: Promise<{ slug: s
   const [loading, setLoading] = useState(true);
   const [oauthLoading, setOauthLoading] = useState(false);
   const [oauthError, setOauthError] = useState<string | null>(null);
+  const [spotifyAutoSaveOptIn, setSpotifyAutoSaveOptIn] = useState(false);
 
   useEffect(() => {
     const fetchGate = async () => {
@@ -166,8 +167,9 @@ export default function DownloadGatePage({ params }: { params: Promise<{ slug: s
     if (!submission?.id || !gate?.id) return;
 
     setOauthLoading(true);
-    // Redirect to Spotify OAuth flow
-    const redirectUrl = `/api/gate/oauth/spotify?submissionId=${submission.id}&gateId=${gate.id}`;
+
+    // Redirect to Spotify OAuth flow with auto-save opt-in preference
+    const redirectUrl = `/api/auth/spotify?submissionId=${submission.id}&gateId=${gate.id}&autoSaveOptIn=${spotifyAutoSaveOptIn}`;
     window.location.href = redirectUrl;
   };
 
@@ -302,13 +304,28 @@ export default function DownloadGatePage({ params }: { params: Promise<{ slug: s
                     <SocialActionStep
                       key="spotify"
                       title="Spotify Connect"
-                      description="Add this track to your library to unlock."
+                      description="Connect your Spotify account to support the artist."
                       buttonText="Connect Spotify"
                       icon="spotify"
                       onAction={handleSpotify}
                       isCompleted={submission?.spotifyConnected}
                       isLoading={oauthLoading}
-                    />
+                    >
+                      {/* Auto-save opt-in checkbox */}
+                      {!submission?.spotifyConnected && (
+                        <label className="flex items-start gap-3 text-left cursor-pointer group">
+                          <input
+                            type="checkbox"
+                            checked={spotifyAutoSaveOptIn}
+                            onChange={(e) => setSpotifyAutoSaveOptIn(e.target.checked)}
+                            className="mt-0.5 w-4 h-4 rounded border-foreground/20 bg-background/50 text-[#1DB954] focus:ring-[#1DB954] focus:ring-offset-0 cursor-pointer"
+                          />
+                          <span className="text-xs text-foreground/70 group-hover:text-foreground/90 transition-colors">
+                            Automatically save all future releases from this artist to my Spotify library
+                          </span>
+                        </label>
+                      )}
+                    </SocialActionStep>
                   )}
 
                   {currentStep === 'download' && (

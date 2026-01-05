@@ -23,9 +23,10 @@ const contactRepository = new PostgresContactRepository();
  */
 export async function POST(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await auth();
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -47,7 +48,7 @@ export async function POST(
     );
     const result = await useCase.execute({
       userId: parseInt(session.user.id),
-      listId: params.id,
+      listId: id,
       contactIds: body.contactIds,
     });
 

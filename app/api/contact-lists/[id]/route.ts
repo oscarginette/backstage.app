@@ -21,9 +21,10 @@ const contactListRepository = new PostgresContactListRepository();
  */
 export async function PATCH(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await auth();
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -34,7 +35,7 @@ export async function PATCH(
     const useCase = new UpdateContactListUseCase(contactListRepository);
     const list = await useCase.execute({
       userId: parseInt(session.user.id),
-      listId: params.id,
+      listId: id,
       name: body.name,
       description: body.description,
       color: body.color,
@@ -76,9 +77,10 @@ export async function PATCH(
  */
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await auth();
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -87,7 +89,7 @@ export async function DELETE(
     const useCase = new DeleteContactListUseCase(contactListRepository);
     await useCase.execute({
       userId: parseInt(session.user.id),
-      listId: params.id,
+      listId: id,
     });
 
     return NextResponse.json({ success: true });

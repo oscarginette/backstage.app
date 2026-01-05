@@ -134,6 +134,7 @@ export interface OAuthState {
   submissionId: string; // UUID
   gateId: string; // UUID
   codeVerifier?: string; // PKCE code verifier (Spotify)
+  autoSaveOptIn?: boolean; // Whether user opted into auto-saving future releases (Spotify)
   expiresAt: Date;
   used: boolean;
   createdAt: Date;
@@ -148,5 +149,6 @@ export interface CreateOAuthStateInput {
   submissionId: string; // UUID
   gateId: string; // UUID
   codeVerifier?: string; // PKCE code verifier (for Spotify)
+  autoSaveOptIn?: boolean; // Whether user opted into auto-saving future releases (Spotify)
   expiresAt: Date;
 }

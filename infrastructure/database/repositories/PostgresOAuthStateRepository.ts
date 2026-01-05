@@ -23,6 +23,7 @@ export class PostgresOAuthStateRepository implements IOAuthStateRepository {
           submission_id,
           gate_id,
           code_verifier,
+          auto_save_opt_in,
           used,
           expires_at
         ) VALUES (
@@ -31,6 +32,7 @@ export class PostgresOAuthStateRepository implements IOAuthStateRepository {
           ${input.submissionId},
           ${input.gateId},
           ${input.codeVerifier ?? null},
+          ${input.autoSaveOptIn ?? false},
           false,
           ${input.expiresAt.toISOString()}
         )
@@ -127,6 +129,7 @@ export class PostgresOAuthStateRepository implements IOAuthStateRepository {
       submissionId: row.submission_id,
       gateId: row.gate_id,
       codeVerifier: row.code_verifier,
+      autoSaveOptIn: row.auto_save_opt_in,
       used: row.used,
       expiresAt: new Date(row.expires_at),
       createdAt: new Date(row.created_at),

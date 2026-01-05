@@ -38,12 +38,14 @@ export const dynamic = 'force-dynamic';
  * Query params:
  * - submissionId: UUID of the download submission
  * - gateId: UUID of the download gate
+ * - autoSaveOptIn: Optional boolean for auto-saving future releases (default: false)
  */
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const submissionId = searchParams.get('submissionId');
     const gateId = searchParams.get('gateId');
+    const autoSaveOptIn = searchParams.get('autoSaveOptIn') === 'true';
 
     // Validate required parameters
     if (!submissionId || !gateId) {
@@ -62,13 +64,14 @@ export async function GET(request: Request) {
     // Calculate expiration (15 minutes from now)
     const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
 
-    // Store OAuth state with PKCE code_verifier
+    // Store OAuth state with PKCE code_verifier and auto-save opt-in preference
     const oauthState = await oauthStateRepository.create({
       stateToken,
       provider: 'spotify',
       submissionId,
       gateId,
       codeVerifier, // PKCE: Store code_verifier for later use
+      autoSaveOptIn, // Store auto-save preference for callback processing
       expiresAt,
     });
 
