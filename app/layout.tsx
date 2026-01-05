@@ -3,6 +3,8 @@ import { Instrument_Serif, Inter } from "next/font/google";
 import { I18nProvider } from "@/lib/i18n/context";
 import { getLocale } from "@/lib/i18n/server";
 import SessionProvider from "@/components/SessionProvider";
+import { ThemeProvider } from "@/infrastructure/theme/ThemeProvider";
+import { themeScript } from "@/infrastructure/theme/theme-script";
 import "./globals.css";
 
 const instrumentSerif = Instrument_Serif({
@@ -19,7 +21,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Backstage | The Artist's Command Center",
+  title: "The Backstage | The Artist's Command Center",
   description: "Automated community growth and management for modern artists.",
 };
 
@@ -32,12 +34,19 @@ export default async function RootLayout({
   const locale = await getLocale();
 
   return (
-    <html lang={locale}>
+    <html lang={locale} suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+      </head>
       <body
-        className={`${instrumentSerif.variable} ${inter.variable} antialiased bg-[#FDFCF8] text-[#1a1a1a]`}
+        className={`${instrumentSerif.variable} ${inter.variable} antialiased transition-colors duration-200`}
       >
         <SessionProvider>
-          <I18nProvider initialLocale={locale}>{children}</I18nProvider>
+          <I18nProvider initialLocale={locale}>
+            <ThemeProvider defaultTheme="system">
+              {children}
+            </ThemeProvider>
+          </I18nProvider>
         </SessionProvider>
       </body>
     </html>

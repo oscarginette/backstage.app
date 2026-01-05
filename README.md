@@ -1,4 +1,4 @@
-# 🎵 Backstage - Email Automation Platform
+# 🎵 The Backstage - Email Automation Platform
 
 Email automation platform for notifying subscribers about new SoundCloud releases.
 
@@ -20,7 +20,7 @@ Configurar variables de entorno en Vercel:
 BREVO_API_KEY=your_brevo_api_key_here
 SOUNDCLOUD_USER_ID=1318247880
 POSTGRES_URL=[auto-generado por Vercel/Neon]
-SENDER_EMAIL=info@geebeat.com
+SENDER_EMAIL=noreply@thebackstage.app
 ```
 
 Para más detalles, ver [documentación de setup](./docs/setup/)
@@ -73,6 +73,6 @@ Para estándares de desarrollo, ver [.claude/CLAUDE.md](./.claude/CLAUDE.md).
 
 ---
 
-**Creado para**: Gee Beat
-**Website**: https://geebeat.com
+**Platform**: The Backstage
+**Website**: https://thebackstage.app
 **Arquitectura**: Clean Architecture + SOLID

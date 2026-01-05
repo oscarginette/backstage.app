@@ -11,7 +11,7 @@
 ## 📋 Resumen Ejecutivo
 
 ### Funcionalidad Core
-1. Usuario llega a página de descarga (ej: `geebeat.com/download/nueva-cancion`)
+1. Usuario llega a página de descarga (ej: `thebackstage.app/download/nueva-cancion`)
 2. Se le presenta un formulario:
    - **Email + Nombre** (obligatorio)
    - **Acciones sociales** (obligatorias para desbloquear):
@@ -150,7 +150,7 @@ CREATE TABLE download_gates (
   tenant_id INTEGER REFERENCES tenants(id) ON DELETE CASCADE,
 
   -- Gate config
-  slug VARCHAR(255) UNIQUE NOT NULL,           -- geebeat.com/download/nueva-cancion
+  slug VARCHAR(255) UNIQUE NOT NULL,           -- thebackstage.app/download/nueva-cancion
   title VARCHAR(500) NOT NULL,
   description TEXT,
   cover_image_url TEXT,
@@ -341,7 +341,7 @@ app/
 2. Redirect a SoundCloud OAuth:
    https://soundcloud.com/connect?
      client_id=YOUR_CLIENT_ID&
-     redirect_uri=https://geebeat.com/api/oauth/soundcloud/callback&
+     redirect_uri=https://thebackstage.app/api/oauth/soundcloud/callback&
      response_type=code&
      scope=non-expiring
 
@@ -369,7 +369,7 @@ app/
 ```env
 SOUNDCLOUD_CLIENT_ID=xxx
 SOUNDCLOUD_CLIENT_SECRET=xxx
-SOUNDCLOUD_REDIRECT_URI=https://geebeat.com/api/oauth/soundcloud/callback
+SOUNDCLOUD_REDIRECT_URI=https://thebackstage.app/api/oauth/soundcloud/callback
 ```
 
 ---
@@ -382,7 +382,7 @@ SOUNDCLOUD_REDIRECT_URI=https://geebeat.com/api/oauth/soundcloud/callback
 2. Redirect a Spotify OAuth:
    https://accounts.spotify.com/authorize?
      client_id=YOUR_CLIENT_ID&
-     redirect_uri=https://geebeat.com/api/oauth/spotify/callback&
+     redirect_uri=https://thebackstage.app/api/oauth/spotify/callback&
      response_type=code&
      scope=user-read-email user-follow-modify
 
@@ -401,7 +401,7 @@ SOUNDCLOUD_REDIRECT_URI=https://geebeat.com/api/oauth/soundcloud/callback
 ```env
 SPOTIFY_CLIENT_ID=xxx
 SPOTIFY_CLIENT_SECRET=xxx
-SPOTIFY_REDIRECT_URI=https://geebeat.com/api/oauth/spotify/callback
+SPOTIFY_REDIRECT_URI=https://thebackstage.app/api/oauth/spotify/callback
 SPOTIFY_ARTIST_ID=xxx  # Tu Spotify Artist ID para auto-follow
 ```
 
@@ -649,13 +649,13 @@ WHERE email = ${userEmail};
 # SoundCloud OAuth
 SOUNDCLOUD_CLIENT_ID=xxx
 SOUNDCLOUD_CLIENT_SECRET=xxx
-SOUNDCLOUD_REDIRECT_URI=https://geebeat.com/api/oauth/soundcloud/callback
+SOUNDCLOUD_REDIRECT_URI=https://thebackstage.app/api/oauth/soundcloud/callback
 SOUNDCLOUD_USER_ID=1318247880  # Para verificar follow
 
 # Spotify OAuth
 SPOTIFY_CLIENT_ID=xxx
 SPOTIFY_CLIENT_SECRET=xxx
-SPOTIFY_REDIRECT_URI=https://geebeat.com/api/oauth/spotify/callback
+SPOTIFY_REDIRECT_URI=https://thebackstage.app/api/oauth/spotify/callback
 SPOTIFY_ARTIST_ID=xxx  # Para auto-follow
 
 # Cloudflare R2 (Storage)
@@ -663,7 +663,7 @@ R2_ACCOUNT_ID=xxx
 R2_ACCESS_KEY_ID=xxx
 R2_SECRET_ACCESS_KEY=xxx
 R2_BUCKET_NAME=geebeat-downloads
-R2_PUBLIC_URL=https://downloads.geebeat.com
+R2_PUBLIC_URL=https://downloads.thebackstage.app
 
 # JWT para download tokens
 DOWNLOAD_TOKEN_SECRET=xxx  # Random 64-char string

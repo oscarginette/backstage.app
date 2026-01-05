@@ -1,10 +1,11 @@
 'use client';
 
 import { useEffect, useState, forwardRef, useImperativeHandle } from 'react';
-import { Users, Trash2, Mail, Filter, Search } from 'lucide-react';
+import { Users, Trash2, Mail, Filter, Search, FolderPlus } from 'lucide-react';
 import DataTable from './DataTable';
 import ImportContactsButton from './ImportContactsButton';
 import BrevoImportWizardModal from './BrevoImportWizardModal';
+import AddContactsToListModal from './AddContactsToListModal';
 import Toast from '@/components/ui/Toast';
 import Modal, { ModalBody, ModalFooter } from '@/components/ui/Modal';
 import { apiGet, isApiError } from '@/lib/api-client';
@@ -31,6 +32,7 @@ const ContactsList = forwardRef<ContactsListRef, Props>(({ onImportClick }, ref)
   const [toastMessage, setToastMessage] = useState('');
   const [toastType, setToastType] = useState<'success' | 'error' | 'warning'>('success');
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showAddToListModal, setShowAddToListModal] = useState(false);
 
   useEffect(() => {
     fetchContacts();
@@ -216,14 +218,23 @@ const ContactsList = forwardRef<ContactsListRef, Props>(({ onImportClick }, ref)
               Import from Brevo
             </button>
             {selectedIds.length > 0 && (
-              <button
-                onClick={handleDeleteClick}
-                disabled={deleting}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-red-50 text-red-600 hover:bg-red-100 transition-all border border-red-200 text-xs font-bold active:scale-95 disabled:opacity-50"
-              >
-                <Trash2 className="w-4 h-4" />
-                {deleting ? 'Deleting...' : `Delete (${selectedIds.length})`}
-              </button>
+              <>
+                <button
+                  onClick={() => setShowAddToListModal(true)}
+                  className="px-4 py-2 bg-[#6366F1] text-white rounded-lg hover:scale-105 transition-transform flex items-center gap-2"
+                >
+                  <FolderPlus className="w-4 h-4" />
+                  Add to List ({selectedIds.length})
+                </button>
+                <button
+                  onClick={handleDeleteClick}
+                  disabled={deleting}
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-red-50 text-red-600 hover:bg-red-100 transition-all border border-red-200 text-xs font-bold active:scale-95 disabled:opacity-50"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  {deleting ? 'Deleting...' : `Delete (${selectedIds.length})`}
+                </button>
+              </>
             )}
           </div>
         }
@@ -281,6 +292,20 @@ const ContactsList = forwardRef<ContactsListRef, Props>(({ onImportClick }, ref)
           </div>
         </ModalFooter>
       </Modal>
+
+      {/* Add Contacts to List Modal */}
+      {showAddToListModal && (
+        <AddContactsToListModal
+          contactIds={selectedIds}
+          onClose={() => setShowAddToListModal(false)}
+          onSuccess={() => {
+            setShowAddToListModal(false);
+            setToastMessage('Contacts added to list successfully');
+            setToastType('success');
+            setShowToast(true);
+          }}
+        />
+      )}
 
       {/* Toast for notifications */}
       <Toast

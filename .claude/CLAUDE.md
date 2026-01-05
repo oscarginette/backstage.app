@@ -371,7 +371,7 @@ await consentHistoryRepository.create({
 ```typescript
 // ✅ Enables Gmail/Outlook unsubscribe button
 emailPayload.headers = {
-  'List-Unsubscribe': `<https://geebeat.com/unsubscribe?token=${token}>`,
+  'List-Unsubscribe': `<https://thebackstage.app/unsubscribe?token=${token}>`,
   'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click'
 };
 ```
@@ -745,7 +745,117 @@ export const PAYMENT_STATUS = {
 
 ---
 
-*Last Updated: 2025-12-30*
-*Architecture: Clean Architecture + SOLID + Typed Constants*
+## 🌓 Dark Mode Architecture
+
+This project implements dark mode using Clean Architecture + SOLID principles.
+
+### Quick Start
+
+**Use the theme hook** (client components):
+```tsx
+'use client';
+
+import { useTheme } from '@/infrastructure/theme/ThemeProvider';
+import { THEMES } from '@/domain/types/appearance';
+
+export function MyComponent() {
+  const { theme, resolvedTheme, setTheme } = useTheme();
+
+  return (
+    <button onClick={() => setTheme(THEMES.DARK)}>
+      Current: {resolvedTheme}
+    </button>
+  );
+}
+```
+
+**Use CSS variables** (adaptive colors):
+```css
+.my-component {
+  background-color: var(--background);
+  color: var(--foreground);
+  border: 1px solid var(--border);
+}
+```
+
+**Use Tailwind utilities** (recommended):
+```tsx
+<div className="bg-background text-foreground border-border">
+  Adaptive colors that work in both light and dark themes
+</div>
+```
+
+### Architecture Layers
+
+- **Domain**: `domain/entities/UserAppearance.ts`, `domain/services/*AppearanceUseCase.ts`
+- **Infrastructure**: `infrastructure/database/repositories/PostgresUserAppearanceRepository.ts`, `infrastructure/theme/ThemeProvider.tsx`
+- **Presentation**: `app/settings/ThemeSwitcher.tsx`, `app/api/user/appearance/route.ts`
+
+### Constants (MANDATORY)
+
+**ALWAYS use typed constants instead of string literals**:
+```typescript
+import { THEMES } from '@/domain/types/appearance';
+
+// ✅ CORRECT
+if (theme === THEMES.DARK) { ... }
+setTheme(THEMES.SYSTEM);
+
+// ❌ WRONG
+if (theme === 'dark') { ... }
+setTheme('system');
+```
+
+### Available Theme Constants
+
+```typescript
+THEMES.LIGHT    // 'light' - Always use light theme
+THEMES.DARK     // 'dark' - Always use dark theme
+THEMES.SYSTEM   // 'system' - Follow OS preference (default)
+```
+
+### CSS Variables Reference
+
+**Light Theme**:
+- `--background`: #FDFCF8 (Cream)
+- `--foreground`: #1c1c1c (Almost black)
+- `--primary`: #FF5500 (Orange)
+- `--border`: #E8E6DF
+
+**Dark Theme**:
+- `--background`: #0A0A0A (Near black)
+- `--foreground`: #EDEDED (Off-white)
+- `--primary`: #FF6B2C (Brighter orange)
+- `--border`: #2D2D2D
+
+### Features
+
+- ✅ **Zero Flicker**: Script runs before first paint
+- ✅ **SSR Compatible**: Cookie + script prevent hydration mismatch
+- ✅ **Multi-layer Persistence**: Cookie (client) + Database (cross-device)
+- ✅ **System Theme Detection**: Respects OS preference
+- ✅ **Auto-Update**: Listener for real-time OS theme changes
+- ✅ **Type-Safe**: Typed constants throughout
+
+### Testing Dark Mode
+
+```bash
+# Run development server
+npm run dev
+
+# Navigate to /settings
+# Click "Dark" or "System" theme
+# Verify no flicker on page reload
+# Test system theme: Change OS theme preference
+```
+
+### Implementation Details
+
+See `.claude/plans/dark-mode-implementation.md` for complete architecture documentation.
+
+---
+
+*Last Updated: 2026-01-05*
+*Architecture: Clean Architecture + SOLID + Typed Constants + Dark Mode*
 *GDPR Compliant: Yes*
 *CAN-SPAM Compliant: Yes*

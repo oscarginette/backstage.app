@@ -46,6 +46,12 @@ const envSchema = z.object({
   // Download Gates
   DOWNLOAD_TOKEN_SECRET: z.string().min(32, 'DOWNLOAD_TOKEN_SECRET must be at least 32 characters').optional(),
 
+  // Token Encryption (for storing OAuth tokens)
+  TOKEN_ENCRYPTION_KEY: z.string().length(64, 'TOKEN_ENCRYPTION_KEY must be exactly 64 hexadecimal characters (32 bytes)').optional(),
+
+  // Cron Jobs
+  CRON_SECRET: z.string().min(32, 'CRON_SECRET must be at least 32 characters').optional(),
+
   // SoundCloud Configuration
   SOUNDCLOUD_USER_ID: z.string().optional(),
   SOUNDCLOUD_CLIENT_ID: z.string().optional(),
@@ -159,7 +165,7 @@ export const isLocalPostgres = (): boolean => {
 
 // URL helpers
 export const getAppUrl = (): string => {
-  return env.NEXT_PUBLIC_APP_URL || 'https://backstage-art.vercel.app';
+  return env.NEXT_PUBLIC_APP_URL || 'https://thebackstage.app';
 };
 
 export const getBaseUrl = (): string => {

@@ -16,6 +16,8 @@ export interface DownloadSubmissionProps {
   soundcloudFollowVerifiedAt?: Date | null;
   spotifyConnected: boolean;
   spotifyConnectedAt?: Date | null;
+  spotifyFollowCompleted: boolean;
+  spotifyFollowCompletedAt?: Date | null;
   downloadToken?: string | null;
   downloadTokenGeneratedAt?: Date | null;
   downloadTokenExpiresAt?: Date | null;
@@ -56,7 +58,9 @@ export class DownloadSubmission {
   get soundcloudFollowVerifiedAt(): Date | null | undefined { return this.props.soundcloudFollowVerifiedAt; }
   get spotifyConnected(): boolean { return this.props.spotifyConnected; }
   get spotifyConnectedAt(): Date | null | undefined { return this.props.spotifyConnectedAt; }
-  
+  get spotifyFollowCompleted(): boolean { return this.props.spotifyFollowCompleted; }
+  get spotifyFollowCompletedAt(): Date | null | undefined { return this.props.spotifyFollowCompletedAt; }
+
   get downloadToken(): string | null | undefined { return this.props.downloadToken; }
   get downloadTokenGeneratedAt(): Date | null | undefined { return this.props.downloadTokenGeneratedAt; }
   get downloadTokenExpiresAt(): Date | null | undefined { return this.props.downloadTokenExpiresAt; }
@@ -83,6 +87,7 @@ export class DownloadSubmission {
       soundcloudRepostVerified: false,
       soundcloudFollowVerified: false,
       spotifyConnected: false,
+      spotifyFollowCompleted: false,
       downloadCompleted: false,
       createdAt: now,
       updatedAt: now

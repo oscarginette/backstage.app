@@ -1,4 +1,5 @@
 import type { ContactMetadata } from '../types/metadata';
+import type { ListFilterCriteria } from '../value-objects/ListFilterCriteria';
 
 export interface Contact {
   id: number;
@@ -60,4 +61,15 @@ export interface IContactRepository {
    * @returns Total number of contacts for the user
    */
   countByUserId(userId: number): Promise<number>;
+
+  /**
+   * Get subscribed contacts filtered by list criteria
+   * @param userId - User identifier
+   * @param filterCriteria - List filter criteria (all contacts, specific lists, or exclude lists)
+   * @returns Array of contacts matching the filter criteria
+   */
+  getSubscribedByListFilter(
+    userId: number,
+    filterCriteria: ListFilterCriteria
+  ): Promise<Contact[]>;
 }

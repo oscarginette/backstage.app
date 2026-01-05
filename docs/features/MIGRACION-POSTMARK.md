@@ -18,16 +18,16 @@
 ## Paso 2: Verificar Dominio (10 min)
 
 1. Settings → Sender Signatures
-2. Add Domain: `geebeat.com`
+2. Add Domain: `thebackstage.app`
 3. Copiar DNS records:
 
 ```
 DKIM Record:
-Host: 20230101._domainkey.geebeat.com
+Host: 20230101._domainkey.thebackstage.app
 Value: [valor que te da Postmark]
 
 Return-Path:
-Host: pm-bounces.geebeat.com
+Host: pm-bounces.thebackstage.app
 Value: pm.mtasv.net
 ```
 
@@ -264,7 +264,7 @@ POSTMARK_API_KEY=tu_api_key_aqui
 POSTMARK_TEMPLATE_ID=123456
 
 # Mantener el resto
-SENDER_EMAIL=info@geebeat.com
+SENDER_EMAIL=info@thebackstage.app
 SOUNDCLOUD_USER_ID=1318247880
 POSTGRES_URL=postgresql://...
 ```

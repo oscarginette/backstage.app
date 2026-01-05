@@ -223,6 +223,35 @@ export const UpdateUserSettingsSchema = z.object({
 export type UpdateUserSettingsInput = z.infer<typeof UpdateUserSettingsSchema>;
 
 // ============================================================================
+// Email Signatures
+// ============================================================================
+
+/**
+ * Schema for individual social link
+ * Supports free-form platform names for maximum flexibility
+ */
+export const SocialLinkSchema = z.object({
+  platform: z.string().min(1, 'Platform name required').max(50, 'Platform name too long'),
+  url: z.string().url('Invalid URL'),
+  label: z.string().min(1, 'Label required').max(50, 'Label too long'),
+});
+
+export type SocialLinkInput = z.infer<typeof SocialLinkSchema>;
+
+/**
+ * Schema for PUT /api/email-signature
+ * Updates user's email signature
+ */
+export const EmailSignatureSchema = z.object({
+  logoUrl: z.string().url('Invalid logo URL').nullable(),
+  customText: z.string().max(500, 'Custom text too long').nullable(),
+  socialLinks: z.array(SocialLinkSchema).max(6, 'Maximum 6 social links'),
+  defaultToGeeBeat: z.boolean().default(false),
+});
+
+export type EmailSignatureInput = z.infer<typeof EmailSignatureSchema>;
+
+// ============================================================================
 // Integrations
 // ============================================================================
 

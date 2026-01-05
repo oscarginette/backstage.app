@@ -11,6 +11,7 @@ import { PostgresDownloadGateRepository } from '@/infrastructure/database/reposi
 import { PostgresDownloadSubmissionRepository } from '@/infrastructure/database/repositories/PostgresDownloadSubmissionRepository';
 import { PostgresDownloadAnalyticsRepository } from '@/infrastructure/database/repositories/PostgresDownloadAnalyticsRepository';
 import { PostgresContactRepository } from '@/infrastructure/database/repositories/PostgresContactRepository';
+import { PixelTrackingService } from '@/infrastructure/pixel/PixelTrackingService';
 import { serializeSubmission } from '@/lib/serialization';
 import { SubmitDownloadGateSchema } from '@/lib/validation-schemas';
 
@@ -19,6 +20,7 @@ const gateRepository = new PostgresDownloadGateRepository();
 const submissionRepository = new PostgresDownloadSubmissionRepository();
 const analyticsRepository = new PostgresDownloadAnalyticsRepository();
 const contactRepository = new PostgresContactRepository();
+const pixelTrackingService = new PixelTrackingService();
 
 export const dynamic = 'force-dynamic';
 
@@ -55,7 +57,8 @@ export async function POST(
       gateRepository,
       submissionRepository,
       analyticsRepository,
-      contactRepository
+      contactRepository,
+      pixelTrackingService
     );
 
     // Execute

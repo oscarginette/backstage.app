@@ -214,10 +214,10 @@ function UnsubscribeContent() {
         {/* Footer */}
         <div className="mt-12 pt-8 border-t border-gray-200">
           <a
-            href="https://www.geebeat.com"
+            href="https://www.thebackstage.app"
             className="text-gray-500 hover:text-gray-700 text-sm"
           >
-            Visit geebeat.com
+            Visit thebackstage.app
           </a>
         </div>
       </div>

@@ -12,11 +12,13 @@ import { ProcessDownloadUseCase } from '@/domain/services/ProcessDownloadUseCase
 import { PostgresDownloadSubmissionRepository } from '@/infrastructure/database/repositories/PostgresDownloadSubmissionRepository';
 import { PostgresDownloadGateRepository } from '@/infrastructure/database/repositories/PostgresDownloadGateRepository';
 import { PostgresDownloadAnalyticsRepository } from '@/infrastructure/database/repositories/PostgresDownloadAnalyticsRepository';
+import { PixelTrackingService } from '@/infrastructure/pixel/PixelTrackingService';
 
 // Singleton repository instances
 const submissionRepository = new PostgresDownloadSubmissionRepository();
 const gateRepository = new PostgresDownloadGateRepository();
 const analyticsRepository = new PostgresDownloadAnalyticsRepository();
+const pixelTrackingService = new PixelTrackingService();
 
 export const dynamic = 'force-dynamic';
 
@@ -43,7 +45,8 @@ export async function GET(
     const processDownloadUseCase = new ProcessDownloadUseCase(
       submissionRepository,
       gateRepository,
-      analyticsRepository
+      analyticsRepository,
+      pixelTrackingService
     );
 
     // Execute

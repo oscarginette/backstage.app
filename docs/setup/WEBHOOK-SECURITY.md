@@ -42,7 +42,7 @@ All webhooks in this application use cryptographic signature verification to pre
 2. Click **Add endpoint**
 3. Enter your webhook URL:
    - **Development**: `https://your-vercel-preview.vercel.app/api/webhooks/resend`
-   - **Production**: `https://geebeat.com/api/webhooks/resend`
+   - **Production**: `https://thebackstage.app/api/webhooks/resend`
 
 4. Select events to listen to:
    - ✅ `email.sent`
@@ -113,7 +113,7 @@ Expected response:
 2. Click **Add endpoint**
 3. Enter your webhook URL:
    - **Development**: Use Stripe CLI for local testing
-   - **Production**: `https://geebeat.com/api/webhooks/stripe`
+   - **Production**: `https://thebackstage.app/api/webhooks/stripe`
 
 4. Select events to listen to:
    - ✅ `payment_intent.succeeded`

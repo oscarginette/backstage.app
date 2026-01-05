@@ -19,7 +19,10 @@
 
 import { IDownloadAnalyticsRepository } from '../repositories/IDownloadAnalyticsRepository';
 import { IDownloadGateRepository } from '../repositories/IDownloadGateRepository';
+import { IPixelTrackingService } from '../repositories/IPixelTrackingService';
 import { CreateAnalyticsInput, EventType } from '../types/download-gates';
+import { PIXEL_EVENTS } from '../types/pixel-tracking';
+import { TrackPixelEventUseCase } from './TrackPixelEventUseCase';
 
 export interface TrackGateAnalyticsInput extends CreateAnalyticsInput {
   // All fields from CreateAnalyticsInput
@@ -35,7 +38,8 @@ export class TrackGateAnalyticsUseCase {
 
   constructor(
     private readonly analyticsRepository: IDownloadAnalyticsRepository,
-    private readonly gateRepository: IDownloadGateRepository
+    private readonly gateRepository: IDownloadGateRepository,
+    private readonly pixelTrackingService?: IPixelTrackingService
   ) {}
 
   /**
@@ -66,11 +70,18 @@ export class TrackGateAnalyticsUseCase {
       }
 
       // 3. Track analytics event
-      await this.analyticsRepository.track(input);
+      const analyticsEvent = await this.analyticsRepository.track(input);
 
       // 4. Increment view count for view events
       if (input.eventType === 'view') {
         await this.incrementViewCount(input.gateId);
+      }
+
+      // 5. Fire pixel tracking (fire-and-forget, non-blocking)
+      if (input.eventType === 'view' && this.pixelTrackingService) {
+        this.trackPixelEvent(input, analyticsEvent.id).catch(error => {
+          console.error('[PixelTracking] Failed (non-critical):', error);
+        });
       }
 
       return { success: true };
@@ -111,6 +122,42 @@ export class TrackGateAnalyticsUseCase {
     } catch (error) {
       // Non-critical error: tracking succeeds even if view count increment fails
       console.error('Failed to increment view count (non-critical):', error);
+    }
+  }
+
+  /**
+   * Track pixel event (fire-and-forget)
+   * @param input - Analytics input
+   * @param analyticsEventId - Analytics event ID for deduplication
+   */
+  private async trackPixelEvent(
+    input: TrackGateAnalyticsInput,
+    analyticsEventId: string
+  ): Promise<void> {
+    try {
+      // Fetch gate to get slug and pixel config
+      const gate = await this.gateRepository.findBySlug(input.gateId);
+
+      if (!gate || !gate.pixelConfig) {
+        // No pixel config, skip tracking
+        return;
+      }
+
+      // Track pixel event using TrackPixelEventUseCase
+      const trackPixelUseCase = new TrackPixelEventUseCase(this.pixelTrackingService!);
+
+      await trackPixelUseCase.execute({
+        gateId: gate.id,
+        gateSlug: gate.slug,
+        pixelConfig: gate.pixelConfig,
+        event: PIXEL_EVENTS.PAGE_VIEW,
+        analyticsEventId,
+        userAgent: input.userAgent,
+        ipAddress: input.ipAddress,
+      });
+    } catch (error) {
+      // Fire and forget: log but don't throw
+      console.error('[PixelTracking] trackPixelEvent failed (non-critical):', error);
     }
   }
 

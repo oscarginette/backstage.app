@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useTranslations } from "@/lib/i18n/context";
 import { signOut } from "next-auth/react";
 import BrevoIntegration from "./BrevoIntegration";
+import { ThemeSwitcher } from "./ThemeSwitcher";
 import { PATHS } from '@/lib/paths';
 
 interface SettingsClientProps {
@@ -186,6 +187,21 @@ export default function SettingsClient({
                 <p className="text-[8px] text-foreground/30 ml-1 italic">Cannot be modified</p>
               </div>
             </div>
+          </motion.section>
+
+          {/* Section: Appearance - Full Width */}
+          <motion.section
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15 }}
+            className="bg-white/40 backdrop-blur-2xl border border-white/60 rounded-2xl p-6 shadow-sm"
+          >
+            <div className="mb-5">
+              <h2 className="text-base font-serif mb-1">Appearance</h2>
+              <p className="text-foreground/50 text-xs">Customize how Backstage looks on your device</p>
+            </div>
+
+            <ThemeSwitcher />
           </motion.section>
 
           {/* Section: Platform Connections - Full Width */}

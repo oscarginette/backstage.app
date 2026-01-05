@@ -1,16 +1,55 @@
 @import "tailwindcss";
 
-:root {
-  /* Liftoff Palette */
+/* Light theme (default) */
+:root,
+.light {
+  /* Liftoff Palette - Light Mode */
   --background: #FDFCF8; /* Cream off-white */
   --foreground: #1c1c1c; /* Almost black */
   --card: #FFFFFF;
-  --border: #E8E6DF;
+  --card-foreground: #1c1c1c;
+  --popover: #FFFFFF;
+  --popover-foreground: #1c1c1c;
+  --primary: #FF5500; /* Orange */
+  --primary-foreground: #FFFFFF;
+  --secondary: #F2F0E9;
+  --secondary-foreground: #1c1c1c;
   --muted: #F2F0E9;
+  --muted-foreground: #6B6B6B;
   --accent: #FF5500;
-  
+  --accent-foreground: #FFFFFF;
+  --destructive: #EF4444;
+  --destructive-foreground: #FFFFFF;
+  --border: #E8E6DF;
+  --input: #E8E6DF;
+  --ring: #FF5500;
+  --radius: 0.5rem;
+
   --font-serif: var(--font-serif);
   --font-sans: var(--font-sans);
+}
+
+/* Dark theme */
+.dark {
+  --background: #0A0A0A; /* Near black */
+  --foreground: #EDEDED; /* Off-white */
+  --card: #1A1A1A;
+  --card-foreground: #EDEDED;
+  --popover: #1A1A1A;
+  --popover-foreground: #EDEDED;
+  --primary: #FF6B2C; /* Slightly brighter orange for dark mode */
+  --primary-foreground: #FFFFFF;
+  --secondary: #262626;
+  --secondary-foreground: #EDEDED;
+  --muted: #262626;
+  --muted-foreground: #A1A1A1;
+  --accent: #FF6B2C;
+  --accent-foreground: #FFFFFF;
+  --destructive: #F87171;
+  --destructive-foreground: #FFFFFF;
+  --border: #2D2D2D;
+  --input: #2D2D2D;
+  --ring: #FF6B2C;
 }
 
 @theme inline {
@@ -47,22 +86,28 @@ h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-serif);
 }
 
-/* Custom Scrollbar */
+/* Base styles */
+* {
+  border-color: var(--border);
+}
+
+/* Custom Scrollbar (adaptive) */
 ::-webkit-scrollbar {
-  width: 6px;
+  width: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: transparent;
+  background: var(--muted);
 }
 
 ::-webkit-scrollbar-thumb {
-  background-color: rgba(0, 0, 0, 0.1);
+  background-color: var(--muted-foreground);
+  opacity: 0.3;
   border-radius: 20px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(0, 0, 0, 0.2);
+  opacity: 0.5;
 }
 
 /* Aurora Gradient Classes */

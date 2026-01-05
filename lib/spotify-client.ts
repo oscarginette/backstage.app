@@ -132,6 +132,9 @@ export class SpotifyClient {
     const scopes = [
       'user-read-email',
       'user-read-private',
+      'user-follow-modify', // Required for following artists
+      'user-library-modify', // Required for adding albums/tracks to library
+      'user-library-read', // Required for checking if albums are saved
     ];
 
     const params = new URLSearchParams({
@@ -224,6 +227,255 @@ export class SpotifyClient {
       console.error('SpotifyClient.getUserProfile error:', error);
       throw new Error(
         `Failed to fetch Spotify user profile: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
+    }
+  }
+
+  /**
+   * Follow an artist on Spotify
+   *
+   * @param accessToken - Spotify access token
+   * @param artistId - Spotify artist ID to follow
+   * @throws Error if follow fails
+   */
+  public async followArtist(accessToken: string, artistId: string): Promise<void> {
+    this.validateConfiguration();
+
+    try {
+      const response = await fetch(
+        `${this.API_BASE_URL}/me/following?type=artist&ids=${artistId}`,
+        {
+          method: 'PUT',
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          `Spotify follow artist failed: ${response.status} ${JSON.stringify(errorData)}`
+        );
+      }
+    } catch (error) {
+      console.error('SpotifyClient.followArtist error:', error);
+      throw new Error(
+        `Failed to follow Spotify artist: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
+    }
+  }
+
+  /**
+   * Check if the current user follows specific artists
+   *
+   * @param accessToken - Spotify access token
+   * @param artistIds - Array of Spotify artist IDs to check (max 50)
+   * @returns Boolean array indicating if each artist is followed
+   * @throws Error if check fails
+   */
+  public async checkIfFollowing(
+    accessToken: string,
+    artistIds: string[]
+  ): Promise<boolean[]> {
+    this.validateConfiguration();
+
+    if (artistIds.length > 50) {
+      throw new Error('Cannot check more than 50 artist IDs at once');
+    }
+
+    try {
+      const idsParam = artistIds.join(',');
+      const response = await fetch(
+        `${this.API_BASE_URL}/me/following/contains?type=artist&ids=${idsParam}`,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          `Spotify check following failed: ${response.status} ${JSON.stringify(errorData)}`
+        );
+      }
+
+      const result: boolean[] = await response.json();
+      return result;
+    } catch (error) {
+      console.error('SpotifyClient.checkIfFollowing error:', error);
+      throw new Error(
+        `Failed to check if following artists: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
+    }
+  }
+
+  /**
+   * Get artist's albums (new releases)
+   *
+   * @param accessToken - Spotify access token
+   * @param artistId - Spotify artist ID
+   * @param includeGroups - Album types to include (default: 'album,single')
+   * @returns Array of album objects
+   * @throws Error if fetch fails
+   */
+  public async getArtistAlbums(
+    accessToken: string,
+    artistId: string,
+    includeGroups: string = 'album,single'
+  ): Promise<any[]> {
+    this.validateConfiguration();
+
+    try {
+      const response = await fetch(
+        `${this.API_BASE_URL}/artists/${artistId}/albums?include_groups=${includeGroups}&limit=50`,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          `Failed to fetch artist albums: ${response.status} ${JSON.stringify(errorData)}`
+        );
+      }
+
+      const data = await response.json();
+      return data.items || [];
+    } catch (error) {
+      console.error('SpotifyClient.getArtistAlbums error:', error);
+      throw new Error(
+        `Failed to get artist albums: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
+    }
+  }
+
+  /**
+   * Save albums to user's library
+   *
+   * @param accessToken - Spotify access token
+   * @param albumIds - Array of album IDs (max 20 per call)
+   * @throws Error if save fails or more than 20 IDs provided
+   */
+  public async saveAlbumsToLibrary(accessToken: string, albumIds: string[]): Promise<void> {
+    this.validateConfiguration();
+
+    if (albumIds.length > 20) {
+      throw new Error('Cannot save more than 20 albums at once (Spotify API limit)');
+    }
+
+    try {
+      const idsParam = albumIds.join(',');
+      const response = await fetch(`${this.API_BASE_URL}/me/albums?ids=${idsParam}`, {
+        method: 'PUT',
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          `Failed to save albums: ${response.status} ${JSON.stringify(errorData)}`
+        );
+      }
+    } catch (error) {
+      console.error('SpotifyClient.saveAlbumsToLibrary error:', error);
+      throw new Error(
+        `Failed to save albums to library: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
+    }
+  }
+
+  /**
+   * Check if user has saved specific albums
+   *
+   * @param accessToken - Spotify access token
+   * @param albumIds - Array of album IDs (max 20)
+   * @returns Boolean array indicating if each album is saved
+   * @throws Error if check fails or more than 20 IDs provided
+   */
+  public async checkSavedAlbums(accessToken: string, albumIds: string[]): Promise<boolean[]> {
+    this.validateConfiguration();
+
+    if (albumIds.length > 20) {
+      throw new Error('Cannot check more than 20 albums at once (Spotify API limit)');
+    }
+
+    try {
+      const idsParam = albumIds.join(',');
+      const response = await fetch(
+        `${this.API_BASE_URL}/me/albums/contains?ids=${idsParam}`,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          `Failed to check saved albums: ${response.status} ${JSON.stringify(errorData)}`
+        );
+      }
+
+      const result: boolean[] = await response.json();
+      return result;
+    } catch (error) {
+      console.error('SpotifyClient.checkSavedAlbums error:', error);
+      throw new Error(
+        `Failed to check saved albums: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
+    }
+  }
+
+  /**
+   * Refresh access token using refresh token
+   *
+   * @param refreshToken - Spotify refresh token
+   * @returns New token response
+   * @throws Error if refresh fails
+   */
+  public async refreshAccessToken(refreshToken: string): Promise<SpotifyTokenResponse> {
+    this.validateConfiguration();
+
+    try {
+      const params = new URLSearchParams({
+        grant_type: 'refresh_token',
+        refresh_token: refreshToken,
+        client_id: this.clientId,
+      });
+
+      const response = await fetch(this.TOKEN_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          Authorization: `Basic ${Buffer.from(`${this.clientId}:${this.clientSecret}`).toString('base64')}`,
+        },
+        body: params.toString(),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          `Token refresh failed: ${response.status} ${JSON.stringify(errorData)}`
+        );
+      }
+
+      const tokenData: SpotifyTokenResponse = await response.json();
+      return tokenData;
+    } catch (error) {
+      console.error('SpotifyClient.refreshAccessToken error:', error);
+      throw new Error(
+        `Failed to refresh access token: ${error instanceof Error ? error.message : 'Unknown error'}`
       );
     }
   }

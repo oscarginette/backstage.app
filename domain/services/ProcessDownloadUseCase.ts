@@ -22,6 +22,10 @@
 import { IDownloadSubmissionRepository } from '../repositories/IDownloadSubmissionRepository';
 import { IDownloadGateRepository } from '../repositories/IDownloadGateRepository';
 import { IDownloadAnalyticsRepository } from '../repositories/IDownloadAnalyticsRepository';
+import { IPixelTrackingService } from '../repositories/IPixelTrackingService';
+import { PixelConfig } from '../entities/PixelConfig';
+import { PIXEL_EVENTS } from '../types/pixel-tracking';
+import { TrackPixelEventUseCase } from './TrackPixelEventUseCase';
 import { sql } from '@vercel/postgres';
 
 export interface ProcessDownloadInput {
@@ -38,7 +42,8 @@ export class ProcessDownloadUseCase {
   constructor(
     private readonly submissionRepository: IDownloadSubmissionRepository,
     private readonly gateRepository: IDownloadGateRepository,
-    private readonly analyticsRepository: IDownloadAnalyticsRepository
+    private readonly analyticsRepository: IDownloadAnalyticsRepository,
+    private readonly pixelTrackingService?: IPixelTrackingService
   ) {}
 
   /**
@@ -116,9 +121,16 @@ export class ProcessDownloadUseCase {
       await this.gateRepository.incrementDownloadCount(gate.id);
 
       // 8. Track analytics event
-      await this.trackDownloadEvent(gate.id);
+      const analyticsEventId = await this.trackDownloadEvent(gate.id);
 
-      // 9. Return file URL (gate is raw DB row with snake_case)
+      // 9. Fire pixel tracking (fire-and-forget, non-blocking)
+      if (gate.pixel_config && this.pixelTrackingService && analyticsEventId) {
+        this.trackPixelEvent(gate, submission, analyticsEventId).catch(error => {
+          console.error('[PixelTracking] Failed (non-critical):', error);
+        });
+      }
+
+      // 10. Return file URL (gate is raw DB row with snake_case)
       return {
         success: true,
         fileUrl: gate.file_url,
@@ -135,16 +147,56 @@ export class ProcessDownloadUseCase {
   /**
    * Track download analytics event
    * @param gateId - Gate ID
+   * @returns Analytics event ID (for pixel deduplication)
    */
-  private async trackDownloadEvent(gateId: string): Promise<void> {
+  private async trackDownloadEvent(gateId: string): Promise<string | null> {
     try {
-      await this.analyticsRepository.track({
+      const analyticsEvent = await this.analyticsRepository.track({
         gateId: gateId,
         eventType: 'download',
       });
+      return analyticsEvent.id;
     } catch (error) {
       // Non-critical error: download succeeds even if analytics tracking fails
       console.error('Failed to track download event (non-critical):', error);
+      return null;
+    }
+  }
+
+  /**
+   * Track pixel event for Conversion (download complete)
+   * @param gate - Raw database gate row
+   * @param submission - Download submission
+   * @param analyticsEventId - Analytics event ID for deduplication
+   */
+  private async trackPixelEvent(
+    gate: any,
+    submission: any,
+    analyticsEventId: string
+  ): Promise<void> {
+    try {
+      // Parse pixel config from raw database JSONB
+      const pixelConfig = PixelConfig.fromDatabase(gate.pixel_config);
+
+      if (!pixelConfig) {
+        return; // No valid pixel config
+      }
+
+      const trackPixelUseCase = new TrackPixelEventUseCase(this.pixelTrackingService!);
+
+      await trackPixelUseCase.execute({
+        gateId: gate.id,
+        gateSlug: gate.slug,
+        pixelConfig,
+        event: PIXEL_EVENTS.CONVERSION,
+        analyticsEventId,
+        email: submission.email, // Will be hashed in TrackPixelEventUseCase
+        userAgent: submission.userAgent,
+        ipAddress: submission.ipAddress,
+      });
+    } catch (error) {
+      // Fire and forget: log but don't throw
+      console.error('[PixelTracking] trackPixelEvent failed (non-critical):', error);
     }
   }
 

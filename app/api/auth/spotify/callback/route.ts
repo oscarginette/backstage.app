@@ -10,8 +10,9 @@
  * 3. Exchange authorization code + code_verifier for access token (PKCE)
  * 4. Get Spotify user profile
  * 5. Update submission with Spotify profile data
- * 6. Mark oauth_state as used
- * 7. Redirect user back to gate page
+ * 6. Follow artist on Spotify (if artist has Spotify ID configured)
+ * 7. Mark oauth_state as used
+ * 8. Redirect user back to gate page
  *
  * Clean Architecture: API route orchestrates, use cases contain business logic.
  *
@@ -27,7 +28,10 @@ import { SpotifyClient } from '@/lib/spotify-client';
 import { PostgresOAuthStateRepository } from '@/infrastructure/database/repositories/PostgresOAuthStateRepository';
 import { PostgresDownloadSubmissionRepository } from '@/infrastructure/database/repositories/PostgresDownloadSubmissionRepository';
 import { PostgresDownloadAnalyticsRepository } from '@/infrastructure/database/repositories/PostgresDownloadAnalyticsRepository';
+import { PostgresDownloadGateRepository } from '@/infrastructure/database/repositories/PostgresDownloadGateRepository';
+import { PostgresUserRepository } from '@/infrastructure/database/repositories/PostgresUserRepository';
 import { ConnectSpotifyUseCase } from '@/domain/services/ConnectSpotifyUseCase';
+import { FollowSpotifyArtistUseCase } from '@/domain/services/FollowSpotifyArtistUseCase';
 import { SpotifyProfile } from '@/domain/types/download-gates';
 
 // Singleton instances
@@ -35,6 +39,8 @@ const spotifyClient = new SpotifyClient();
 const oauthStateRepository = new PostgresOAuthStateRepository();
 const submissionRepository = new PostgresDownloadSubmissionRepository();
 const analyticsRepository = new PostgresDownloadAnalyticsRepository();
+const downloadGateRepository = new PostgresDownloadGateRepository();
+const userRepository = new PostgresUserRepository();
 
 export const dynamic = 'force-dynamic';
 
@@ -197,7 +203,53 @@ export async function GET(request: Request) {
       );
     }
 
-    // 6. Mark oauth_state as used (prevent replay attacks)
+    // 6. Follow artist (non-blocking - connection succeeds even if follow fails)
+    if (result.success) {
+      try {
+        // Get the gate to find the artist user
+        const gate = await downloadGateRepository.findById(oauthState.gateId);
+
+        if (gate) {
+          // Get the artist user to retrieve their Spotify ID
+          const artistUser = await userRepository.findById(gate.userId);
+
+          if (artistUser?.spotifyId) {
+            console.log('[Spotify OAuth] Attempting to follow artist:', {
+              artistSpotifyId: artistUser.spotifyId,
+              artistUserId: artistUser.id,
+            });
+
+            const followSpotifyArtistUseCase = new FollowSpotifyArtistUseCase(
+              spotifyClient,
+              submissionRepository
+            );
+
+            const followResult = await followSpotifyArtistUseCase.execute({
+              submissionId: oauthState.submissionId,
+              accessToken: tokenResponse.access_token,
+              artistSpotifyId: artistUser.spotifyId,
+            });
+
+            if (followResult.success) {
+              console.log('[Spotify OAuth] Successfully followed artist:', {
+                artistSpotifyId: artistUser.spotifyId,
+                alreadyFollowing: followResult.alreadyFollowing,
+              });
+            } else {
+              // Log error but don't fail the connection
+              console.error('[Spotify OAuth] Failed to follow artist (non-critical):', followResult.error);
+            }
+          } else {
+            console.log('[Spotify OAuth] Artist has no Spotify ID configured, skipping follow');
+          }
+        }
+      } catch (error) {
+        // Non-critical: connection succeeds even if follow fails
+        console.error('[Spotify OAuth] Error following artist (non-critical):', error);
+      }
+    }
+
+    // 7. Mark oauth_state as used (prevent replay attacks)
     await oauthStateRepository.markAsUsed(oauthState.id);
 
     console.log('[Spotify OAuth] Successfully connected Spotify:', {
@@ -206,7 +258,7 @@ export async function GET(request: Request) {
       alreadyConnected: result.alreadyConnected,
     });
 
-    // 7. Redirect back to gate page with success
+    // 8. Redirect back to gate page with success
     // Note: The frontend will need to know which gate to redirect to
     // For now, redirect to a generic success page or back to the gate
     return NextResponse.redirect(

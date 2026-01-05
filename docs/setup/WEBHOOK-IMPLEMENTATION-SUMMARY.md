@@ -329,7 +329,7 @@ curl -X POST http://localhost:3002/api/webhooks/resend \
 - [ ] **Create webhook endpoint in Resend Dashboard**
   1. Go to https://resend.com/dashboard → Webhooks
   2. Click "Add endpoint"
-  3. URL: `https://geebeat.com/api/webhooks/resend`
+  3. URL: `https://thebackstage.app/api/webhooks/resend`
   4. Select events: sent, delivered, bounced, opened, clicked
   5. Copy signing secret
 

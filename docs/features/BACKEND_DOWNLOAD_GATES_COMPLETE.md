@@ -351,13 +351,13 @@ DOWNLOAD_TOKEN_SECRET=your_random_64_char_string_here
 # Phase 2 (SoundCloud OAuth) - Agregar después
 # SOUNDCLOUD_CLIENT_ID=xxx
 # SOUNDCLOUD_CLIENT_SECRET=xxx
-# SOUNDCLOUD_REDIRECT_URI=https://geebeat.com/api/gate/oauth/soundcloud/callback
+# SOUNDCLOUD_REDIRECT_URI=https://thebackstage.app/api/gate/oauth/soundcloud/callback
 # SOUNDCLOUD_USER_ID=1318247880
 
 # Phase 3 (Spotify OAuth) - Agregar después
 # SPOTIFY_CLIENT_ID=xxx
 # SPOTIFY_CLIENT_SECRET=xxx
-# SPOTIFY_REDIRECT_URI=https://geebeat.com/api/gate/oauth/spotify/callback
+# SPOTIFY_REDIRECT_URI=https://thebackstage.app/api/gate/oauth/spotify/callback
 # SPOTIFY_ARTIST_ID=xxx
 ```
 
@@ -372,7 +372,7 @@ npm run build
 
 **Create Gate (Authenticated)**:
 ```bash
-curl -X POST https://geebeat.com/api/download-gates \
+curl -X POST https://thebackstage.app/api/download-gates \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_SESSION_TOKEN" \
   -d '{
@@ -386,12 +386,12 @@ curl -X POST https://geebeat.com/api/download-gates \
 
 **Get Gate (Public)**:
 ```bash
-curl https://geebeat.com/api/gate/el-house-edit
+curl https://thebackstage.app/api/gate/el-house-edit
 ```
 
 **Submit Email**:
 ```bash
-curl -X POST https://geebeat.com/api/gate/el-house-edit/submit \
+curl -X POST https://thebackstage.app/api/gate/el-house-edit/submit \
   -H "Content-Type: application/json" \
   -d '{
     "email": "fan@example.com",
@@ -402,7 +402,7 @@ curl -X POST https://geebeat.com/api/gate/el-house-edit/submit \
 
 **Generate Token**:
 ```bash
-curl -X POST https://geebeat.com/api/gate/el-house-edit/download-token \
+curl -X POST https://thebackstage.app/api/gate/el-house-edit/download-token \
   -H "Content-Type: application/json" \
   -d '{
     "submissionId": "UUID_FROM_SUBMIT_RESPONSE"
@@ -411,7 +411,7 @@ curl -X POST https://geebeat.com/api/gate/el-house-edit/download-token \
 
 **Download**:
 ```bash
-curl https://geebeat.com/api/download/TOKEN_FROM_PREVIOUS_STEP
+curl https://thebackstage.app/api/download/TOKEN_FROM_PREVIOUS_STEP
 # Should redirect (302) to file_url
 ```
 

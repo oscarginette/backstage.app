@@ -24,7 +24,7 @@ export async function POST() {
   const startTime = Date.now();
 
   try {
-    const testEmail = 'info@geebeat.com';
+    const testEmail = 'noreply@thebackstage.app';
     const baseUrl =
       getAppUrl();
 
@@ -100,7 +100,7 @@ export async function POST() {
       track: testTrack.title,
       duration: Date.now() - startTime,
       nextSteps: [
-        '1. Check your inbox at info@geebeat.com',
+        '1. Check your inbox at noreply@thebackstage.app',
         '2. Open the email (this will trigger an "opened" event)',
         '3. Click on the track link (this will trigger a "clicked" event)',
         '4. Visit /stats to see the events being tracked',

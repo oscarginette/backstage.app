@@ -12,6 +12,7 @@ import { sql } from '@/lib/db';
 import { randomUUID } from 'crypto';
 import { IDownloadGateRepository } from '@/domain/repositories/IDownloadGateRepository';
 import { DownloadGate } from '@/domain/entities/DownloadGate';
+import { PixelConfig } from '@/domain/entities/PixelConfig';
 import { CreateGateInput } from '@/domain/types/download-gates';
 
 export class PostgresDownloadGateRepository implements IDownloadGateRepository {
@@ -311,6 +312,7 @@ export class PostgresDownloadGateRepository implements IDownloadGateRepository {
       active: row.active,
       maxDownloads: row.max_downloads ?? null,
       expiresAt: row.expires_at ? new Date(row.expires_at) : null,
+      pixelConfig: row.pixel_config ? PixelConfig.fromDatabase(row.pixel_config) : null,
       createdAt: new Date(row.created_at),
       updatedAt: new Date(row.updated_at),
     });

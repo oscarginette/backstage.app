@@ -20,8 +20,11 @@ import { IDownloadGateRepository } from '../repositories/IDownloadGateRepository
 import { IDownloadSubmissionRepository } from '../repositories/IDownloadSubmissionRepository';
 import { IDownloadAnalyticsRepository } from '../repositories/IDownloadAnalyticsRepository';
 import { IContactRepository } from '../repositories/IContactRepository';
+import { IPixelTrackingService } from '../repositories/IPixelTrackingService';
 import { DownloadSubmission } from '../entities/DownloadSubmission';
 import { CreateSubmissionInput } from '../types/download-gates';
+import { PIXEL_EVENTS } from '../types/pixel-tracking';
+import { TrackPixelEventUseCase } from './TrackPixelEventUseCase';
 
 export interface SubmitEmailInput {
   gateSlug: string;
@@ -43,7 +46,8 @@ export class SubmitEmailUseCase {
     private readonly gateRepository: IDownloadGateRepository,
     private readonly submissionRepository: IDownloadSubmissionRepository,
     private readonly analyticsRepository: IDownloadAnalyticsRepository,
-    private readonly contactRepository: IContactRepository
+    private readonly contactRepository: IContactRepository,
+    private readonly pixelTrackingService?: IPixelTrackingService
   ) {}
 
   /**
@@ -109,7 +113,14 @@ export class SubmitEmailUseCase {
       }
 
       // 7. Track analytics event
-      await this.trackSubmitEvent(gate.id, input);
+      const analyticsEventId = await this.trackSubmitEvent(gate.id, input);
+
+      // 8. Fire pixel tracking (fire-and-forget, non-blocking)
+      if (gate.pixelConfig && this.pixelTrackingService && analyticsEventId) {
+        this.trackPixelEvent(gate, input, analyticsEventId).catch(error => {
+          console.error('[PixelTracking] Failed (non-critical):', error);
+        });
+      }
 
       return {
         success: true,
@@ -200,18 +211,51 @@ export class SubmitEmailUseCase {
    * Track submit analytics event
    * @param gateId - Gate ID
    * @param input - Submission input
+   * @returns Analytics event ID (for pixel deduplication)
    */
-  private async trackSubmitEvent(gateId: string, input: SubmitEmailInput): Promise<void> {
+  private async trackSubmitEvent(gateId: string, input: SubmitEmailInput): Promise<string | null> {
     try {
-      await this.analyticsRepository.track({
+      const analyticsEvent = await this.analyticsRepository.track({
         gateId: gateId,
         eventType: 'submit',
         ipAddress: input.ipAddress,
         userAgent: input.userAgent,
       });
+      return analyticsEvent.id;
     } catch (error) {
       // Non-critical error: submission succeeds even if analytics tracking fails
       console.error('Failed to track submit event (non-critical):', error);
+      return null;
+    }
+  }
+
+  /**
+   * Track pixel event for Lead (email submission)
+   * @param gate - Download gate
+   * @param input - Submission input
+   * @param analyticsEventId - Analytics event ID for deduplication
+   */
+  private async trackPixelEvent(
+    gate: any,
+    input: SubmitEmailInput,
+    analyticsEventId: string
+  ): Promise<void> {
+    try {
+      const trackPixelUseCase = new TrackPixelEventUseCase(this.pixelTrackingService!);
+
+      await trackPixelUseCase.execute({
+        gateId: gate.id,
+        gateSlug: gate.slug,
+        pixelConfig: gate.pixelConfig,
+        event: PIXEL_EVENTS.LEAD,
+        analyticsEventId,
+        email: input.email, // Will be hashed in TrackPixelEventUseCase
+        userAgent: input.userAgent,
+        ipAddress: input.ipAddress,
+      });
+    } catch (error) {
+      // Fire and forget: log but don't throw
+      console.error('[PixelTracking] trackPixelEvent failed (non-critical):', error);
     }
   }
 }

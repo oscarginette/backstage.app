@@ -7,6 +7,7 @@ import {
   BulkImportResult
 } from '@/domain/repositories/IContactRepository';
 import type { ContactMetadata } from '@/domain/types/metadata';
+import { ListFilterCriteria, LIST_FILTER_MODES } from '@/domain/value-objects/ListFilterCriteria';
 
 export class PostgresContactRepository implements IContactRepository {
   async getSubscribed(userId: number): Promise<Contact[]> {
@@ -374,5 +375,71 @@ export class PostgresContactRepository implements IContactRepository {
         `Failed to count contacts: ${error instanceof Error ? error.message : 'Unknown error'}`
       );
     }
+  }
+
+  /**
+   * Get subscribed contacts filtered by list criteria
+   * @param userId - User identifier
+   * @param filterCriteria - List filter criteria (all contacts, specific lists, or exclude lists)
+   * @returns Array of contacts matching the filter criteria
+   */
+  async getSubscribedByListFilter(
+    userId: number,
+    filterCriteria: ListFilterCriteria
+  ): Promise<Contact[]> {
+    // Case 1: All contacts (default behavior)
+    if (filterCriteria.isAllContacts()) {
+      return this.getSubscribed(userId);
+    }
+
+    // Case 2: Contacts in specific lists (UNION)
+    if (filterCriteria.mode === LIST_FILTER_MODES.SPECIFIC_LISTS) {
+      const result = await sql`
+        SELECT DISTINCT c.id, c.email, c.name, c.unsubscribe_token, c.subscribed, c.created_at
+        FROM contacts c
+        INNER JOIN contact_list_members clm ON c.id = clm.contact_id
+        WHERE c.user_id = ${userId}
+          AND c.subscribed = true
+          AND clm.list_id = ANY(${filterCriteria.listIds})
+        ORDER BY c.created_at DESC
+      `;
+
+      return result.rows.map((row: any) => ({
+        id: row.id,
+        email: row.email,
+        name: row.name,
+        unsubscribeToken: row.unsubscribe_token,
+        subscribed: row.subscribed,
+        createdAt: row.created_at
+      }));
+    }
+
+    // Case 3: Contacts EXCLUDING specific lists
+    if (filterCriteria.mode === LIST_FILTER_MODES.EXCLUDE_LISTS) {
+      const result = await sql`
+        SELECT c.id, c.email, c.name, c.unsubscribe_token, c.subscribed, c.created_at
+        FROM contacts c
+        WHERE c.user_id = ${userId}
+          AND c.subscribed = true
+          AND NOT EXISTS (
+            SELECT 1
+            FROM contact_list_members clm
+            WHERE clm.contact_id = c.id
+              AND clm.list_id = ANY(${filterCriteria.listIds})
+          )
+        ORDER BY c.created_at DESC
+      `;
+
+      return result.rows.map((row: any) => ({
+        id: row.id,
+        email: row.email,
+        name: row.name,
+        unsubscribeToken: row.unsubscribe_token,
+        subscribed: row.subscribed,
+        createdAt: row.created_at
+      }));
+    }
+
+    throw new Error(`Unsupported filter mode: ${filterCriteria.mode}`);
   }
 }

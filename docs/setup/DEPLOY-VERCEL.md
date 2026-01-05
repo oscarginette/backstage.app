@@ -71,7 +71,7 @@ Ve a **Settings** → **Environment Variables** y añade:
 |----------|-------|--------------|
 | `BREVO_API_KEY` | `[La API key que te proporcioné]` | Production, Preview, Development |
 | `BREVO_TEMPLATE_ID` | `3` | Production, Preview, Development |
-| `SENDER_EMAIL` | `info@geebeat.com` | Production, Preview, Development |
+| `SENDER_EMAIL` | `info@thebackstage.app` | Production, Preview, Development |
 | `SOUNDCLOUD_USER_ID` | `1318247880` | Production, Preview, Development |
 | `POSTGRES_URL` | *(Auto-generado por Vercel)* | ✅ Ya existe |
 

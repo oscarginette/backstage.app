@@ -23,7 +23,7 @@ const eventSequence = [
       created_at: new Date().toISOString(),
       data: {
         email_id: emailId,
-        from: 'info@geebeat.com',
+        from: 'info@thebackstage.app',
         to: [testEmail],
         subject: 'Test Track: Complete Journey',
         created_at: new Date().toISOString()
@@ -38,7 +38,7 @@ const eventSequence = [
       created_at: new Date().toISOString(),
       data: {
         email_id: emailId,
-        from: 'info@geebeat.com',
+        from: 'info@thebackstage.app',
         to: [testEmail],
         subject: 'Test Track: Complete Journey'
       }

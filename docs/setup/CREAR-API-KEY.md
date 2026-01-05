@@ -78,7 +78,7 @@ Abre el dashboard y click en "🚀 Probar Ahora":
 http://localhost:3002/dashboard
 ```
 
-Deberías recibir un email a `info@geebeat.com` con el track más reciente.
+Deberías recibir un email a `info@thebackstage.app` con el track más reciente.
 
 ---
 
@@ -122,6 +122,6 @@ Cuando estés en https://app.brevo.com/settings/keys/api verás:
 2. Reinicia el servidor: `pkill -f "next dev" && npm run dev`
 3. Abre http://localhost:3002/dashboard
 4. Click en "🚀 Probar Ahora"
-5. Revisa tu email en `info@geebeat.com`
+5. Revisa tu email en `info@thebackstage.app`
 
 **Deberías recibir un email con el último track de SoundCloud!** 🎵

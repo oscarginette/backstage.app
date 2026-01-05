@@ -144,7 +144,7 @@ const EXAMPLE_RESEND_PAYLOADS = {
     data: {
       created_at: new Date().toISOString(),
       email_id: '4ef9a417-02e9-4d39-ad75-9611e0fcc33c',
-      from: 'info@geebeat.com',
+      from: 'noreply@thebackstage.app',
       to: ['user@example.com'],
       subject: 'Test Email'
     }
@@ -155,7 +155,7 @@ const EXAMPLE_RESEND_PAYLOADS = {
     data: {
       created_at: new Date().toISOString(),
       email_id: '4ef9a417-02e9-4d39-ad75-9611e0fcc33c',
-      from: 'info@geebeat.com',
+      from: 'noreply@thebackstage.app',
       to: ['user@example.com'],
       subject: 'Test Email'
     }
@@ -166,7 +166,7 @@ const EXAMPLE_RESEND_PAYLOADS = {
     data: {
       created_at: new Date().toISOString(),
       email_id: '4ef9a417-02e9-4d39-ad75-9611e0fcc33c',
-      from: 'info@geebeat.com',
+      from: 'noreply@thebackstage.app',
       to: ['bounced@example.com'],
       subject: 'Test Email',
       bounce_type: 'hard'
@@ -178,7 +178,7 @@ const EXAMPLE_RESEND_PAYLOADS = {
     data: {
       created_at: new Date().toISOString(),
       email_id: '4ef9a417-02e9-4d39-ad75-9611e0fcc33c',
-      from: 'info@geebeat.com',
+      from: 'noreply@thebackstage.app',
       to: 'user@example.com',
       subject: 'Test Email'
     }
@@ -189,7 +189,7 @@ const EXAMPLE_RESEND_PAYLOADS = {
     data: {
       created_at: new Date().toISOString(),
       email_id: '4ef9a417-02e9-4d39-ad75-9611e0fcc33c',
-      from: 'info@geebeat.com',
+      from: 'noreply@thebackstage.app',
       to: 'user@example.com',
       subject: 'Test Email',
       click: {

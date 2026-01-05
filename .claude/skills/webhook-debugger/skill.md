@@ -33,7 +33,7 @@ You are a webhook debugging expert that helps test, troubleshoot, and monitor we
   "created_at": "2025-01-15T10:30:00Z",
   "data": {
     "email_id": "re_abc123...",
-    "from": "info@geebeat.com",
+    "from": "info@thebackstage.app",
     "to": ["recipient@example.com"],
     "subject": "New Track: Song Title",
     "created_at": "2025-01-15T10:29:50Z"
@@ -123,7 +123,7 @@ export const mockResendEvents = {
     created_at: new Date().toISOString(),
     data: {
       email_id: 're_mock_sent_123',
-      from: 'info@geebeat.com',
+      from: 'info@thebackstage.app',
       to: ['test@example.com'],
       subject: 'Test Track: Debugging Session',
       created_at: new Date(Date.now() - 1000).toISOString()
@@ -135,7 +135,7 @@ export const mockResendEvents = {
     created_at: new Date().toISOString(),
     data: {
       email_id: 're_mock_delivered_456',
-      from: 'info@geebeat.com',
+      from: 'info@thebackstage.app',
       to: ['test@example.com'],
       subject: 'Test Track: Debugging Session'
     }

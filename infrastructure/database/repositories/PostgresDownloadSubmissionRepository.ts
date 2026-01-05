@@ -263,6 +263,31 @@ export class PostgresDownloadSubmissionRepository implements IDownloadSubmission
   }
 
   /**
+   * Update Spotify follow status
+   * Marks submission with spotify_follow_completed flag
+   */
+  async updateSpotifyFollowStatus(id: string, followed: boolean): Promise<void> {
+    try {
+      const result = await sql`
+        UPDATE download_submissions
+        SET
+          spotify_follow_completed = ${followed},
+          spotify_follow_completed_at = ${followed ? new Date() : null},
+          updated_at = NOW()
+        WHERE id = ${id}::uuid
+        RETURNING id
+      `;
+
+      if (result.rowCount === 0) {
+        throw new Error('Submission not found');
+      }
+    } catch (error) {
+      console.error('PostgresDownloadSubmissionRepository.updateSpotifyFollowStatus error:', error);
+      throw new Error(`Failed to update Spotify follow status: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  /**
    * Map database row to DownloadSubmission entity
    * Converts snake_case to camelCase and handles null values
    */
@@ -284,6 +309,8 @@ export class PostgresDownloadSubmissionRepository implements IDownloadSubmission
       soundcloudFollowVerifiedAt: row.soundcloud_follow_verified_at ? new Date(row.soundcloud_follow_verified_at) : null,
       spotifyConnected: row.spotify_connected,
       spotifyConnectedAt: row.spotify_connected_at ? new Date(row.spotify_connected_at) : null,
+      spotifyFollowCompleted: row.spotify_follow_completed ?? false,
+      spotifyFollowCompletedAt: row.spotify_follow_completed_at ? new Date(row.spotify_follow_completed_at) : null,
       downloadToken: row.download_token,
       downloadTokenGeneratedAt: row.download_token_generated_at ? new Date(row.download_token_generated_at) : null,
       downloadTokenExpiresAt: row.download_token_expires_at ? new Date(row.download_token_expires_at) : null,

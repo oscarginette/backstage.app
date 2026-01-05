@@ -52,7 +52,7 @@ SELECT * FROM subscription_stats;
 ### Verificar dominio en Resend
 
 1. Ve a **Domains** en Resend
-2. Add Domain: `geebeat.com`
+2. Add Domain: `thebackstage.app`
 3. Añade los registros DNS que te proporcione Resend:
 
 ```
@@ -72,7 +72,7 @@ Actualiza tu `.env.local`:
 RESEND_API_KEY=re_tu_api_key_aqui
 
 # Sender (debe estar verificado en Resend)
-SENDER_EMAIL=info@geebeat.com
+SENDER_EMAIL=info@thebackstage.app
 
 # Base URL de tu app (para links de unsubscribe)
 NEXT_PUBLIC_APP_URL=https://backstage-art.vercel.app

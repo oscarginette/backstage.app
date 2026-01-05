@@ -1,16 +1,19 @@
 import { NextResponse } from 'next/server';
 import { SendCustomEmailUseCase, ValidationError } from '@/domain/services/SendCustomEmailUseCase';
 import { CheckEmailQuotaUseCase } from '@/domain/services/CheckEmailQuotaUseCase';
+import { GetUserEmailSignatureUseCase } from '@/domain/services/GetUserEmailSignatureUseCase';
 import {
   contactRepository,
   emailLogRepository,
   executionLogRepository,
   emailCampaignRepository
 } from '@/infrastructure/database/repositories';
+import { PostgresEmailSignatureRepository } from '@/infrastructure/database/repositories/PostgresEmailSignatureRepository';
 import { resendEmailProvider } from '@/infrastructure/email';
 import { PostgresUserRepository } from '@/infrastructure/database/repositories/PostgresUserRepository';
 import { auth } from '@/lib/auth';
 import { SendCustomEmailSchema } from '@/lib/validation-schemas';
+import { ListFilterCriteria } from '@/domain/value-objects/ListFilterCriteria';
 
 export const maxDuration = 60;
 export const dynamic = 'force-dynamic';
@@ -73,14 +76,34 @@ export async function POST(request: Request) {
 
     const validatedData = validation.data;
 
+    // Parse list filter (if provided)
+    let listFilter: ListFilterCriteria | undefined;
+    if (body.listFilter) {
+      try {
+        listFilter = new ListFilterCriteria(
+          body.listFilter.mode,
+          body.listFilter.listIds || []
+        );
+      } catch (error: any) {
+        return NextResponse.json(
+          { error: `Invalid list filter: ${error.message}` },
+          { status: 400 }
+        );
+      }
+    }
+
     // Skip quota check if saving as draft
     if (!validatedData.saveAsDraft) {
       // Check email quota BEFORE sending
       const userRepository = new PostgresUserRepository();
       const checkEmailQuotaUseCase = new CheckEmailQuotaUseCase(userRepository);
 
-      // Get contact count to estimate emails to be sent
-      const subscribedContacts = await contactRepository.getSubscribed(userId);
+      // Get contact count to estimate emails to be sent (with list filtering)
+      const filterCriteria = listFilter || ListFilterCriteria.allContacts();
+      const subscribedContacts = await contactRepository.getSubscribedByListFilter(
+        userId,
+        filterCriteria
+      );
       const emailCount = subscribedContacts.length;
 
       const quotaCheck = await checkEmailQuotaUseCase.execute({
@@ -106,12 +129,17 @@ export async function POST(request: Request) {
       }
     }
 
+    // Initialize signature repository and use case
+    const signatureRepository = new PostgresEmailSignatureRepository();
+    const getSignatureUseCase = new GetUserEmailSignatureUseCase(signatureRepository);
+
     const useCase = new SendCustomEmailUseCase(
       contactRepository,
       resendEmailProvider,
       emailLogRepository,
       executionLogRepository,
-      emailCampaignRepository
+      emailCampaignRepository,
+      getSignatureUseCase
     );
 
     const result = await useCase.execute({
@@ -123,7 +151,8 @@ export async function POST(request: Request) {
       coverImage: validatedData.coverImage,
       saveAsDraft: validatedData.saveAsDraft,
       templateId: validatedData.templateId,
-      scheduledAt: validatedData.scheduledAt ? new Date(validatedData.scheduledAt) : undefined
+      scheduledAt: validatedData.scheduledAt ? new Date(validatedData.scheduledAt) : undefined,
+      listFilter
     });
 
     return NextResponse.json(result);

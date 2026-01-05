@@ -1,3 +1,4 @@
+import { PixelConfig } from './PixelConfig';
 
 export interface DownloadGateProps {
   id: string;
@@ -21,6 +22,7 @@ export interface DownloadGateProps {
   active: boolean;
   maxDownloads: number | null;
   expiresAt: Date | null;
+  pixelConfig: PixelConfig | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -63,6 +65,7 @@ export class DownloadGate {
   get active(): boolean { return this.props.active; }
   get maxDownloads(): number | null { return this.props.maxDownloads; }
   get expiresAt(): Date | null { return this.props.expiresAt; }
+  get pixelConfig(): PixelConfig | null { return this.props.pixelConfig; }
   get createdAt(): Date { return this.props.createdAt; }
   get updatedAt(): Date { return this.props.updatedAt; }
 

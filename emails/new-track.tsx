@@ -10,6 +10,8 @@ import {
   Section,
   Text,
 } from '@react-email/components';
+import { EmailSignatureComponent } from './components/EmailSignatureComponent';
+import { EmailSignatureData } from '@/domain/value-objects/EmailSignature';
 
 interface NewTrackEmailProps {
   trackName: string;
@@ -21,6 +23,7 @@ interface NewTrackEmailProps {
     message?: string;
     signature?: string;
   };
+  emailSignature: EmailSignatureData; // NEW: User's custom signature
 }
 
 export default function NewTrackEmail({
@@ -29,11 +32,10 @@ export default function NewTrackEmail({
   coverImage,
   unsubscribeUrl,
   customContent,
+  emailSignature,
 }: NewTrackEmailProps) {
-  // Logo URL: works in both local and production
-  // Files in /public are served from the root URL
+  // Base URL for fallback
   const baseUrl = getAppUrl();
-  const logoUrl = `${baseUrl}/GEE_BEAT_LOGO_BLACK_HORIZONTAL.png`;
 
   // Use direct image URL - SoundCloud images work well in emails
   const coverUrl = coverImage;
@@ -102,29 +104,9 @@ export default function NewTrackEmail({
             </Link>
           </Section>
 
-          {/* Logo Footer */}
+          {/* Email Signature (customizable per user) */}
           <Section style={logoFooterSection}>
-            <Img
-              src={logoUrl}
-              alt="Gee Beat"
-              width="100"
-              style={logoFooter}
-            />
-          </Section>
-
-          {/* Social Links */}
-          <Section style={socialSection}>
-            <Link href="https://www.geebeat.com" style={socialLink}>
-              geebeat.com
-            </Link>
-            {' • '}
-            <Link href="https://instagram.com/gee_beat" style={socialLink}>
-              Instagram
-            </Link>
-            {' • '}
-            <Link href="https://geebeat.bandcamp.com" style={socialLink}>
-              Bandcamp
-            </Link>
+            <EmailSignatureComponent signature={emailSignature} baseUrl={baseUrl} />
           </Section>
 
           {/* Unsubscribe */}
@@ -220,23 +202,6 @@ const logoFooterSection = {
   padding: '48px 32px 24px',
   textAlign: 'center' as const,
   borderTop: '1px solid #e0e0e0',
-};
-
-const logoFooter = {
-  display: 'block',
-  margin: '0 auto',
-};
-
-const socialSection = {
-  padding: '0 32px 24px',
-  textAlign: 'center' as const,
-};
-
-const socialLink = {
-  color: '#666666',
-  fontSize: '13px',
-  textDecoration: 'none',
-  letterSpacing: '0.3px',
 };
 
 const unsubscribeSection = {

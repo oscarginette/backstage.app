@@ -315,12 +315,12 @@ const handleSubmit = async (data: CreateGateFormData) => {
 <div className="public-link">
   <h3>Public Link</h3>
   <CopyableLink
-    url={`https://geebeat.com/gate/${gate.slug}`}
+    url={`https://thebackstage.app/gate/${gate.slug}`}
     qrCode={true}
   />
 
   <ShareButtons
-    url={`https://geebeat.com/gate/${gate.slug}`}
+    url={`https://thebackstage.app/gate/${gate.slug}`}
     title={gate.title}
     platforms={['instagram', 'twitter', 'facebook', 'whatsapp']}
   />
@@ -1059,7 +1059,7 @@ export function DownloadUnlockButton({ submissionId, gateSlug }: DownloadUnlockB
         </p>
 
         <ShareButtons
-          url={`https://geebeat.com/gate/${gateSlug}`}
+          url={`https://thebackstage.app/gate/${gateSlug}`}
           title="Check out this free download!"
           platforms={['twitter', 'facebook', 'whatsapp']}
         />
@@ -1418,7 +1418,7 @@ export async function generateMetadata({ params }: { params: { slug: string } })
       description: `Free download: ${gate.title}`,
       images: [gate.artworkUrl],
       type: 'music.song',
-      url: `https://geebeat.com/gate/${gate.slug}`
+      url: `https://thebackstage.app/gate/${gate.slug}`
     },
     twitter: {
       card: 'summary_large_image',

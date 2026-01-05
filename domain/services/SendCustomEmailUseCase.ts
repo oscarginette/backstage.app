@@ -24,6 +24,8 @@ import { IEmailProvider } from '@/infrastructure/email/IEmailProvider';
 import { IEmailLogRepository } from '@/domain/repositories/IEmailLogRepository';
 import { IExecutionLogRepository } from '@/domain/repositories/IExecutionLogRepository';
 import { IEmailCampaignRepository } from '@/domain/repositories/IEmailCampaignRepository';
+import { GetUserEmailSignatureUseCase } from './GetUserEmailSignatureUseCase';
+import { ListFilterCriteria } from '@/domain/value-objects/ListFilterCriteria';
 import { render } from '@react-email/components';
 import CustomEmail from '@/emails/custom-email';
 import { env, getAppUrl, getBaseUrl } from '@/lib/env';
@@ -38,6 +40,7 @@ export interface SendCustomEmailInput {
   saveAsDraft?: boolean;
   templateId?: string;
   scheduledAt?: Date;
+  listFilter?: ListFilterCriteria;
 }
 
 export interface SendCustomEmailResult {
@@ -63,7 +66,8 @@ export class SendCustomEmailUseCase {
     private emailProvider: IEmailProvider,
     private emailLogRepository: IEmailLogRepository,
     private executionLogRepository: IExecutionLogRepository,
-    private campaignRepository: IEmailCampaignRepository
+    private campaignRepository: IEmailCampaignRepository,
+    private getSignatureUseCase: GetUserEmailSignatureUseCase
   ) {}
 
   async execute(input: SendCustomEmailInput): Promise<SendCustomEmailResult> {
@@ -95,11 +99,19 @@ export class SendCustomEmailUseCase {
         };
       }
 
-      // 4. Get subscribed contacts
-      const contacts = await this.contactRepository.getSubscribed(input.userId);
+      // 4. Get subscribed contacts (with list filtering)
+      const listFilter = input.listFilter || ListFilterCriteria.allContacts();
+      const contacts = await this.contactRepository.getSubscribedByListFilter(
+        input.userId,
+        listFilter
+      );
 
       if (contacts.length === 0) {
-        throw new ValidationError('No hay contactos suscritos');
+        throw new ValidationError(
+          listFilter.isAllContacts()
+            ? 'No hay contactos suscritos'
+            : 'No hay contactos suscritos que coincidan con las listas seleccionadas'
+        );
       }
 
       console.log(`Enviando emails personalizados a ${contacts.length} contactos...`);
@@ -166,13 +178,17 @@ export class SendCustomEmailUseCase {
     const baseUrl = getAppUrl();
     const tempUnsubscribeUrl = `${baseUrl}/unsubscribe?token=TEMP_TOKEN`;
 
+    // Get user's email signature
+    const emailSignature = await this.getSignatureUseCase.execute(input.userId);
+
     return await render(
       CustomEmail({
         greeting: input.greeting,
         message: input.message,
         signature: input.signature,
         coverImage: input.coverImage || '',
-        unsubscribeUrl: tempUnsubscribeUrl
+        unsubscribeUrl: tempUnsubscribeUrl,
+        emailSignature: emailSignature.toJSON()
       })
     );
   }
@@ -187,6 +203,9 @@ export class SendCustomEmailUseCase {
 
     const baseUrl = getAppUrl();
 
+    // Get user's email signature once (outside loop for performance)
+    const emailSignature = await this.getSignatureUseCase.execute(input.userId);
+
     for (const contact of contacts) {
       try {
         // Build personalized HTML with contact's unsubscribe token
@@ -197,7 +216,8 @@ export class SendCustomEmailUseCase {
             message: input.message,
             signature: input.signature,
             coverImage: input.coverImage || '',
-            unsubscribeUrl
+            unsubscribeUrl,
+            emailSignature: emailSignature.toJSON()
           })
         );
 

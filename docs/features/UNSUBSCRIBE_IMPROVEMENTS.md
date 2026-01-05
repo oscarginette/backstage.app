@@ -270,7 +270,7 @@ curl -X POST http://localhost:3002/api/send-track \
 # 1. Open email
 # 2. Click "..." menu → "Show original"
 # 3. Look for header:
-#    List-Unsubscribe: <https://geebeat.com/unsubscribe?token=...>
+#    List-Unsubscribe: <https://thebackstage.app/unsubscribe?token=...>
 #    List-Unsubscribe-Post: List-Unsubscribe=One-Click
 ```
 

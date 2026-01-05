@@ -82,11 +82,11 @@ export default function ExecutionHistory({ history }: ExecutionHistoryProps) {
           </div>
         ) : (
           <div className="relative border-l border-[#E8E6DF] pl-6 space-y-4 ml-2 my-2">
-            {history.map((item) => {
+            {history.map((item, index) => {
               const stats = campaignStats[item.trackId];
 
               return (
-                <div key={item.trackId} className="relative group">
+                <div key={`${item.trackId}-${item.executedAt}-${index}`} className="relative group">
                   {/* Timeline Dot */}
                   <div className="absolute -left-[32px] top-1.5 w-4 h-4 rounded-full border-[3px] border-white bg-[#E8E6DF] group-hover:bg-[#FF5500] transition-colors duration-300 shadow-sm"></div>
 

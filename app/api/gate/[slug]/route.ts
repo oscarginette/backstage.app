@@ -10,11 +10,13 @@ import { GetDownloadGateUseCase } from '@/domain/services/GetDownloadGateUseCase
 import { TrackGateAnalyticsUseCase } from '@/domain/services/TrackGateAnalyticsUseCase';
 import { PostgresDownloadGateRepository } from '@/infrastructure/database/repositories/PostgresDownloadGateRepository';
 import { PostgresDownloadAnalyticsRepository } from '@/infrastructure/database/repositories/PostgresDownloadAnalyticsRepository';
+import { PixelTrackingService } from '@/infrastructure/pixel/PixelTrackingService';
 import { serializePublicGate } from '@/lib/serialization';
 
 // Singleton repository instances
 const gateRepository = new PostgresDownloadGateRepository();
 const analyticsRepository = new PostgresDownloadAnalyticsRepository();
+const pixelTrackingService = new PixelTrackingService();
 
 export const dynamic = 'force-dynamic';
 
@@ -46,7 +48,8 @@ export async function GET(
     // Track view analytics (fire and forget)
     const trackAnalyticsUseCase = new TrackGateAnalyticsUseCase(
       analyticsRepository,
-      gateRepository
+      gateRepository,
+      pixelTrackingService
     );
 
     // Extract analytics data from request

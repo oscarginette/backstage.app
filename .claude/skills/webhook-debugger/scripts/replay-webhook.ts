@@ -16,7 +16,7 @@ const mockResendEvents = {
     created_at: new Date().toISOString(),
     data: {
       email_id: `re_mock_sent_${Date.now()}`,
-      from: 'info@geebeat.com',
+      from: 'info@thebackstage.app',
       to: ['test@example.com'],
       subject: 'Test Track: Debugging Session',
       created_at: new Date(Date.now() - 1000).toISOString()
@@ -28,7 +28,7 @@ const mockResendEvents = {
     created_at: new Date().toISOString(),
     data: {
       email_id: `re_mock_delivered_${Date.now()}`,
-      from: 'info@geebeat.com',
+      from: 'info@thebackstage.app',
       to: ['test@example.com'],
       subject: 'Test Track: Debugging Session'
     }

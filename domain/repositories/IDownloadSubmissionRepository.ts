@@ -105,4 +105,12 @@ export interface IDownloadSubmissionRepository {
    * @param profile - Spotify profile data
    */
   updateSpotifyProfile(id: string, profile: SpotifyProfile): Promise<void>;
+
+  /**
+   * Update Spotify follow status
+   * Used after following artist on Spotify
+   * @param id - Submission UUID
+   * @param followed - Whether artist was followed
+   */
+  updateSpotifyFollowStatus(id: string, followed: boolean): Promise<void>;
 }
