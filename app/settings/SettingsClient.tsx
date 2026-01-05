@@ -110,7 +110,7 @@ export default function SettingsClient({
         </Link>
 
         <div className="font-serif italic text-xl text-foreground/80">
-          Backstage Settings
+          The Backstage Settings
         </div>
 
         <div className="w-8 h-8" />
@@ -198,7 +198,7 @@ export default function SettingsClient({
           >
             <div className="mb-5">
               <h2 className="text-base font-serif mb-1">Appearance</h2>
-              <p className="text-foreground/50 text-xs">Customize how Backstage looks on your device</p>
+              <p className="text-foreground/50 text-xs">Customize how The Backstage looks on your device</p>
             </div>
 
             <ThemeSwitcher />

@@ -112,7 +112,7 @@ export default function LoginPage() {
       <div className="w-full max-w-[440px]">
         <div className="text-center mb-10">
           <Link href={PATHS.HOME} className="font-serif italic text-4xl text-foreground mb-8 inline-block hover:opacity-80 transition-opacity text-center w-full">
-            Backstage
+            The Backstage
           </Link>
           
           <AnimatePresence mode="wait">
@@ -245,7 +245,7 @@ export default function LoginPage() {
 
       {/* Footer minimal info */}
       <div className="mt-12 text-foreground/30 text-xs font-medium uppercase tracking-widest">
-        &copy; 2025 Backstage Automation
+        &copy; 2025 The Backstage
       </div>
     </div>
   );

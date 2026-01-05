@@ -19,6 +19,28 @@ export interface DownloadGate {
   active: boolean;
   maxDownloads: number | null;
   expiresAt: string | null;
+  pixelConfig?: {
+    facebook?: {
+      enabled: boolean;
+      pixelId: string;
+      accessToken?: string;
+      testEventCode?: string;
+    };
+    google?: {
+      enabled: boolean;
+      tagId: string;
+      conversionLabels?: {
+        view?: string;
+        submit?: string;
+        download?: string;
+      };
+    };
+    tiktok?: {
+      enabled: boolean;
+      pixelId: string;
+      accessToken?: string;
+    };
+  } | null;
   createdAt: string;
   updatedAt: string;
   stats: DownloadGateStats;

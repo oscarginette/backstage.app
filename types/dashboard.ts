@@ -52,4 +52,8 @@ export interface EmailContent {
   message: string;
   signature: string;
   coverImage?: string;
+  listFilter?: {
+    mode: string;
+    listIds: string[];
+  };
 }

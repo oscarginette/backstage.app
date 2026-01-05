@@ -171,7 +171,8 @@ export function useDashboardData() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...content,
-          saveAsDraft: false
+          saveAsDraft: false,
+          listFilter: content.listFilter // Pass listFilter to API
         })
       });
 
@@ -207,7 +208,8 @@ export function useDashboardData() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...content,
-          status: 'draft'
+          status: 'draft',
+          listFilter: content.listFilter // Pass listFilter to API
         })
       });
 

@@ -7,6 +7,7 @@ import { DownloadGate } from '@/types/download-gates';
 import GateOverview from '@/components/dashboard/GateOverview';
 import GateSubmissions from '@/components/dashboard/GateSubmissions';
 import GateSettingsForm from '@/components/dashboard/GateSettingsForm';
+import PixelConfiguration from '@/components/PixelConfiguration';
 import { PATHS } from '@/lib/paths';
 
 export default function GateDetailsPage({ params }: { params: Promise<{ id: string }> }) {
@@ -119,7 +120,15 @@ export default function GateDetailsPage({ params }: { params: Promise<{ id: stri
         <div className="pb-12">
           {activeTab === 'overview' && <GateOverview gate={gate} />}
           {activeTab === 'submissions' && <GateSubmissions gateId={gate.id} />}
-          {activeTab === 'edit' && <GateSettingsForm gate={gate} onUpdate={fetchGate} />}
+          {activeTab === 'edit' && (
+            <div className="space-y-8">
+              <GateSettingsForm gate={gate} onUpdate={fetchGate} />
+              <PixelConfiguration
+                gateId={gate.id}
+                initialConfig={gate.pixelConfig || undefined}
+              />
+            </div>
+          )}
         </div>
       </div>
     </div>

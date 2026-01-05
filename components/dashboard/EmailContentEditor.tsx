@@ -3,6 +3,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { EmailContent } from '../../types/dashboard';
 import { useTranslations } from '@/lib/i18n/context';
+import ListSelector from './ListSelector';
+import { LIST_FILTER_MODES } from '@/domain/value-objects/ListFilterCriteria';
 
 interface EmailContentEditorProps {
   initialContent: EmailContent;
@@ -214,6 +216,15 @@ export default function EmailContentEditor({
   const [loadingPreview, setLoadingPreview] = useState(false);
   const [savingDraft, setSavingDraft] = useState(false);
 
+  // List filter state
+  const [listFilterMode, setListFilterMode] = useState<'all' | 'include' | 'exclude'>(
+    initialContent.listFilter?.mode === LIST_FILTER_MODES.SPECIFIC_LISTS ? 'include' :
+    initialContent.listFilter?.mode === LIST_FILTER_MODES.EXCLUDE_LISTS ? 'exclude' : 'all'
+  );
+  const [selectedListIds, setSelectedListIds] = useState<string[]>(
+    initialContent.listFilter?.listIds || []
+  );
+
   useEffect(() => {
     fetchPreview();
   }, [subject, greeting, message, signature, coverImage]);
@@ -246,24 +257,46 @@ export default function EmailContentEditor({
   };
 
   const handleSave = async () => {
+    // Build listFilter object
+    const listFilter = listFilterMode === 'all'
+      ? undefined
+      : {
+          mode: listFilterMode === 'include'
+            ? LIST_FILTER_MODES.SPECIFIC_LISTS
+            : LIST_FILTER_MODES.EXCLUDE_LISTS,
+          listIds: selectedListIds,
+        };
+
     await onSave({
       subject,
       greeting,
       message,
       signature,
-      coverImage: coverImage || undefined
+      coverImage: coverImage || undefined,
+      listFilter
     });
   };
 
   const handleSaveDraft = async () => {
     setSavingDraft(true);
     try {
+      // Build listFilter object
+      const listFilter = listFilterMode === 'all'
+        ? undefined
+        : {
+            mode: listFilterMode === 'include'
+              ? LIST_FILTER_MODES.SPECIFIC_LISTS
+              : LIST_FILTER_MODES.EXCLUDE_LISTS,
+            listIds: selectedListIds,
+          };
+
       await onSaveDraft({
         subject,
         greeting,
         message,
         signature,
-        coverImage: coverImage || undefined
+        coverImage: coverImage || undefined,
+        listFilter
       });
     } finally {
       setSavingDraft(false);
@@ -290,6 +323,16 @@ export default function EmailContentEditor({
                 onChange={(e) => setSubject(e.target.value)}
                 className="w-full px-4 py-2.5 rounded-xl border border-[#E8E6DF] focus:outline-none focus:ring-2 focus:ring-[#FF5500]/20 focus:border-[#FF5500] transition-all"
                 placeholder={t('subjectPlaceholder')}
+              />
+            </div>
+
+            {/* List Selector */}
+            <div>
+              <ListSelector
+                selectedListIds={selectedListIds}
+                onChange={setSelectedListIds}
+                mode={listFilterMode}
+                onModeChange={setListFilterMode}
               />
             </div>
 

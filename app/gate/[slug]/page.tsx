@@ -231,7 +231,7 @@ export default function DownloadGatePage({ params }: { params: Promise<{ slug: s
           target="_blank"
           className="font-serif italic text-3xl text-white hover:text-accent transition-colors duration-300 tracking-tight"
         >
-          Backstage
+          The Backstage
         </a>
       </div>
 
@@ -337,7 +337,7 @@ export default function DownloadGatePage({ params }: { params: Promise<{ slug: s
                 <span>|</span>
                 <a href="#" className="hover:text-white transition-colors">DMCA Policy</a>
                 <span>|</span>
-                <a href={PATHS.HOME} target="_blank" className="text-white/40 hover:text-white transition-colors font-black">Backstage.art</a>
+                <a href={PATHS.HOME} target="_blank" className="text-white/40 hover:text-white transition-colors font-black">TheBackstage.app</a>
               </footer>
             </div>
           </div>

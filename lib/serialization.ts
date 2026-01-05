@@ -38,6 +38,28 @@ export interface SerializedDownloadGate {
   active: boolean;
   maxDownloads: number | null;
   expiresAt: string | null;
+  pixelConfig?: {
+    facebook?: {
+      enabled: boolean;
+      pixelId: string;
+      accessToken?: string;
+      testEventCode?: string;
+    };
+    google?: {
+      enabled: boolean;
+      tagId: string;
+      conversionLabels?: {
+        view?: string;
+        submit?: string;
+        download?: string;
+      };
+    };
+    tiktok?: {
+      enabled: boolean;
+      pixelId: string;
+      accessToken?: string;
+    };
+  } | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -71,6 +93,7 @@ export function serializeGate(gate: DownloadGate): SerializedDownloadGate {
     active: gate.active,
     maxDownloads: gate.maxDownloads,
     expiresAt: gate.expiresAt?.toISOString() ?? null,
+    pixelConfig: gate.pixelConfig ? gate.pixelConfig.toJSON() : null,
     createdAt: gate.createdAt.toISOString(),
     updatedAt: gate.updatedAt.toISOString()
   };
