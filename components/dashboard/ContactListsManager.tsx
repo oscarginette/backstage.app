@@ -140,7 +140,7 @@ export default function ContactListsManager() {
           <>
             <button
               onClick={() => setShowCreateModal(true)}
-              className="px-4 py-2 bg-[#FF5500] text-white rounded-lg hover:scale-105 transition-transform flex items-center gap-2"
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-50 text-blue-600 hover:bg-blue-100 transition-all border border-blue-200 text-xs font-bold active:scale-95"
             >
               <Plus className="w-4 h-4" />
               New List
@@ -148,7 +148,7 @@ export default function ContactListsManager() {
             {selectedListIds.length > 0 && (
               <button
                 onClick={() => setShowDeleteModal(true)}
-                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:scale-105 transition-transform flex items-center gap-2"
+                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-red-50 text-red-600 hover:bg-red-100 transition-all border border-red-200 text-xs font-bold active:scale-95"
               >
                 <Trash2 className="w-4 h-4" />
                 Delete ({selectedListIds.length})

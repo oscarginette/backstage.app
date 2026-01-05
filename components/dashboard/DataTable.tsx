@@ -170,7 +170,7 @@ export default function DataTable<T>({
           </div>
           <div className="flex items-center gap-3 w-full md:w-auto">
             {actions}
-            <button className="flex items-center gap-2 px-5 py-3 rounded-2xl border border-[#E8E6DF]/60 bg-white/60 text-gray-500 hover:text-[#1c1c1c] hover:bg-white transition-all text-sm font-bold active:scale-95">
+            <button className="flex items-center gap-2 px-4 py-2 rounded-xl border border-[#E8E6DF]/60 bg-white/60 text-gray-500 hover:text-[#1c1c1c] hover:bg-white transition-all text-xs font-bold active:scale-95">
               <Filter className="w-4 h-4" />
               <span>Filters</span>
             </button>

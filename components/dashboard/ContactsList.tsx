@@ -221,7 +221,7 @@ const ContactsList = forwardRef<ContactsListRef, Props>(({ onImportClick }, ref)
               <>
                 <button
                   onClick={() => setShowAddToListModal(true)}
-                  className="px-4 py-2 bg-[#6366F1] text-white rounded-lg hover:scale-105 transition-transform flex items-center gap-2"
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-50 text-indigo-600 hover:bg-indigo-100 transition-all border border-indigo-200 text-xs font-bold active:scale-95"
                 >
                   <FolderPlus className="w-4 h-4" />
                   Add to List ({selectedIds.length})
