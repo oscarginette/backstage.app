@@ -7,6 +7,7 @@ import { useTranslations } from '@/lib/i18n/context';
 import { PATHS } from '@/lib/paths';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
+import { motion } from "framer-motion";
 
 export default function PricingSection() {
   const t = useTranslations('pricing');
@@ -124,26 +125,41 @@ export default function PricingSection() {
 
           {/* Toggle with logic */}
           <div className="inline-flex items-center p-1 bg-card rounded-full border border-border shadow-sm">
-            <Button
-              variant="ghost"
-              size="sm"
+            <button
+              type="button"
               onClick={() => setIsAnnual(false)}
-              className={`rounded-full transition-all ${
-                !isAnnual ? "bg-foreground text-background shadow-md hover:bg-foreground/90" : "text-muted-foreground hover:text-foreground"
-              }`}
+              className="relative px-6 py-2 text-sm font-black transition-all active:scale-95 group"
             >
-              {t('monthly')}
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
+              <span className={`relative z-10 transition-colors duration-300 ${!isAnnual ? 'text-background' : 'text-foreground/40 group-hover:text-foreground'}`}>
+                {t('monthly')}
+              </span>
+              {!isAnnual && (
+                <motion.div
+                  layoutId="active-pill"
+                  className="absolute inset-0 bg-foreground rounded-full shadow-lg shadow-black/5"
+                  transition={{ type: "spring", bounce: 0.15, duration: 0.5 }}
+                />
+              )}
+            </button>
+            <button
+              type="button"
               onClick={() => setIsAnnual(true)}
-              className={`rounded-full transition-all ${
-                isAnnual ? "bg-foreground text-background shadow-md hover:bg-foreground/90" : "text-muted-foreground hover:text-foreground"
-              }`}
+              className="relative px-8 py-2 text-sm font-black transition-all active:scale-95 group"
             >
-              {t('annual')} <span className="text-[10px] ml-1 opacity-80">({t('save')})</span>
-            </Button>
+              <div className={`relative z-10 flex items-center gap-2 transition-colors duration-300 ${isAnnual ? 'text-background' : 'text-foreground/40 group-hover:text-foreground'}`}>
+                <span>{t('annual')}</span>
+                <span className={`text-[10px] px-1.5 py-0.5 rounded-md font-black uppercase tracking-tighter ${isAnnual ? 'bg-background/20 text-background' : 'bg-accent/10 text-accent ring-1 ring-accent/20'}`}>
+                  {t('save')}
+                </span>
+              </div>
+              {isAnnual && (
+                <motion.div
+                  layoutId="active-pill"
+                  className="absolute inset-0 bg-foreground rounded-full shadow-lg shadow-black/5"
+                  transition={{ type: "spring", bounce: 0.15, duration: 0.5 }}
+                />
+              )}
+            </button>
           </div>
         </div>
 

@@ -31,16 +31,17 @@ export default function LandingHero() {
           {t('newSubtitle')}
         </p>
 
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-6 mt-4">
           <Link href={PATHS.LOGIN} className="group">
-            <Button variant="primary" size="lg" className="rounded-full h-14 px-8 text-lg gap-2">
+            <Button variant="primary" size="lg" className="rounded-full h-14 px-10 text-lg shadow-xl shadow-accent/10">
               {t('startFree')}
               <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
             </Button>
           </Link>
-          <p className="text-sm text-muted-foreground font-medium italic">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground font-medium italic whitespace-nowrap opacity-80">
+            <div className="w-1 h-1 rounded-full bg-border" />
             {t('noCardRequired')}
-          </p>
+          </div>
         </div>
       </div>
     </section>
