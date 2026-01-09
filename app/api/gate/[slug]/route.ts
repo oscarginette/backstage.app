@@ -6,17 +6,8 @@
  */
 
 import { NextResponse } from 'next/server';
-import { GetDownloadGateUseCase } from '@/domain/services/GetDownloadGateUseCase';
-import { TrackGateAnalyticsUseCase } from '@/domain/services/TrackGateAnalyticsUseCase';
-import { PostgresDownloadGateRepository } from '@/infrastructure/database/repositories/PostgresDownloadGateRepository';
-import { PostgresDownloadAnalyticsRepository } from '@/infrastructure/database/repositories/PostgresDownloadAnalyticsRepository';
-import { PixelTrackingService } from '@/infrastructure/pixel/PixelTrackingService';
+import { UseCaseFactory } from '@/lib/di-container';
 import { serializePublicGate } from '@/lib/serialization';
-
-// Singleton repository instances
-const gateRepository = new PostgresDownloadGateRepository();
-const analyticsRepository = new PostgresDownloadAnalyticsRepository();
-const pixelTrackingService = new PixelTrackingService();
 
 export const dynamic = 'force-dynamic';
 
@@ -33,7 +24,7 @@ export async function GET(
     const { slug } = await params;
 
     // Initialize use case
-    const getGateUseCase = new GetDownloadGateUseCase(gateRepository);
+    const getGateUseCase = UseCaseFactory.createGetDownloadGateUseCase();
 
     // Execute
     const gate = await getGateUseCase.executeBySlug({ slug });
@@ -46,11 +37,7 @@ export async function GET(
     }
 
     // Track view analytics (fire and forget)
-    const trackAnalyticsUseCase = new TrackGateAnalyticsUseCase(
-      analyticsRepository,
-      gateRepository,
-      pixelTrackingService
-    );
+    const trackAnalyticsUseCase = UseCaseFactory.createTrackGateAnalyticsUseCase();
 
     // Extract analytics data from request
     const ipAddress = request.headers.get('x-forwarded-for') || undefined;

@@ -6,13 +6,7 @@
  */
 
 import { NextResponse } from 'next/server';
-import { GenerateDownloadTokenUseCase } from '@/domain/services/GenerateDownloadTokenUseCase';
-import { PostgresDownloadSubmissionRepository } from '@/infrastructure/database/repositories/PostgresDownloadSubmissionRepository';
-import { PostgresDownloadGateRepository } from '@/infrastructure/database/repositories/PostgresDownloadGateRepository';
-
-// Singleton repository instances
-const submissionRepository = new PostgresDownloadSubmissionRepository();
-const gateRepository = new PostgresDownloadGateRepository();
+import { UseCaseFactory } from '@/lib/di-container';
 
 export const dynamic = 'force-dynamic';
 
@@ -40,10 +34,7 @@ export async function POST(
     }
 
     // Initialize use case
-    const generateTokenUseCase = new GenerateDownloadTokenUseCase(
-      submissionRepository,
-      gateRepository
-    );
+    const generateTokenUseCase = UseCaseFactory.createGenerateDownloadTokenUseCase();
 
     // Execute
     const result = await generateTokenUseCase.execute({

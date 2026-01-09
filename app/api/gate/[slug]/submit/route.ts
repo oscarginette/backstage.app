@@ -6,21 +6,9 @@
  */
 
 import { NextResponse } from 'next/server';
-import { SubmitEmailUseCase } from '@/domain/services/SubmitEmailUseCase';
-import { PostgresDownloadGateRepository } from '@/infrastructure/database/repositories/PostgresDownloadGateRepository';
-import { PostgresDownloadSubmissionRepository } from '@/infrastructure/database/repositories/PostgresDownloadSubmissionRepository';
-import { PostgresDownloadAnalyticsRepository } from '@/infrastructure/database/repositories/PostgresDownloadAnalyticsRepository';
-import { PostgresContactRepository } from '@/infrastructure/database/repositories/PostgresContactRepository';
-import { PixelTrackingService } from '@/infrastructure/pixel/PixelTrackingService';
+import { UseCaseFactory } from '@/lib/di-container';
 import { serializeSubmission } from '@/lib/serialization';
 import { SubmitDownloadGateSchema } from '@/lib/validation-schemas';
-
-// Singleton repository instances
-const gateRepository = new PostgresDownloadGateRepository();
-const submissionRepository = new PostgresDownloadSubmissionRepository();
-const analyticsRepository = new PostgresDownloadAnalyticsRepository();
-const contactRepository = new PostgresContactRepository();
-const pixelTrackingService = new PixelTrackingService();
 
 export const dynamic = 'force-dynamic';
 
@@ -53,13 +41,7 @@ export async function POST(
     const userAgent = request.headers.get('user-agent') || undefined;
 
     // Initialize use case
-    const submitEmailUseCase = new SubmitEmailUseCase(
-      gateRepository,
-      submissionRepository,
-      analyticsRepository,
-      contactRepository,
-      pixelTrackingService
-    );
+    const submitEmailUseCase = UseCaseFactory.createSubmitEmailUseCase();
 
     // Execute
     // Note: userId is derived from the gate owner, not passed here

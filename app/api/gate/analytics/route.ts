@@ -7,13 +7,7 @@
  */
 
 import { NextResponse } from 'next/server';
-import { TrackGateAnalyticsUseCase } from '@/domain/services/TrackGateAnalyticsUseCase';
-import { PostgresDownloadAnalyticsRepository } from '@/infrastructure/database/repositories/PostgresDownloadAnalyticsRepository';
-import { PostgresDownloadGateRepository } from '@/infrastructure/database/repositories/PostgresDownloadGateRepository';
-
-// Singleton repository instances
-const analyticsRepository = new PostgresDownloadAnalyticsRepository();
-const gateRepository = new PostgresDownloadGateRepository();
+import { UseCaseFactory } from '@/lib/di-container';
 
 export const dynamic = 'force-dynamic';
 
@@ -56,10 +50,7 @@ export async function POST(request: Request) {
     const userAgent = request.headers.get('user-agent') || undefined;
 
     // Initialize use case
-    const trackAnalyticsUseCase = new TrackGateAnalyticsUseCase(
-      analyticsRepository,
-      gateRepository
-    );
+    const trackAnalyticsUseCase = UseCaseFactory.createTrackGateAnalyticsUseCase();
 
     // Execute (fire and forget)
     const result = await trackAnalyticsUseCase.execute({
