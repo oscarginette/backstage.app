@@ -27,9 +27,9 @@ export default function LandingFooter() {
           </div>
 
           <div className="flex gap-8">
-            <Link href="#" className="hover:text-foreground transition-colors">{t('privacy')}</Link>
-            <Link href="#" className="hover:text-foreground transition-colors">{t('terms')}</Link>
-            <Link href="#" className="hover:text-foreground transition-colors">{t('contact')}</Link>
+            <Link href="/privacy" className="hover:text-foreground transition-colors">{t('privacy')}</Link>
+            <Link href="/terms" className="hover:text-foreground transition-colors">{t('terms')}</Link>
+            <Link href="mailto:support@thebackstage.app" className="hover:text-foreground transition-colors">{t('contact')}</Link>
           </div>
         </div>
       </div>
