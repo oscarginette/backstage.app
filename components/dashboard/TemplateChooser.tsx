@@ -14,10 +14,10 @@ export default function TemplateChooser({
   return (
     <div className="p-8">
       <div className="mb-8 text-center">
-        <h3 className="text-3xl font-serif text-[#1c1c1c] mb-2">
+        <h3 className="text-3xl font-serif text-foreground mb-2">
           Elige un Punto de Partida
         </h3>
-        <p className="text-gray-500 font-light">
+        <p className="text-muted-foreground font-light">
           Selecciona cómo quieres empezar tu email
         </p>
       </div>
@@ -26,12 +26,12 @@ export default function TemplateChooser({
         {/* Opción 1: Email en Blanco */}
         <button
           onClick={onSelectBlank}
-          className="group relative p-10 border border-[#E8E6DF] rounded-3xl hover:border-[#1c1c1c] hover:shadow-xl transition-all bg-white text-left"
+          className="group relative p-10 border border-border rounded-3xl hover:border-foreground hover:shadow-xl transition-all bg-card text-left"
         >
           <div className="flex flex-col items-center text-center gap-4">
-            <div className="w-20 h-20 rounded-2xl bg-gray-50 flex items-center justify-center group-hover:bg-[#1c1c1c] transition-colors duration-300">
+            <div className="w-20 h-20 rounded-2xl bg-muted flex items-center justify-center group-hover:bg-foreground transition-colors duration-300">
               <svg
-                className="w-8 h-8 text-gray-400 group-hover:text-white transition-colors duration-300"
+                className="w-8 h-8 text-muted-foreground group-hover:text-background transition-colors duration-300"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -45,10 +45,10 @@ export default function TemplateChooser({
               </svg>
             </div>
             <div>
-              <h4 className="font-serif text-2xl text-[#1c1c1c] mb-2">
+              <h4 className="font-serif text-2xl text-foreground mb-2">
                 Email en Blanco
               </h4>
-              <p className="text-sm text-gray-500 font-light leading-relaxed">
+              <p className="text-sm text-muted-foreground font-light leading-relaxed">
                 Empieza desde cero con un lienzo vacío y diseña tu mensaje.
               </p>
             </div>
@@ -58,12 +58,12 @@ export default function TemplateChooser({
         {/* Opción 2: Template por Defecto */}
         <button
           onClick={onSelectDefault}
-          className="group relative p-10 border border-[#E8E6DF] rounded-3xl hover:border-[#1c1c1c] hover:shadow-xl transition-all bg-white text-left"
+          className="group relative p-10 border border-border rounded-3xl hover:border-foreground hover:shadow-xl transition-all bg-card text-left"
         >
           <div className="flex flex-col items-center text-center gap-4">
-            <div className="w-20 h-20 rounded-2xl bg-gray-50 flex items-center justify-center group-hover:bg-[#1c1c1c] transition-colors duration-300">
+            <div className="w-20 h-20 rounded-2xl bg-muted flex items-center justify-center group-hover:bg-foreground transition-colors duration-300">
               <svg
-                className="w-8 h-8 text-gray-400 group-hover:text-white transition-colors duration-300"
+                className="w-8 h-8 text-muted-foreground group-hover:text-background transition-colors duration-300"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -77,10 +77,10 @@ export default function TemplateChooser({
               </svg>
             </div>
             <div>
-              <h4 className="font-serif text-2xl text-[#1c1c1c] mb-2">
+              <h4 className="font-serif text-2xl text-foreground mb-2">
                 Template Predeterminado
               </h4>
-              <p className="text-sm text-gray-500 font-light leading-relaxed">
+              <p className="text-sm text-muted-foreground font-light leading-relaxed">
                 Usa el diseño optimizado para lanzamientos de tracks.
               </p>
             </div>
@@ -91,7 +91,7 @@ export default function TemplateChooser({
       <div className="mt-12 flex justify-center">
         <button
           onClick={onClose}
-          className="text-sm text-gray-400 hover:text-[#1c1c1c] transition-colors font-medium border-b border-transparent hover:border-[#1c1c1c]"
+          className="text-sm text-muted-foreground hover:text-foreground transition-colors font-medium border-b border-transparent hover:border-foreground"
         >
           Cancelar
         </button>

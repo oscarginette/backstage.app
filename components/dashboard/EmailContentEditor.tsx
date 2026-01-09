@@ -85,20 +85,20 @@ function CoverImageUpload({
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <label className="block text-sm font-medium text-gray-700">
+        <label className="block text-sm font-medium text-foreground/70">
           {t('coverImage')}
-          <span className="text-xs text-gray-500 ml-2">{t('coverImageOptional')}</span>
+          <span className="text-xs text-muted-foreground ml-2">{t('coverImageOptional')}</span>
         </label>
 
         {/* Toggle between file upload and URL input */}
-        <div className="flex gap-1 bg-gray-100 rounded-lg p-1">
+        <div className="flex gap-1 bg-muted rounded-lg p-1">
           <button
             type="button"
             onClick={() => setInputMode('file')}
             className={`px-3 py-1 text-xs rounded-md transition-colors ${
               inputMode === 'file'
-                ? 'bg-white text-gray-900 shadow-sm'
-                : 'text-gray-600 hover:text-gray-900'
+                ? 'bg-card text-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground'
             }`}
           >
             {t('uploadFile')}
@@ -108,8 +108,8 @@ function CoverImageUpload({
             onClick={() => setInputMode('url')}
             className={`px-3 py-1 text-xs rounded-md transition-colors ${
               inputMode === 'url'
-                ? 'bg-white text-gray-900 shadow-sm'
-                : 'text-gray-600 hover:text-gray-900'
+                ? 'bg-card text-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground'
             }`}
           >
             {t('url')}
@@ -183,10 +183,10 @@ function CoverImageUpload({
             type="text"
             value={urlInput}
             onChange={(e) => handleUrlChange(e.target.value)}
-            className="w-full px-4 py-2.5 rounded-xl border border-[#E8E6DF] focus:outline-none focus:ring-2 focus:ring-[#FF5500]/20 focus:border-[#FF5500] transition-all"
+            className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent transition-all"
             placeholder={t('urlPlaceholder')}
           />
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-muted-foreground">
             {t('urlHelp')}
           </p>
         </>
@@ -308,20 +308,20 @@ export default function EmailContentEditor({
       {/* Editor Panel and Preview */}
       <div className="flex-1 overflow-hidden flex">
         {/* Editor Panel */}
-        <div className="w-1/2 border-r border-[#E8E6DF] overflow-y-auto p-8 bg-[#FDFCF8]">
-          <h3 className="text-xl font-serif text-[#1c1c1c] mb-6">{t('title')}</h3>
+        <div className="w-1/2 border-r border-border overflow-y-auto p-8 bg-muted">
+          <h3 className="text-xl font-serif text-foreground mb-6">{t('title')}</h3>
 
           <div className="space-y-4">
             {/* Subject */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2 font-serif">
+              <label className="block text-sm font-medium text-foreground/70 mb-2 font-serif">
                 {t('subject')}
               </label>
               <input
                 type="text"
                 value={subject}
                 onChange={(e) => setSubject(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl border border-[#E8E6DF] focus:outline-none focus:ring-2 focus:ring-[#FF5500]/20 focus:border-[#FF5500] transition-all"
+                className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent transition-all"
                 placeholder={t('subjectPlaceholder')}
               />
             </div>
@@ -344,43 +344,43 @@ export default function EmailContentEditor({
 
             {/* Greeting */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2 font-serif">
+              <label className="block text-sm font-medium text-foreground/70 mb-2 font-serif">
                 {t('greeting')}
               </label>
               <input
                 type="text"
                 value={greeting}
                 onChange={(e) => setGreeting(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl border border-[#E8E6DF] focus:outline-none focus:ring-2 focus:ring-[#FF5500]/20 focus:border-[#FF5500] transition-all"
+                className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent transition-all"
                 placeholder={t('greetingPlaceholder')}
               />
             </div>
 
             {/* Message */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2 font-serif">
+              <label className="block text-sm font-medium text-foreground/70 mb-2 font-serif">
                 {t('message')}
-                <span className="text-xs text-gray-400 font-sans ml-2">{t('messageHint')}</span>
+                <span className="text-xs text-muted-foreground font-sans ml-2">{t('messageHint')}</span>
               </label>
               <textarea
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 rows={6}
-                className="w-full px-4 py-2.5 rounded-xl border border-[#E8E6DF] focus:outline-none focus:ring-2 focus:ring-[#FF5500]/20 focus:border-[#FF5500] transition-all resize-none"
+                className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent transition-all resize-none"
                 placeholder={t('messagePlaceholder')}
               />
             </div>
 
             {/* Signature */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2 font-serif">
+              <label className="block text-sm font-medium text-foreground/70 mb-2 font-serif">
                 {t('signature')}
               </label>
               <textarea
                 value={signature}
                 onChange={(e) => setSignature(e.target.value)}
                 rows={3}
-                className="w-full px-4 py-2.5 rounded-xl border border-[#E8E6DF] focus:outline-none focus:ring-2 focus:ring-[#FF5500]/20 focus:border-[#FF5500] transition-all resize-none"
+                className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent transition-all resize-none"
                 placeholder={t('signaturePlaceholder')}
               />
             </div>
@@ -394,7 +394,7 @@ export default function EmailContentEditor({
                 setSignature(initialContent.signature);
                 setCoverImage(initialContent.coverImage || '');
               }}
-              className="w-full px-6 py-3 rounded-full border border-[#E8E6DF] text-sm text-gray-500 hover:bg-white hover:text-black hover:border-black transition-colors"
+              className="w-full px-6 py-3 rounded-full border border-border text-sm text-muted-foreground hover:bg-card hover:text-foreground hover:border-foreground transition-colors"
             >
               {t('reset')}
             </button>
@@ -402,15 +402,15 @@ export default function EmailContentEditor({
         </div>
 
         {/* Preview Panel */}
-        <div className="w-1/2 overflow-y-auto p-8 bg-gray-50">
-          <h3 className="text-xl font-serif text-[#1c1c1c] mb-6">{t('preview')}</h3>
+        <div className="w-1/2 overflow-y-auto p-8 bg-muted">
+          <h3 className="text-xl font-serif text-foreground mb-6">{t('preview')}</h3>
 
           {loadingPreview ? (
             <div className="flex items-center justify-center py-12">
-              <div className="w-12 h-12 rounded-full border-4 border-[#E8E6DF] border-t-[#FF5500] animate-spin"></div>
+              <div className="w-12 h-12 rounded-full border-4 border-border border-t-accent animate-spin"></div>
             </div>
           ) : (
-            <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
+            <div className="bg-card rounded-2xl shadow-lg overflow-hidden">
               <iframe
                 srcDoc={previewHtml}
                 className="w-full h-[600px] border-0"
@@ -422,27 +422,27 @@ export default function EmailContentEditor({
       </div>
 
       {/* Footer Actions */}
-      <div className="p-6 border-t border-[#E8E6DF] bg-white">
+      <div className="p-6 border-t border-border bg-card">
         <div className="flex items-center justify-between gap-4">
-          <div className="text-sm text-gray-500">
-            {t('subjectLabel')} <span className="font-serif text-[#1c1c1c] ml-1">{subject}</span>
+          <div className="text-sm text-muted-foreground">
+            {t('subjectLabel')} <span className="font-serif text-foreground ml-1">{subject}</span>
           </div>
           <div className="flex gap-3">
             <button
               onClick={onClose}
               disabled={saving || savingDraft}
-              className="px-6 py-3 rounded-full text-gray-500 hover:text-[#1c1c1c] transition-colors disabled:opacity-50"
+              className="px-6 py-3 rounded-full text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
             >
               {t('cancel')}
             </button>
             <button
               onClick={handleSaveDraft}
               disabled={saving || savingDraft}
-              className="px-6 py-3 rounded-full border border-[#E8E6DF] text-[#1c1c1c] hover:border-[#1c1c1c] hover:bg-white transition-all disabled:opacity-50 flex items-center gap-2"
+              className="px-6 py-3 rounded-full border border-border text-foreground hover:border-foreground hover:bg-muted transition-all disabled:opacity-50 flex items-center gap-2"
             >
               {savingDraft ? (
                 <>
-                  <div className="w-4 h-4 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
+                  <div className="w-4 h-4 border-2 border-muted-foreground/30 border-t-muted-foreground rounded-full animate-spin" />
                   {t('saving')}
                 </>
               ) : (
@@ -457,11 +457,11 @@ export default function EmailContentEditor({
             <button
               onClick={handleSave}
               disabled={saving || savingDraft}
-              className="px-8 py-3 rounded-full bg-[#1c1c1c] text-[#FDFCF8] font-medium hover:bg-[#1c1c1c]/90 active:scale-95 transition-all disabled:opacity-50 flex items-center gap-2 shadow-lg hover:shadow-xl"
+              className="px-8 py-3 rounded-full bg-foreground text-background font-medium hover:bg-foreground/90 active:scale-95 transition-all disabled:opacity-50 flex items-center gap-2 shadow-lg hover:shadow-xl"
             >
               {saving ? (
                 <>
-                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  <div className="w-4 h-4 border-2 border-background/30 border-t-background rounded-full animate-spin" />
                   {t('sending')}
                 </>
               ) : (

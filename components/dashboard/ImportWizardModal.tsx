@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import Modal from '@/components/ui/Modal';
 import FileUploadStep from './import/FileUploadStep';
@@ -77,6 +77,35 @@ export default function ImportWizardModal({ isOpen, onClose, onSuccess }: Props)
   const [results, setResults] = useState<ImportResults | null>(null);
   const [quotaInfo, setQuotaInfo] = useState<QuotaInfo | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [importProgress, setImportProgress] = useState(0);
+  const [estimatedTotalTime, setEstimatedTotalTime] = useState(0);
+
+  // Optimistic progress simulation when importing
+  useEffect(() => {
+    if (currentStep !== 'importing') {
+      setImportProgress(0);
+      return;
+    }
+
+    // Calculate estimated time based on contact count
+    // Estimate: ~100 contacts per second (conservative estimate)
+    const contactCount = preview?.totalRows || 0;
+    const estimatedSeconds = Math.max(3, Math.min(30, contactCount / 100));
+    setEstimatedTotalTime(estimatedSeconds);
+
+    // Progress animation: smooth increment every 100ms
+    const interval = setInterval(() => {
+      setImportProgress((prev) => {
+        // Slow down as we approach 90% to avoid completing before actual import
+        if (prev >= 90) return Math.min(95, prev + 0.5);
+        if (prev >= 70) return prev + 1;
+        if (prev >= 50) return prev + 2;
+        return prev + 3;
+      });
+    }, 100);
+
+    return () => clearInterval(interval);
+  }, [currentStep, preview?.totalRows]);
 
   if (!isOpen) return null;
 
@@ -88,6 +117,8 @@ export default function ImportWizardModal({ isOpen, onClose, onSuccess }: Props)
     setResults(null);
     setQuotaInfo(null);
     setError(null);
+    setImportProgress(0);
+    setEstimatedTotalTime(0);
     onClose();
   };
 
@@ -132,9 +163,15 @@ export default function ImportWizardModal({ isOpen, onClose, onSuccess }: Props)
 
       setResults(data.import);
       setQuotaInfo(data.quota || null);
-      setCurrentStep('results');
+      // Set progress to 100% before transitioning
+      setImportProgress(100);
+      // Small delay to show 100% completion
+      setTimeout(() => {
+        setCurrentStep('results');
+      }, 300);
     } catch (err: any) {
       setError(err.message);
+      setImportProgress(0);
       setCurrentStep('preview'); // Go back to preview on error
     }
   };
@@ -237,10 +274,35 @@ export default function ImportWizardModal({ isOpen, onClose, onSuccess }: Props)
           )}
 
           {currentStep === 'importing' && (
-            <div className="flex flex-col items-center justify-center py-12">
+            <div className="flex flex-col items-center justify-center py-12 space-y-6">
+              {/* Animated spinner */}
               <div className="w-16 h-16 border-4 border-[#FF5500] border-t-transparent rounded-full animate-spin" />
-              <p className="mt-4 text-lg font-medium text-gray-700">Importing contacts...</p>
-              <p className="text-sm text-gray-500">This may take a few moments</p>
+
+              {/* Status text */}
+              <div className="text-center">
+                <p className="text-lg font-medium text-gray-700">Importing contacts...</p>
+                <p className="text-sm text-gray-500 mt-1">
+                  {preview?.totalRows.toLocaleString()} contacts • {Math.round(importProgress)}% complete
+                </p>
+              </div>
+
+              {/* Progress bar */}
+              <div className="w-full max-w-md space-y-2">
+                <div className="relative w-full h-3 bg-gray-200 rounded-full overflow-hidden">
+                  {/* Animated gradient background */}
+                  <div
+                    className="absolute inset-0 bg-gradient-to-r from-[#FF5500] via-[#FF6B2C] to-[#FF5500] bg-[length:200%_100%] animate-shimmer transition-all duration-300 ease-out"
+                    style={{ width: `${importProgress}%` }}
+                  />
+                </div>
+
+                {/* Time estimate */}
+                <p className="text-xs text-gray-500 text-center">
+                  {importProgress < 95
+                    ? `Estimated time: ${Math.max(1, Math.round(estimatedTotalTime * (1 - importProgress / 100)))}s remaining`
+                    : 'Finishing up...'}
+                </p>
+              </div>
             </div>
           )}
 
