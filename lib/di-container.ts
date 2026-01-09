@@ -274,6 +274,26 @@ export class RepositoryFactory {
  */
 export class ProviderFactory {
   static createEmailProvider(): IEmailProvider {
+    // Feature flag para migración gradual Resend → Mailgun
+    if (env.USE_MAILGUN) {
+      // Lazy import to avoid loading Mailgun SDK when not needed
+      const { MailgunEmailProvider } = require('@/infrastructure/email/MailgunEmailProvider');
+
+      const apiKey = env.MAILGUN_API_KEY;
+      const domain = env.MAILGUN_DOMAIN;
+      const apiUrl = env.MAILGUN_API_URL || 'https://api.mailgun.net';
+
+      if (!apiKey || !domain) {
+        console.error('[ProviderFactory] Mailgun credentials missing, falling back to Resend');
+        return resendEmailProvider;
+      }
+
+      console.log('[ProviderFactory] Using Mailgun email provider');
+      return new MailgunEmailProvider(apiKey, domain, apiUrl);
+    }
+
+    // Default: Resend
+    console.log('[ProviderFactory] Using Resend email provider');
     return resendEmailProvider;
   }
 
