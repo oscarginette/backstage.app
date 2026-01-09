@@ -15,4 +15,11 @@ export interface ITrackRepository {
   findByTrackId(trackId: string, userId: number): Promise<Track | null>;
   findAll(userId: number): Promise<Track[]>;
   getAllTrackIds(userId: number): Promise<Set<string>>;
+
+  /**
+   * Delete tracks matching a title pattern
+   * @param titlePattern - SQL LIKE pattern to match track titles
+   * @returns Number of tracks deleted
+   */
+  deleteByTitlePattern(titlePattern: string): Promise<number>;
 }

@@ -76,4 +76,13 @@ export class PostgresTrackRepository implements ITrackRepository {
 
     return new Set(result.rows.map((row: any) => row.track_id));
   }
+
+  async deleteByTitlePattern(titlePattern: string): Promise<number> {
+    const result = await sql`
+      DELETE FROM soundcloud_tracks
+      WHERE title LIKE ${titlePattern}
+    `;
+
+    return result.rowCount || 0;
+  }
 }
