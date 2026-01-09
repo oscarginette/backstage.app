@@ -1,102 +1,47 @@
+/**
+ * Execution History API Route
+ *
+ * Public endpoint to fetch execution history of email campaigns.
+ * Returns recent track sends with stats.
+ *
+ * Clean Architecture: API route orchestrates, business logic in use case.
+ */
+
 import { NextResponse } from 'next/server';
-import { sql } from '@/lib/db';
-import { XMLParser } from 'fast-xml-parser';
-import { env, getAppUrl, getBaseUrl } from '@/lib/env';
+import { UseCaseFactory } from '@/lib/di-container';
+import { env } from '@/lib/env';
 
 export const dynamic = 'force-dynamic';
 
+/**
+ * GET /api/execution-history
+ *
+ * Fetch recent execution history
+ *
+ * Response:
+ * {
+ *   history: ExecutionHistoryItem[]
+ * }
+ */
 export async function GET() {
   try {
-    // Verificar si hay POSTGRES_URL configurado
+    // Check if database is configured
     if (!env.POSTGRES_URL) {
       console.log('No POSTGRES_URL configured, returning empty history');
       return NextResponse.json({
-        history: []
+        history: [],
       });
     }
 
-    // Obtener tracks procesados con sus logs de ejecución
-    const result = await sql`
-      SELECT
-        st.track_id,
-        st.title,
-        st.url,
-        st.published_at,
-        st.cover_image,
-        st.description,
-        st.created_at,
-        el.emails_sent,
-        el.duration_ms,
-        el.executed_at
-      FROM soundcloud_tracks st
-      LEFT JOIN execution_logs el ON el.executed_at >= st.created_at
-      WHERE el.new_tracks = 1
-      ORDER BY el.executed_at DESC
-      LIMIT 20
-    `;
+    const useCase = UseCaseFactory.createGetExecutionHistoryUseCase();
+    const result = await useCase.execute();
 
-    // Obtener información adicional del RSS para imágenes y descripciones
-    const parser = new XMLParser({
-      ignoreAttributes: false,
-      attributeNamePrefix: '@_',
-    });
-    const rssUrl = `https://feeds.soundcloud.com/users/soundcloud:users:${env.SOUNDCLOUD_USER_ID}/sounds.rss`;
-
-    let feedItems: any[] = [];
-    try {
-      const response = await fetch(rssUrl);
-      if (response.ok) {
-        const xmlText = await response.text();
-        const feed = parser.parse(xmlText);
-        const channel = feed.rss?.channel;
-        if (channel?.item) {
-          feedItems = Array.isArray(channel.item) ? channel.item : [channel.item];
-        }
-      }
-    } catch (error) {
-      console.error('Failed to fetch RSS feed:', error);
-    }
-
-    // Enriquecer datos con información del RSS si es necesario
-    const enrichedHistory = result.rows.map((row: any) => {
-      // Si ya tenemos cover_image y description en la DB, usarlos
-      let coverImage = row.cover_image;
-      let description = row.description;
-
-      // Si no, intentar obtener del RSS
-      if ((!coverImage || !description) && feedItems.length > 0) {
-        const rssTrack = feedItems.find(
-          (item: any) => item.link === row.url || item.guid === row.track_id
-        );
-
-        if (rssTrack) {
-          coverImage = coverImage || rssTrack['itunes:image']?.['@_href'] || rssTrack.enclosure?.['@_url'] || null;
-          description = description || rssTrack.description || null;
-        }
-      }
-
-      return {
-        trackId: row.track_id,
-        title: row.title,
-        url: row.url,
-        publishedAt: row.published_at,
-        executedAt: row.executed_at,
-        emailsSent: row.emails_sent || 0,
-        durationMs: row.duration_ms || 0,
-        coverImage,
-        description
-      };
-    });
-
-    return NextResponse.json({
-      history: enrichedHistory
-    });
-
+    return NextResponse.json(result);
   } catch (error: unknown) {
     console.error('Error fetching execution history:', error);
-    // Retornar historial vacío en caso de error para no romper la UI
+    // Return empty history on error to avoid breaking UI
     return NextResponse.json({
-      history: []
+      history: [],
     });
   }
 }
