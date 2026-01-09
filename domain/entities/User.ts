@@ -35,6 +35,7 @@ export interface UserProps {
 
   // Platform Integrations
   spotifyId?: string;
+  soundcloudId?: string;
 }
 
 export interface CreateUserInput {
@@ -125,6 +126,10 @@ export class User {
     return this.props.spotifyId;
   }
 
+  get soundcloudId(): string | undefined {
+    return this.props.soundcloudId;
+  }
+
   isAdmin(): boolean {
     return this.props.role === USER_ROLES.ADMIN;
   }
@@ -175,7 +180,9 @@ export class User {
     quotaResetAt: Date,
     name?: string,
     subscriptionStartedAt?: Date,
-    subscriptionExpiresAt?: Date
+    subscriptionExpiresAt?: Date,
+    spotifyId?: string,
+    soundcloudId?: string
   ): User {
     return new User({
       id,
@@ -192,6 +199,8 @@ export class User {
       maxMonthlyEmails,
       emailsSentThisMonth,
       quotaResetAt,
+      spotifyId,
+      soundcloudId,
     });
   }
 

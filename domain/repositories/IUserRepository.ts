@@ -9,6 +9,7 @@
 
 import { User } from '../entities/User';
 import { UpdateSubscriptionInput } from '../types/subscriptions';
+import { UserRole } from '../types/user-roles';
 
 export interface CreateUserData {
   email: string;
@@ -107,4 +108,44 @@ export interface IUserRepository {
    * @throws Error if user not found or update fails
    */
   updateQuota(userId: number, monthlyQuota: number): Promise<void>;
+
+  /**
+   * Update user role (admin-only operation)
+   * @param email - User email (case-insensitive)
+   * @param role - New role to assign
+   * @returns Updated User entity
+   * @throws Error if user not found or update fails
+   */
+  updateRole(email: string, role: UserRole): Promise<User>;
+
+  /**
+   * Find admin users by IDs
+   * Used to prevent deletion of admin accounts
+   * @param ids - Array of user IDs to check
+   * @returns Array of admin users found in the ID list
+   */
+  findAdminsByIds(ids: number[]): Promise<User[]>;
+
+  /**
+   * Delete multiple users by IDs
+   * Excludes admin users from deletion for safety
+   * @param ids - Array of user IDs to delete
+   * @returns Number of users deleted
+   * @throws Error if deletion fails
+   */
+  deleteBulk(ids: number[]): Promise<number>;
+
+  /**
+   * Find all active users with Spotify configured
+   * Used by cron job to check for new releases across all users
+   * @returns Array of users with spotify_id and active status
+   */
+  findUsersWithSpotifyConfigured(): Promise<User[]>;
+
+  /**
+   * Find all active users with SoundCloud configured
+   * Used by cron job to check for new tracks across all users
+   * @returns Array of users with soundcloud_id and active status
+   */
+  findUsersWithSoundCloudConfigured(): Promise<User[]>;
 }

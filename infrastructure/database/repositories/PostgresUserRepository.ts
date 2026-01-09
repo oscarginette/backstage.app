@@ -12,6 +12,7 @@ import { sql } from '@/lib/db';
 import { IUserRepository, CreateUserData } from '@/domain/repositories/IUserRepository';
 import { User } from '@/domain/entities/User';
 import { UpdateSubscriptionInput } from '@/domain/types/subscriptions';
+import { UserRole } from '@/domain/types/user-roles';
 
 export class PostgresUserRepository implements IUserRepository {
   /**
@@ -457,6 +458,270 @@ export class PostgresUserRepository implements IUserRepository {
       console.error('PostgresUserRepository.updateQuota error:', error);
       throw new Error(
         `Failed to update quota: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
+    }
+  }
+
+  /**
+   * Update user role (admin-only operation)
+   * SECURITY: Uses parameterized queries to prevent SQL injection
+   */
+  async updateRole(email: string, role: UserRole): Promise<User> {
+    try {
+      const result = await sql`
+        UPDATE users
+        SET
+          role = ${role},
+          updated_at = NOW()
+        WHERE LOWER(email) = LOWER(${email.trim()})
+        RETURNING
+          id,
+          email,
+          password_hash,
+          name,
+          role,
+          active,
+          created_at,
+          updated_at,
+          subscription_plan,
+          subscription_started_at,
+          subscription_expires_at,
+          monthly_quota,
+          emails_sent_this_month,
+          quota_reset_at
+      `;
+
+      if (result.rows.length === 0) {
+        throw new Error(`User not found with email: ${email}`);
+      }
+
+      const row = result.rows[0];
+      return User.fromDatabase(
+        row.id,
+        row.email,
+        row.password_hash,
+        row.role,
+        row.active,
+        new Date(row.created_at),
+        new Date(row.updated_at),
+        row.subscription_plan ?? 'free',
+        row.monthly_quota ?? 1000,
+        row.emails_sent_this_month ?? 0,
+        row.quota_reset_at ? new Date(row.quota_reset_at) : new Date(),
+        row.name,
+        row.subscription_started_at ? new Date(row.subscription_started_at) : undefined,
+        row.subscription_expires_at ? new Date(row.subscription_expires_at) : undefined
+      );
+    } catch (error) {
+      console.error('PostgresUserRepository.updateRole error:', error);
+      throw new Error(
+        `Failed to update user role: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
+    }
+  }
+
+  /**
+   * Find admin users by IDs
+   * Used to prevent deletion of admin accounts
+   * SECURITY: Uses parameterized queries to prevent SQL injection
+   */
+  async findAdminsByIds(ids: number[]): Promise<User[]> {
+    try {
+      if (ids.length === 0) {
+        return [];
+      }
+
+      const result = await sql`
+        SELECT
+          id,
+          email,
+          password_hash,
+          name,
+          role,
+          active,
+          created_at,
+          updated_at,
+          subscription_plan,
+          subscription_started_at,
+          subscription_expires_at,
+          monthly_quota,
+          emails_sent_this_month,
+          quota_reset_at
+        FROM users
+        WHERE id = ANY(${ids})
+          AND role = 'admin'
+        ORDER BY created_at DESC
+      `;
+
+      return result.rows.map((row: any) =>
+        User.fromDatabase(
+          row.id,
+          row.email,
+          row.password_hash,
+          row.role,
+          row.active,
+          new Date(row.created_at),
+          new Date(row.updated_at),
+          row.subscription_plan ?? 'free',
+          row.monthly_quota ?? 1000,
+          row.emails_sent_this_month ?? 0,
+          row.quota_reset_at ? new Date(row.quota_reset_at) : new Date(),
+          row.name,
+          row.subscription_started_at ? new Date(row.subscription_started_at) : undefined,
+          row.subscription_expires_at ? new Date(row.subscription_expires_at) : undefined
+        )
+      );
+    } catch (error) {
+      console.error('PostgresUserRepository.findAdminsByIds error:', error);
+      throw new Error(
+        `Failed to find admin users: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
+    }
+  }
+
+  /**
+   * Delete multiple users by IDs
+   * Excludes admin users from deletion for safety
+   * SECURITY: Uses parameterized queries to prevent SQL injection
+   * SAFETY: Explicitly excludes admin users in WHERE clause as a safeguard
+   */
+  async deleteBulk(ids: number[]): Promise<number> {
+    try {
+      if (ids.length === 0) {
+        return 0;
+      }
+
+      // Delete users, explicitly excluding admins for safety
+      const result = await sql`
+        DELETE FROM users
+        WHERE id = ANY(${ids})
+          AND role != 'admin'
+        RETURNING id
+      `;
+
+      return result.rowCount ?? 0;
+    } catch (error) {
+      console.error('PostgresUserRepository.deleteBulk error:', error);
+      throw new Error(
+        `Failed to delete users: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
+    }
+  }
+
+  /**
+   * Find all active users with Spotify configured
+   * Used by cron job to check for new releases across all users
+   * SECURITY: Uses parameterized queries to prevent SQL injection
+   */
+  async findUsersWithSpotifyConfigured(): Promise<User[]> {
+    try {
+      const result = await sql`
+        SELECT
+          id,
+          email,
+          password_hash,
+          name,
+          role,
+          active,
+          created_at,
+          updated_at,
+          subscription_plan,
+          subscription_started_at,
+          subscription_expires_at,
+          monthly_quota,
+          emails_sent_this_month,
+          quota_reset_at,
+          spotify_id
+        FROM users
+        WHERE spotify_id IS NOT NULL
+          AND spotify_id != ''
+          AND active = true
+        ORDER BY created_at ASC
+      `;
+
+      return result.rows.map((row: any) =>
+        User.fromDatabase(
+          row.id,
+          row.email,
+          row.password_hash,
+          row.role,
+          row.active,
+          new Date(row.created_at),
+          new Date(row.updated_at),
+          row.subscription_plan ?? 'free',
+          row.monthly_quota ?? 1000,
+          row.emails_sent_this_month ?? 0,
+          row.quota_reset_at ? new Date(row.quota_reset_at) : new Date(),
+          row.name,
+          row.subscription_started_at ? new Date(row.subscription_started_at) : undefined,
+          row.subscription_expires_at ? new Date(row.subscription_expires_at) : undefined,
+          row.spotify_id ?? undefined,
+          undefined // soundcloudId
+        )
+      );
+    } catch (error) {
+      console.error('PostgresUserRepository.findUsersWithSpotifyConfigured error:', error);
+      throw new Error(
+        `Failed to find users with Spotify: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
+    }
+  }
+
+  /**
+   * Find all active users with SoundCloud configured
+   * Used by cron job to check for new tracks across all users
+   * SECURITY: Uses parameterized queries to prevent SQL injection
+   */
+  async findUsersWithSoundCloudConfigured(): Promise<User[]> {
+    try {
+      const result = await sql`
+        SELECT
+          id,
+          email,
+          password_hash,
+          name,
+          role,
+          active,
+          created_at,
+          updated_at,
+          subscription_plan,
+          subscription_started_at,
+          subscription_expires_at,
+          monthly_quota,
+          emails_sent_this_month,
+          quota_reset_at,
+          soundcloud_id
+        FROM users
+        WHERE soundcloud_id IS NOT NULL
+          AND soundcloud_id != ''
+          AND active = true
+        ORDER BY created_at ASC
+      `;
+
+      return result.rows.map((row: any) =>
+        User.fromDatabase(
+          row.id,
+          row.email,
+          row.password_hash,
+          row.role,
+          row.active,
+          new Date(row.created_at),
+          new Date(row.updated_at),
+          row.subscription_plan ?? 'free',
+          row.monthly_quota ?? 1000,
+          row.emails_sent_this_month ?? 0,
+          row.quota_reset_at ? new Date(row.quota_reset_at) : new Date(),
+          row.name,
+          row.subscription_started_at ? new Date(row.subscription_started_at) : undefined,
+          row.subscription_expires_at ? new Date(row.subscription_expires_at) : undefined,
+          undefined, // spotifyId
+          row.soundcloud_id ?? undefined
+        )
+      );
+    } catch (error) {
+      console.error('PostgresUserRepository.findUsersWithSoundCloudConfigured error:', error);
+      throw new Error(
+        `Failed to find users with SoundCloud: ${error instanceof Error ? error.message : 'Unknown error'}`
       );
     }
   }
