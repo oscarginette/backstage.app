@@ -27,9 +27,11 @@ import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { CARD_STYLES, cn } from '@/domain/types/design-tokens';
+import { useTranslations } from '@/lib/i18n/context';
 
 export default function CreateGateForm() {
   const router = useRouter();
+  const t = useTranslations('downloadGates.createForm');
   const [activeStep, setActiveStep] = useState(1);
   const [submitting, setSubmitting] = useState(false);
   const [loadingTracks, setLoadingTracks] = useState(false);
@@ -49,7 +51,7 @@ export default function CreateGateForm() {
     fileType: 'audio/wav',
     requireSoundcloudRepost: true,
     requireSoundcloudFollow: true,
-    requireSpotifyConnect: false,
+    requireSpotifyConnect: true,
     maxDownloads: undefined,
     expiresAt: '',
     slug: ''
@@ -102,12 +104,12 @@ export default function CreateGateForm() {
   };
 
   const steps = [
-    { id: 1, name: 'Source', icon: ExternalLink, description: 'SoundCloud or Spotify URL' },
-    { id: 2, name: 'Genre', icon: Tags, description: 'Classify your track' },
-    { id: 3, name: 'Details', icon: Music, description: 'Title and Artwork' },
-    { id: 4, name: 'Upload', icon: FileAudio, description: 'The file fans will get' },
-    { id: 5, name: 'Settings', icon: Settings, description: 'Conversion & Limits' },
-    { id: 6, name: 'Gate Steps', icon: Shield, description: 'Social requirements' },
+    { id: 1, name: t('steps.source'), icon: ExternalLink, description: t('steps.sourceDescription') },
+    { id: 2, name: t('steps.genre'), icon: Tags, description: t('steps.genreDescription') },
+    { id: 3, name: t('steps.details'), icon: Music, description: t('steps.detailsDescription') },
+    { id: 4, name: t('steps.upload'), icon: FileAudio, description: t('steps.uploadDescription') },
+    { id: 5, name: t('steps.settings'), icon: Settings, description: t('steps.settingsDescription') },
+    { id: 6, name: t('steps.gateSteps'), icon: Shield, description: t('steps.gateStepsDescription') },
   ];
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -148,7 +150,7 @@ export default function CreateGateForm() {
       router.push(`/dashboard/download-gates/${data.gate.id}`);
     } catch (error) {
       console.error('Error creating gate:', error);
-      alert('Error al crear el gate. Por favor intenta de nuevo.');
+      alert(t('errors.createFailed'));
     } finally {
       setSubmitting(false);
     }
@@ -222,7 +224,7 @@ export default function CreateGateForm() {
                           size="sm"
                           className="flex-1 uppercase"
                         >
-                          Select from your tracks
+                          {t('source.selectFromTracks')}
                         </Button>
                         <Button
                           type="button"
@@ -231,7 +233,7 @@ export default function CreateGateForm() {
                           size="sm"
                           className="flex-1 uppercase"
                         >
-                          Enter URL manually
+                          {t('source.enterUrlManually')}
                         </Button>
                       </div>
 
@@ -239,7 +241,7 @@ export default function CreateGateForm() {
                         // Track Selector
                         <div className="space-y-3">
                           <label className="text-xs font-bold uppercase tracking-widest text-foreground/40">
-                            Select a SoundCloud track
+                            {t('source.selectSoundCloudTrack')}
                           </label>
                           {loadingTracks ? (
                             <div className="flex items-center justify-center py-8">
@@ -248,7 +250,7 @@ export default function CreateGateForm() {
                           ) : soundcloudTracks.length === 0 ? (
                             <div className="p-4 rounded-xl border border-dashed border-foreground/20 bg-foreground/5 text-center">
                               <p className="text-sm text-foreground/60">
-                                No tracks found. Make sure you've connected your SoundCloud account.
+                                {t('source.noTracksFound')}
                               </p>
                             </div>
                           ) : (
@@ -293,7 +295,7 @@ export default function CreateGateForm() {
                               onClick={() => setActiveStep(2)}
                               disabled={!selectedTrackId}
                             >
-                              Next
+                              {t('source.next')}
                             </Button>
                           </div>
                         </div>
@@ -301,7 +303,7 @@ export default function CreateGateForm() {
                         // Manual URL Input
                         <div className="space-y-3">
                           <label className="text-xs font-bold uppercase tracking-widest text-foreground/40">
-                            Enter source track URL
+                            {t('source.enterSourceUrl')}
                           </label>
                           <div className="flex gap-3">
                             <Input
@@ -316,7 +318,7 @@ export default function CreateGateForm() {
                               type="button"
                               onClick={() => setActiveStep(2)}
                             >
-                              Next
+                              {t('source.next')}
                             </Button>
                           </div>
                           <div className="flex items-center gap-4 mt-2">
@@ -336,7 +338,7 @@ export default function CreateGateForm() {
 
                   {step.id === 2 && (
                     <div className="space-y-4">
-                      <label className="text-xs font-bold uppercase tracking-widest text-foreground/40">What's the genre?</label>
+                      <label className="text-xs font-bold uppercase tracking-widest text-foreground/40">{t('genre.label')}</label>
                       <GenreSelector
                         value={formData.genre}
                         onChange={(value) => setFormData(prev => ({ ...prev, genre: value }))}
@@ -347,7 +349,7 @@ export default function CreateGateForm() {
                           onClick={() => setActiveStep(3)}
                           disabled={!formData.genre}
                         >
-                          Continue
+                          {t('genre.continue')}
                         </Button>
                       </div>
                     </div>
@@ -357,36 +359,36 @@ export default function CreateGateForm() {
                     <div className="space-y-6">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <Input
-                          label="Track Title"
+                          label={t('details.trackTitle')}
                           type="text"
                           name="title"
                           value={formData.title}
                           onChange={handleChange}
-                          placeholder="Song name..."
+                          placeholder={t('details.trackTitlePlaceholder')}
                         />
                         <Input
-                          label="Artist Name"
+                          label={t('details.artistName')}
                           type="text"
                           name="artistName"
                           value={formData.artistName}
                           onChange={handleChange}
-                          placeholder="Your DJ name..."
+                          placeholder={t('details.artistNamePlaceholder')}
                         />
                       </div>
                       <Input
-                        label="Artwork URL"
+                        label={t('details.artworkUrl')}
                         type="url"
                         name="artworkUrl"
                         value={formData.artworkUrl}
                         onChange={handleChange}
-                        placeholder="https://..."
+                        placeholder={t('details.artworkUrlPlaceholder')}
                       />
                       <div className="flex justify-end gap-3">
                         <Button
                           type="button"
                           onClick={() => setActiveStep(4)}
                         >
-                          Looks Good
+                          {t('details.looksGood')}
                         </Button>
                       </div>
                     </div>
@@ -396,12 +398,12 @@ export default function CreateGateForm() {
                     <div className="space-y-4">
                       <div className="relative group">
                         <Input
-                          label="Direct download URL"
+                          label={t('upload.directDownloadUrl')}
                           type="url"
                           name="fileUrl"
                           value={formData.fileUrl}
                           onChange={handleChange}
-                          placeholder="Dropbox, GDrive, R2..."
+                          placeholder={t('upload.urlPlaceholder')}
                           className="pr-12"
                         />
                         <FileAudio className="absolute right-4 top-1/2 translate-y-1/4 w-4 h-4 text-foreground/30 group-hover:text-accent transition-colors" />
@@ -411,7 +413,7 @@ export default function CreateGateForm() {
                           type="button"
                           onClick={() => setActiveStep(5)}
                         >
-                          Save & Next
+                          {t('upload.saveAndNext')}
                         </Button>
                       </div>
                     </div>
@@ -421,20 +423,20 @@ export default function CreateGateForm() {
                     <div className="space-y-6">
                       <div className="grid grid-cols-2 gap-4">
                         <Input
-                          label="Max Downloads"
+                          label={t('settings.maxDownloads')}
                           type="number"
                           name="maxDownloads"
                           value={formData.maxDownloads || ''}
                           onChange={handleChange}
-                          placeholder="Unlimited"
+                          placeholder={t('settings.maxDownloadsPlaceholder')}
                         />
                         <Input
-                          label="Custom Slug"
+                          label={t('settings.customSlug')}
                           type="text"
                           name="slug"
                           value={formData.slug}
                           onChange={handleChange}
-                          placeholder="custom-link"
+                          placeholder={t('settings.customSlugPlaceholder')}
                         />
                       </div>
                       <div className="flex justify-end gap-3">
@@ -442,7 +444,7 @@ export default function CreateGateForm() {
                           type="button"
                           onClick={() => setActiveStep(6)}
                         >
-                          Final Setup
+                          {t('settings.finalSetup')}
                         </Button>
                       </div>
                     </div>
@@ -455,16 +457,16 @@ export default function CreateGateForm() {
                           <div className="w-7 h-7 rounded-lg bg-emerald-500 text-white flex items-center justify-center">
                             <CheckCircle2 className="w-3.5 h-3.5"/>
                           </div>
-                          <span className="text-[10px] font-bold uppercase tracking-widest text-foreground/50">Email Marketing</span>
+                          <span className="text-[10px] font-bold uppercase tracking-widest text-foreground/50">{t('gateSteps.emailMarketing')}</span>
                         </div>
-                        <span className="text-[9px] font-bold text-foreground/40 uppercase">Always ON</span>
+                        <span className="text-[9px] font-bold text-foreground/40 uppercase">{t('gateSteps.alwaysOn')}</span>
                       </div>
 
                       <div className="grid grid-cols-1 gap-2">
                         {[
-                          { id: 'requireSoundcloudRepost' as const, label: 'SoundCloud Repost', icon: RefreshCw },
-                          { id: 'requireSoundcloudFollow' as const, label: 'SoundCloud Follow', icon: Plus },
-                          { id: 'requireSpotifyConnect' as const, label: 'Spotify Connect', icon: Music },
+                          { id: 'requireSoundcloudRepost' as const, label: t('gateSteps.soundcloudRepost'), icon: RefreshCw },
+                          { id: 'requireSoundcloudFollow' as const, label: t('gateSteps.soundcloudFollow'), icon: Plus },
+                          { id: 'requireSpotifyConnect' as const, label: t('gateSteps.spotifyConnect'), icon: Music },
                         ].map((req) => {
                           const isChecked = formData[req.id];
                           return (
@@ -503,10 +505,10 @@ export default function CreateGateForm() {
                           disabled={submitting}
                           loading={submitting}
                           variant="primary"
-                          className="w-full md:w-auto bg-accent text-white hover:bg-accent/90 shadow-xl shadow-accent/20 hover:scale-[1.02] active:scale-95"
+                          className="w-full md:w-auto bg-accent text-background hover:bg-accent/90 shadow-xl shadow-accent/20 hover:scale-[1.02] active:scale-95"
                         >
                           <Save className="w-4 h-4" />
-                          <span>CREAR DOWNLOAD GATE</span>
+                          <span>{t('gateSteps.createGate').toUpperCase()}</span>
                         </Button>
                       </div>
                     </div>
@@ -521,11 +523,9 @@ export default function CreateGateForm() {
       {/* Right Column: Preview Stick Side (Wider) */}
       <div className="lg:sticky lg:top-0 h-full w-full lg:w-[450px] flex flex-col items-center shrink-0">
         <Card variant="subtle" padding="lg" className="w-full flex flex-col items-center h-full">
-          <h3 className="text-xs font-bold uppercase tracking-[0.2em] text-foreground/40 mb-6 self-start">Live Preview</h3>
+          <h3 className="text-xs font-bold uppercase tracking-[0.2em] text-foreground/40 mb-6 self-start">{t('preview.title')}</h3>
           <div className="flex-1 flex items-start justify-center w-full pt-2">
-            <div className="scale-90 xl:scale-100 origin-top transition-all">
-              <GatePreview data={formData} />
-            </div>
+            <GatePreview data={formData} />
           </div>
         </Card>
       </div>
