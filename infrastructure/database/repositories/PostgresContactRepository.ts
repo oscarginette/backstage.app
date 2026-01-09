@@ -242,7 +242,8 @@ export class PostgresContactRepository implements IContactRepository {
               name,
               source,
               subscribed,
-              metadata
+              metadata,
+              created_at
             )
             VALUES (
               ${contact.userId},
@@ -250,13 +251,15 @@ export class PostgresContactRepository implements IContactRepository {
               ${contact.name || null},
               ${contact.source},
               ${contact.subscribed},
-              ${metadataJson}
+              ${metadataJson},
+              ${contact.createdAt || sql`CURRENT_TIMESTAMP`}
             )
             ON CONFLICT (user_id, email) DO UPDATE SET
               name = EXCLUDED.name,
               subscribed = EXCLUDED.subscribed,
               source = EXCLUDED.source,
-              metadata = contacts.metadata || COALESCE(EXCLUDED.metadata, '{}'::jsonb)
+              metadata = contacts.metadata || COALESCE(EXCLUDED.metadata, '{}'::jsonb),
+              created_at = COALESCE(contacts.created_at, EXCLUDED.created_at)
             RETURNING (xmax = 0) AS inserted
           `;
 
@@ -311,7 +314,8 @@ export class PostgresContactRepository implements IContactRepository {
             name,
             source,
             subscribed,
-            metadata
+            metadata,
+            created_at
           )
           VALUES (
             ${contact.userId},
@@ -319,13 +323,15 @@ export class PostgresContactRepository implements IContactRepository {
             ${contact.name || null},
             ${contact.source},
             ${contact.subscribed},
-            ${metadataJson}
+            ${metadataJson},
+            ${contact.createdAt || sql`CURRENT_TIMESTAMP`}
           )
           ON CONFLICT (user_id, email) DO UPDATE SET
             name = EXCLUDED.name,
             subscribed = EXCLUDED.subscribed,
             source = EXCLUDED.source,
-            metadata = contacts.metadata || COALESCE(EXCLUDED.metadata, '{}'::jsonb)
+            metadata = contacts.metadata || COALESCE(EXCLUDED.metadata, '{}'::jsonb),
+            created_at = COALESCE(contacts.created_at, EXCLUDED.created_at)
           RETURNING (xmax = 0) AS inserted
         `;
 

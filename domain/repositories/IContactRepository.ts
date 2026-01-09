@@ -31,6 +31,7 @@ export interface BulkImportContactInput {
   subscribed: boolean;
   source: string;
   metadata: ContactMetadata;
+  createdAt?: Date | null;
 }
 
 export interface BulkImportResult {
