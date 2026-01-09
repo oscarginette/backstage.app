@@ -4,6 +4,17 @@
  * Admin component for viewing payment history with filters and pagination.
  * Displays both Stripe payments and manual payments.
  *
+ * Features:
+ * - Server-side pagination (50 per page)
+ * - Server-side filters: Payment Method, Source (Manual/Stripe), Status (Paid/Open)
+ * - Client-side filters: Search, Status (Void), Amount Range
+ * - Real-time search by email, name, reference, or invoice ID
+ *
+ * Filter Strategy:
+ * - Status "Paid" and "Open" use server-side API filtering for efficiency
+ * - Status "Void" is client-side (rare status, not worth API complexity)
+ * - Amount Range is client-side (filters current page, no pagination impact)
+ *
  * Clean Architecture: Client component with API orchestration.
  */
 
@@ -48,6 +59,8 @@ export default function PaymentHistoryTable({ onAddPayment }: PaymentHistoryTabl
   const [searchTerm, setSearchTerm] = useState('');
   const [filterMethod, setFilterMethod] = useState<string>('all');
   const [filterManual, setFilterManual] = useState<string>('all');
+  const [filterStatus, setFilterStatus] = useState<string>('all');
+  const [filterAmountRange, setFilterAmountRange] = useState<string>('all');
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
@@ -73,6 +86,13 @@ export default function PaymentHistoryTable({ onAddPayment }: PaymentHistoryTabl
         params.append('manually_created', 'false');
       }
 
+      if (filterStatus === 'paid') {
+        params.append('paid', 'true');
+      } else if (filterStatus === 'open') {
+        params.append('paid', 'false');
+      }
+      // 'all' and 'void' don't have API support, handled client-side
+
       const response = await fetch(`/api/admin/payments?${params.toString()}`);
 
       if (!response.ok) {
@@ -95,21 +115,50 @@ export default function PaymentHistoryTable({ onAddPayment }: PaymentHistoryTabl
   // Fetch on mount and when filters change
   useEffect(() => {
     fetchPayments();
-  }, [page, filterMethod, filterManual]);
+  }, [page, filterMethod, filterManual, filterStatus]);
 
-  // Filter payments by search term
+  // Filter payments by search term, status, and amount range (client-side)
   const filteredPayments = useMemo(() => {
-    if (!searchTerm) return payments;
+    let result = payments;
 
-    const term = searchTerm.toLowerCase();
-    return payments.filter(
-      (payment) =>
-        payment.customer_email.toLowerCase().includes(term) ||
-        payment.customer_name?.toLowerCase().includes(term) ||
-        payment.payment_reference?.toLowerCase().includes(term) ||
-        payment.id.toLowerCase().includes(term)
-    );
-  }, [payments, searchTerm]);
+    // Search filter
+    if (searchTerm) {
+      const term = searchTerm.toLowerCase();
+      result = result.filter(
+        (payment) =>
+          payment.customer_email.toLowerCase().includes(term) ||
+          payment.customer_name?.toLowerCase().includes(term) ||
+          payment.payment_reference?.toLowerCase().includes(term) ||
+          payment.id.toLowerCase().includes(term)
+      );
+    }
+
+    // Status filter (client-side for 'void' status, since API doesn't support it)
+    if (filterStatus === 'void') {
+      result = result.filter((payment) => payment.status === 'void');
+    }
+
+    // Amount range filter (client-side)
+    if (filterAmountRange !== 'all') {
+      result = result.filter((payment) => {
+        const amountInEur = payment.amount_paid / 100;
+        switch (filterAmountRange) {
+          case 'under_10':
+            return amountInEur < 10;
+          case '10_50':
+            return amountInEur >= 10 && amountInEur < 50;
+          case '50_100':
+            return amountInEur >= 50 && amountInEur < 100;
+          case 'over_100':
+            return amountInEur >= 100;
+          default:
+            return true;
+        }
+      });
+    }
+
+    return result;
+  }, [payments, searchTerm, filterStatus, filterAmountRange]);
 
   // Format amount in EUR
   const formatAmount = (amountInCents: number, currency: string) => {
@@ -206,9 +255,9 @@ export default function PaymentHistoryTable({ onAddPayment }: PaymentHistoryTabl
 
       {/* Filters */}
       <div className="bg-card p-4 rounded-lg shadow-sm border border-border">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {/* Search */}
-          <div className="relative">
+          <div className="relative md:col-span-2 lg:col-span-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-foreground/40" size={18} />
             <input
               type="text"
@@ -245,6 +294,38 @@ export default function PaymentHistoryTable({ onAddPayment }: PaymentHistoryTabl
               <option value="all">All Sources</option>
               <option value="manual">Manual Only</option>
               <option value="stripe">Stripe Only</option>
+            </select>
+          </div>
+
+          {/* Status Filter */}
+          <div>
+            <select
+              value={filterStatus}
+              onChange={(e) => {
+                setFilterStatus(e.target.value);
+                setPage(1); // Reset to first page when filter changes
+              }}
+              className={cn(INPUT_STYLES.base, INPUT_STYLES.appearance, INPUT_STYLES.text, INPUT_STYLES.focus, INPUT_STYLES.focusColors.primary)}
+            >
+              <option value="all">All Statuses</option>
+              <option value="paid">Paid</option>
+              <option value="open">Open</option>
+              <option value="void">Void</option>
+            </select>
+          </div>
+
+          {/* Amount Range Filter */}
+          <div>
+            <select
+              value={filterAmountRange}
+              onChange={(e) => setFilterAmountRange(e.target.value)}
+              className={cn(INPUT_STYLES.base, INPUT_STYLES.appearance, INPUT_STYLES.text, INPUT_STYLES.focus, INPUT_STYLES.focusColors.primary)}
+            >
+              <option value="all">All Amounts</option>
+              <option value="under_10">&lt; 10€</option>
+              <option value="10_50">10€ - 50€</option>
+              <option value="50_100">50€ - 100€</option>
+              <option value="over_100">&gt; 100€</option>
             </select>
           </div>
         </div>
