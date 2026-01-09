@@ -21,6 +21,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { ExportContactsUseCase } from '@/domain/services/ExportContactsUseCase';
 import { PostgresContactRepository } from '@/infrastructure/database/repositories/PostgresContactRepository';
+import { PostgresUserSettingsRepository } from '@/infrastructure/database/repositories/PostgresUserSettingsRepository';
 import { CsvGenerator } from '@/infrastructure/csv/CsvGenerator';
 import {
   EXPORT_SCOPES,

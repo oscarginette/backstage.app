@@ -174,6 +174,7 @@ export const EXPORT_COLUMN_METADATA: ExportColumnMetadata[] = [
 // Export request input
 export interface ExportContactsInput {
   userId: number;
+  artistName?: string | null; // Artist name for filename
   scope: ExportScope;
   selectedIds?: number[]; // Required when scope = 'selected'
   columns: ContactExportColumn[];

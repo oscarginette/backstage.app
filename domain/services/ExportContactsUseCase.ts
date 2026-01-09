@@ -42,7 +42,7 @@ export class ExportContactsUseCase {
     if (contacts.length === 0) {
       return {
         success: false,
-        filename: this.generateFilename(input.format),
+        filename: this.generateFilename(input.artistName, input.format),
         rowCount: 0,
         error: 'No contacts to export',
       };
@@ -58,7 +58,7 @@ export class ExportContactsUseCase {
     return {
       success: true,
       data,
-      filename: this.generateFilename(input.format),
+      filename: this.generateFilename(input.artistName, input.format),
       rowCount: contacts.length,
     };
   }
@@ -125,8 +125,19 @@ export class ExportContactsUseCase {
     }
   }
 
-  private generateFilename(format: ExportFormat): string {
+  private generateFilename(artistName: string | null | undefined, format: ExportFormat): string {
+    // Format: ArtistName_TheBackstage_Contacts_YYYY-MM-DD.csv
     const timestamp = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
-    return `contacts-${timestamp}.${format}`;
+
+    // Sanitize artist name: remove special characters, replace spaces with underscores
+    let sanitizedName = 'Artist';
+    if (artistName && artistName.trim().length > 0) {
+      sanitizedName = artistName
+        .trim()
+        .replace(/[^a-zA-Z0-9\s]/g, '') // Remove special chars
+        .replace(/\s+/g, '_'); // Replace spaces with underscores
+    }
+
+    return `${sanitizedName}_TheBackstage_Contacts_${timestamp}.${format}`;
   }
 }
