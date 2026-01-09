@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useState } from "react";
 import { useTranslations } from '@/lib/i18n/context';
 import { PATHS } from '@/lib/paths';
+import { Card } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
 
 export default function PricingSection() {
   const t = useTranslations('pricing');
@@ -108,80 +110,86 @@ export default function PricingSection() {
   ];
 
   return (
-    <section id="pricing" className="py-24 bg-muted/40 transition-colors duration-500">
+    <section id="pricing" className="py-24 bg-muted/40 dark:bg-background transition-colors duration-500">
       <div className="container px-4 mx-auto">
         <div className="text-center max-w-3xl mx-auto mb-16">
-          <h2 className="text-4xl md:text-6xl font-serif mb-6">
+          <h2 className="text-4xl md:text-6xl font-serif mb-6 text-foreground">
             {t('title.line1')} <br />
             <span className="italic text-accent">{t('title.line2')}</span> {t('title.line3')}
           </h2>
-          <p className="text-xl text-foreground/60 mb-10">
+          <p className="text-xl text-muted-foreground mb-10">
             {t('allInclude')} <strong>{t('unlimitedGates')}</strong>.
             {t('payAsGrow')}
           </p>
 
           {/* Toggle with logic */}
-          <div className="inline-flex items-center p-1 bg-white rounded-full border border-border">
-            <button
+          <div className="inline-flex items-center p-1 bg-card rounded-full border border-border shadow-sm">
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={() => setIsAnnual(false)}
-              className={`px-6 py-2 rounded-full text-sm font-medium transition-all ${
-                !isAnnual ? "bg-foreground text-background shadow-md" : "text-foreground/60 hover:text-foreground"
+              className={`rounded-full transition-all ${
+                !isAnnual ? "bg-foreground text-background shadow-md hover:bg-foreground/90" : "text-muted-foreground hover:text-foreground"
               }`}
             >
               {t('monthly')}
-            </button>
-            <button
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={() => setIsAnnual(true)}
-              className={`px-6 py-2 rounded-full text-sm font-medium transition-all ${
-                isAnnual ? "bg-foreground text-background shadow-md" : "text-foreground/60 hover:text-foreground"
+              className={`rounded-full transition-all ${
+                isAnnual ? "bg-foreground text-background shadow-md hover:bg-foreground/90" : "text-muted-foreground hover:text-foreground"
               }`}
             >
               {t('annual')} <span className="text-[10px] ml-1 opacity-80">({t('save')})</span>
-            </button>
+            </Button>
           </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
           {plans.map((plan) => (
-            <div
+            <Card
               key={plan.id}
-              className={`relative flex flex-col p-6 rounded-[2rem] border transition-all duration-300 bg-background/50 border-border hover:border-foreground/20 hover:shadow-lg ${
+              variant={plan.highlight ? "highlighted" : "default"}
+              padding="md"
+              className={`relative flex flex-col transition-all duration-300 hover:shadow-lg ${
                 plan.highlight
-                  ? "scale-[1.02] md:scale-105 z-10"
+                  ? "scale-[1.02] md:scale-105 z-10 shadow-xl"
                   : ""
               }`}
             >
               {plan.bigLeagues && (
-                  <div className="mb-4 inline-flex items-center gap-2 px-3 py-1 bg-gradient-to-r from-amber-100 to-yellow-100 border border-amber-200 rounded-full text-[10px] font-bold text-amber-800 uppercase tracking-wide w-fit">
-                    <Trophy className="w-3 h-3 text-amber-700" />
+                  <div className="mb-4 inline-flex items-center gap-2 px-3 py-1 bg-gradient-to-r from-amber-100 to-yellow-100 dark:from-amber-900/30 dark:to-yellow-900/30 border border-amber-200 dark:border-amber-800 rounded-full text-[10px] font-bold text-amber-800 dark:text-amber-200 uppercase tracking-wide w-fit">
+                    <Trophy className="w-3 h-3 text-amber-700 dark:text-amber-300" />
                     {t('bigLeagues')}
                   </div>
               )}
 
               <div className="mb-6">
-                <h3 className="text-xl font-serif mb-2">{t(plan.nameKey)}</h3>
-                <p className="text-foreground/60 text-xs min-h-[40px]">{t(plan.descriptionKey)}</p>
+                <h3 className="text-xl font-serif mb-2 text-foreground">{t(plan.nameKey)}</h3>
+                <p className="text-muted-foreground text-xs min-h-[40px]">{t(plan.descriptionKey)}</p>
               </div>
 
               <div className="mb-8">
                 <div className="flex items-baseline gap-1">
-                  <span className="text-4xl font-bold tracking-tight">{plan.price}</span>
-                  <span className="text-foreground/40 text-sm font-medium">{t(plan.periodKey)}</span>
+                  <span className="text-4xl font-bold tracking-tight text-foreground">{plan.price}</span>
+                  <span className="text-muted-foreground text-sm font-medium">{t(plan.periodKey)}</span>
                 </div>
                 {isAnnual && plan.basePrice > 0 && (
-                  <p className="text-xs text-foreground/40 mt-2">
+                  <p className="text-xs text-muted-foreground mt-2">
                     €{(plan.basePrice * 0.8 * 12).toFixed(2)}{t('perYear')}
                   </p>
                 )}
               </div>
 
               <div className="flex-grow space-y-4 mb-8">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-foreground/40">{t('includes')}</p>
+                <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{t('includes')}</p>
                 <ul className="space-y-3">
                   {plan.features.map((feature, i) => (
                     <li key={i} className="flex items-start gap-3 text-sm">
                       {feature.included ? (
-                        <Check className={`w-4 h-4 flex-shrink-0 ${feature.highlight ? "text-foreground" : "text-foreground"}`} />
+                        <Check className={`w-4 h-4 flex-shrink-0 ${feature.highlight ? "text-accent" : "text-foreground"}`} />
                       ) : (
                         <X className="w-4 h-4 flex-shrink-0 text-muted-foreground/30" />
                       )}
@@ -193,23 +201,26 @@ export default function PricingSection() {
                 </ul>
               </div>
 
-              <Link
-                href={PATHS.LOGIN}
-                className={`w-full flex h-10 items-center justify-center rounded-xl text-sm font-bold transition-all active:scale-95 ${
-                  plan.highlight
-                    ? "bg-foreground text-background hover:bg-foreground/90 shadow-xl"
-                    : "bg-foreground text-background hover:bg-foreground/90"
-                }`}
-              >
-                {t(plan.ctaKey)}
+              <Link href={PATHS.LOGIN} className="w-full">
+                <Button
+                  variant="primary"
+                  size="md"
+                  className={`w-full rounded-xl ${
+                    plan.highlight
+                      ? "shadow-xl"
+                      : ""
+                  }`}
+                >
+                  {t(plan.ctaKey)}
+                </Button>
               </Link>
-            </div>
+            </Card>
           ))}
         </div>
 
         <div className="mt-20 text-center">
-            <p className="text-foreground/40 text-sm">
-              {t('enterprise.text')} <a href="mailto:contact@backstage.app" className="underline hover:text-foreground">{t('enterprise.link')}</a> {t('enterprise.for')}
+            <p className="text-muted-foreground text-sm">
+              {t('enterprise.text')} <a href="mailto:contact@backstage.app" className="underline hover:text-foreground transition-colors">{t('enterprise.link')}</a> {t('enterprise.for')}
             </p>
         </div>
       </div>

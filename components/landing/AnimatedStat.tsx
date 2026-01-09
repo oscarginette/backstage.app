@@ -41,11 +41,11 @@ export function AnimatedStat({ label, value, icon }: AnimatedStatProps) {
   return (
     <div
       ref={ref}
-      className="bg-white px-4 py-3 rounded-xl border border-border shadow-sm hover:shadow-md transition-shadow flex items-center gap-3"
+      className="bg-card px-4 py-3 rounded-xl border border-border shadow-sm hover:shadow-md transition-all duration-300 flex items-center gap-3"
     >
-      <span className="p-2 bg-muted/30 rounded-lg flex-shrink-0">{icon}</span>
+      <span className="p-2 bg-muted/30 dark:bg-muted/50 rounded-lg flex-shrink-0 transition-colors">{icon}</span>
       <div className="flex-1 min-w-0">
-        <div className="text-[10px] font-bold text-foreground/40 tracking-widest mb-0.5">
+        <div className="text-[10px] font-bold text-muted-foreground tracking-widest mb-0.5">
           {label}
         </div>
         <div className="text-xl font-serif font-medium text-foreground tabular-nums">
