@@ -27,26 +27,12 @@
 
 import { NextResponse } from 'next/server';
 import { SpotifyClient } from '@/lib/spotify-client';
-import { PostgresOAuthStateRepository } from '@/infrastructure/database/repositories/PostgresOAuthStateRepository';
-import { PostgresDownloadSubmissionRepository } from '@/infrastructure/database/repositories/PostgresDownloadSubmissionRepository';
-import { PostgresDownloadAnalyticsRepository } from '@/infrastructure/database/repositories/PostgresDownloadAnalyticsRepository';
-import { PostgresDownloadGateRepository } from '@/infrastructure/database/repositories/PostgresDownloadGateRepository';
-import { PostgresUserRepository } from '@/infrastructure/database/repositories/PostgresUserRepository';
-import { PostgresAutoSaveSubscriptionRepository } from '@/infrastructure/database/repositories/PostgresAutoSaveSubscriptionRepository';
-import { ConnectSpotifyUseCase } from '@/domain/services/ConnectSpotifyUseCase';
-import { FollowSpotifyArtistUseCase } from '@/domain/services/FollowSpotifyArtistUseCase';
-import { CreateAutoSaveSubscriptionUseCase } from '@/domain/services/CreateAutoSaveSubscriptionUseCase';
+import { UseCaseFactory, RepositoryFactory } from '@/lib/di-container';
 import { TokenEncryption } from '@/infrastructure/encryption/TokenEncryption';
 import { SpotifyProfile } from '@/domain/types/download-gates';
 
-// Singleton instances
+// Singleton instances (needed for OAuth flow and encryption)
 const spotifyClient = new SpotifyClient();
-const oauthStateRepository = new PostgresOAuthStateRepository();
-const submissionRepository = new PostgresDownloadSubmissionRepository();
-const analyticsRepository = new PostgresDownloadAnalyticsRepository();
-const downloadGateRepository = new PostgresDownloadGateRepository();
-const userRepository = new PostgresUserRepository();
-const autoSaveSubscriptionRepository = new PostgresAutoSaveSubscriptionRepository();
 const tokenEncryption = new TokenEncryption();
 
 export const dynamic = 'force-dynamic';
@@ -87,6 +73,7 @@ export async function GET(request: Request) {
     }
 
     // 1. Validate state token
+    const oauthStateRepository = RepositoryFactory.createOAuthStateRepository();
     const oauthState = await oauthStateRepository.findByStateToken(state);
 
     if (!oauthState) {
@@ -188,10 +175,7 @@ export async function GET(request: Request) {
     const ipAddress = request.headers.get('x-forwarded-for') || undefined;
     const userAgent = request.headers.get('user-agent') || undefined;
 
-    const connectSpotifyUseCase = new ConnectSpotifyUseCase(
-      submissionRepository,
-      analyticsRepository
-    );
+    const connectSpotifyUseCase = UseCaseFactory.createConnectSpotifyUseCase();
 
     const result = await connectSpotifyUseCase.execute({
       submissionId: oauthState.submissionId,
@@ -214,10 +198,12 @@ export async function GET(request: Request) {
     if (result.success) {
       try {
         // Get the gate to find the artist user (findBySlug since we don't have userId in this context)
+        const downloadGateRepository = RepositoryFactory.createDownloadGateRepository();
         const gate = await downloadGateRepository.findBySlug(oauthState.gateId);
 
         if (gate) {
           // Get the artist user to retrieve their Spotify ID
+          const userRepository = RepositoryFactory.createUserRepository();
           const artistUser = await userRepository.findById(gate.userId);
 
           if (artistUser?.spotifyId) {
@@ -226,10 +212,7 @@ export async function GET(request: Request) {
               artistUserId: artistUser.id,
             });
 
-            const followSpotifyArtistUseCase = new FollowSpotifyArtistUseCase(
-              spotifyClient,
-              submissionRepository
-            );
+            const followSpotifyArtistUseCase = UseCaseFactory.createFollowSpotifyArtistUseCase(spotifyClient);
 
             const followResult = await followSpotifyArtistUseCase.execute({
               submissionId: oauthState.submissionId,
@@ -255,10 +238,7 @@ export async function GET(request: Request) {
                   artistSpotifyId: artistUser.spotifyId,
                 });
 
-                const createAutoSaveSubscriptionUseCase = new CreateAutoSaveSubscriptionUseCase(
-                  autoSaveSubscriptionRepository,
-                  tokenEncryption
-                );
+                const createAutoSaveSubscriptionUseCase = UseCaseFactory.createCreateAutoSaveSubscriptionUseCase(tokenEncryption);
 
                 const subscriptionResult = await createAutoSaveSubscriptionUseCase.execute({
                   submissionId: oauthState.submissionId,

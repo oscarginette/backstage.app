@@ -23,11 +23,10 @@
 import { NextResponse } from 'next/server';
 import { randomBytes } from 'crypto';
 import { SpotifyClient } from '@/lib/spotify-client';
-import { PostgresOAuthStateRepository } from '@/infrastructure/database/repositories/PostgresOAuthStateRepository';
+import { RepositoryFactory } from '@/lib/di-container';
 
-// Singleton instances
+// Singleton instances (needed for OAuth flow)
 const spotifyClient = new SpotifyClient();
-const oauthStateRepository = new PostgresOAuthStateRepository();
 
 export const dynamic = 'force-dynamic';
 
@@ -65,6 +64,7 @@ export async function GET(request: Request) {
     const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
 
     // Store OAuth state with PKCE code_verifier and auto-save opt-in preference
+    const oauthStateRepository = RepositoryFactory.createOAuthStateRepository();
     const oauthState = await oauthStateRepository.create({
       stateToken,
       provider: 'spotify',

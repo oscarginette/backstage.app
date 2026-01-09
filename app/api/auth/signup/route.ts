@@ -16,25 +16,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { CreateUserUseCase } from '@/domain/services/CreateUserUseCase';
-import { SendNewUserNotificationUseCase } from '@/domain/services/SendNewUserNotificationUseCase';
-import { PostgresUserRepository } from '@/infrastructure/database/repositories/PostgresUserRepository';
-import { PostgresQuotaTrackingRepository } from '@/infrastructure/database/repositories/PostgresQuotaTrackingRepository';
-import { ResendEmailProvider } from '@/infrastructure/email/ResendEmailProvider';
-import { env, getAppUrl, getBaseUrl } from '@/lib/env';
-
-// Instantiate repositories
-const userRepository = new PostgresUserRepository();
-const quotaRepository = new PostgresQuotaTrackingRepository();
-
-// Instantiate email provider (lazy initialization to avoid errors if RESEND_API_KEY not set)
-let emailProvider: ResendEmailProvider | null = null;
-function getEmailProvider(): ResendEmailProvider | null {
-  if (!emailProvider && env.RESEND_API_KEY) {
-    emailProvider = new ResendEmailProvider(env.RESEND_API_KEY);
-  }
-  return emailProvider;
-}
+import { UseCaseFactory } from '@/lib/di-container';
+import { env } from '@/lib/env';
 
 /**
  * POST /api/auth/signup
@@ -76,11 +59,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create use case instance
-    const createUserUseCase = new CreateUserUseCase(
-      userRepository,
-      quotaRepository
-    );
+    // Create use case instance via DI container
+    const createUserUseCase = UseCaseFactory.createCreateUserUseCase();
 
     // Execute use case
     const result = await createUserUseCase.execute({
@@ -107,11 +87,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Send admin notification (fire-and-forget, non-blocking)
-    if (result.user && getEmailProvider()) {
-      const notificationUseCase = new SendNewUserNotificationUseCase(
-        userRepository,
-        getEmailProvider()!
-      );
+    if (result.user && env.RESEND_API_KEY) {
+      const notificationUseCase = UseCaseFactory.createSendNewUserNotificationUseCase();
 
       // Fire and forget - don't await, don't block signup response
       notificationUseCase

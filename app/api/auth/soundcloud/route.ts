@@ -20,12 +20,9 @@
  */
 
 import { NextResponse } from 'next/server';
-import { PostgresOAuthStateRepository } from '@/infrastructure/database/repositories/PostgresOAuthStateRepository';
 import { soundCloudClient } from '@/lib/soundcloud-client';
-import { env, getAppUrl, getBaseUrl } from '@/lib/env';
-
-// Singleton repository instance
-const oauthStateRepository = new PostgresOAuthStateRepository();
+import { RepositoryFactory } from '@/lib/di-container';
+import { env, getAppUrl } from '@/lib/env';
 
 // OAuth state expiration: 15 minutes
 const STATE_EXPIRATION_MS = 15 * 60 * 1000;
@@ -76,6 +73,7 @@ export async function GET(request: Request) {
     // Create OAuth state token (CSRF protection)
     const expiresAt = new Date(Date.now() + STATE_EXPIRATION_MS);
 
+    const oauthStateRepository = RepositoryFactory.createOAuthStateRepository();
     const oauthState = await oauthStateRepository.create({
       stateToken,
       provider: 'soundcloud',

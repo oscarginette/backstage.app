@@ -26,20 +26,9 @@
  */
 
 import { NextResponse } from 'next/server';
-import { PostgresOAuthStateRepository } from '@/infrastructure/database/repositories/PostgresOAuthStateRepository';
-import { PostgresDownloadSubmissionRepository } from '@/infrastructure/database/repositories/PostgresDownloadSubmissionRepository';
-import { PostgresDownloadGateRepository } from '@/infrastructure/database/repositories/PostgresDownloadGateRepository';
-import { PostgresDownloadAnalyticsRepository } from '@/infrastructure/database/repositories/PostgresDownloadAnalyticsRepository';
 import { soundCloudClient } from '@/lib/soundcloud-client';
-import { VerifySoundCloudRepostUseCase } from '@/domain/services/VerifySoundCloudRepostUseCase';
-import { VerifySoundCloudFollowUseCase } from '@/domain/services/VerifySoundCloudFollowUseCase';
-import { env, getAppUrl, getBaseUrl } from '@/lib/env';
-
-// Singleton repository instances
-const oauthStateRepository = new PostgresOAuthStateRepository();
-const submissionRepository = new PostgresDownloadSubmissionRepository();
-const gateRepository = new PostgresDownloadGateRepository();
-const analyticsRepository = new PostgresDownloadAnalyticsRepository();
+import { UseCaseFactory, RepositoryFactory } from '@/lib/di-container';
+import { env, getAppUrl } from '@/lib/env';
 
 export const dynamic = 'force-dynamic';
 
@@ -73,6 +62,7 @@ export async function GET(request: Request) {
     }
 
     // 1. Validate state token (CSRF protection)
+    const oauthStateRepository = RepositoryFactory.createOAuthStateRepository();
     const oauthState = await oauthStateRepository.findByStateToken(state);
 
     if (!oauthState) {
@@ -92,6 +82,7 @@ export async function GET(request: Request) {
     }
 
     // Get gate to construct redirect URL
+    const gateRepository = RepositoryFactory.createDownloadGateRepository();
     const gate = await gateRepository.findById(1, oauthState.gateId.toString());
     if (!gate) {
       return redirectToGateWithError('Gate not found', null);
@@ -114,6 +105,7 @@ export async function GET(request: Request) {
       );
 
       // 4. Update submission with SoundCloud profile
+      const submissionRepository = RepositoryFactory.createDownloadSubmissionRepository();
       await submissionRepository.updateSoundCloudProfile(oauthState.submissionId, {
         userId: userProfile.id.toString(),
         username: userProfile.username,
@@ -127,12 +119,7 @@ export async function GET(request: Request) {
 
       // 5. Verify repost (if required)
       if (gate.requireSoundcloudRepost) {
-        const verifyRepostUseCase = new VerifySoundCloudRepostUseCase(
-          submissionRepository,
-          gateRepository,
-          analyticsRepository,
-          soundCloudClient
-        );
+        const verifyRepostUseCase = UseCaseFactory.createVerifySoundCloudRepostUseCase();
 
         const repostResult = await verifyRepostUseCase.execute({
           submissionId: oauthState.submissionId,
@@ -155,12 +142,7 @@ export async function GET(request: Request) {
 
       // 6. Verify follow (if required)
       if (gate.requireSoundcloudFollow) {
-        const verifyFollowUseCase = new VerifySoundCloudFollowUseCase(
-          submissionRepository,
-          gateRepository,
-          analyticsRepository,
-          soundCloudClient
-        );
+        const verifyFollowUseCase = UseCaseFactory.createVerifySoundCloudFollowUseCase();
 
         const followResult = await verifyFollowUseCase.execute({
           submissionId: oauthState.submissionId,
