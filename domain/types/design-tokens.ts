@@ -84,7 +84,7 @@ export const INPUT_STYLES = {
  */
 export const BUTTON_STYLES = {
   // Base button
-  base: 'rounded-lg transition-all font-medium',
+  base: 'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg transition-all font-medium active:scale-95',
 
   // Size variations
   size: {
