@@ -11,6 +11,7 @@
 
 import { useEffect, useState } from 'react';
 import UserManagementTable from '@/components/admin/UserManagementTable';
+import Button from '@/components/ui/Button';
 import { USER_ROLES } from '@/domain/types/user-roles';
 import { SUBSCRIPTION_PLANS } from '@/domain/types/subscriptions';
 
@@ -72,16 +73,16 @@ export default function AdminPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-100 py-8">
+      <div className="min-h-screen bg-background py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-white shadow rounded-lg p-8">
+          <div className="bg-card shadow rounded-lg p-8 border border-border">
             <div className="animate-pulse space-y-4">
-              <div className="h-8 bg-gray-200 rounded w-1/4"></div>
-              <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+              <div className="h-8 bg-muted rounded w-1/4"></div>
+              <div className="h-4 bg-muted rounded w-1/2"></div>
               <div className="space-y-3 mt-8">
-                <div className="h-12 bg-gray-200 rounded"></div>
-                <div className="h-12 bg-gray-200 rounded"></div>
-                <div className="h-12 bg-gray-200 rounded"></div>
+                <div className="h-12 bg-muted rounded"></div>
+                <div className="h-12 bg-muted rounded"></div>
+                <div className="h-12 bg-muted rounded"></div>
               </div>
             </div>
           </div>
@@ -92,9 +93,9 @@ export default function AdminPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-100 py-8">
+      <div className="min-h-screen bg-background py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-red-50 border-l-4 border-red-500 p-6 rounded-lg">
+          <div className="bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 dark:border-red-600 p-6 rounded-lg">
             <div className="flex">
               <div className="flex-shrink-0">
                 <svg
@@ -112,14 +113,16 @@ export default function AdminPage() {
                 </svg>
               </div>
               <div className="ml-3">
-                <h3 className="text-lg font-medium text-red-800">Error</h3>
-                <p className="mt-2 text-sm text-red-700">{error}</p>
-                <button
+                <h3 className="text-lg font-medium text-red-800 dark:text-red-300">Error</h3>
+                <p className="mt-2 text-sm text-red-700 dark:text-red-400">{error}</p>
+                <Button
                   onClick={fetchUsers}
-                  className="mt-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
+                  variant="danger"
+                  size="md"
+                  className="mt-4"
                 >
                   Retry
-                </button>
+                </Button>
               </div>
             </div>
           </div>
@@ -157,24 +160,24 @@ export default function AdminPage() {
     }, 0);
 
   return (
-    <div className="min-h-screen bg-gray-100 py-8">
+    <div className="min-h-screen bg-background py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
-          <p className="mt-2 text-sm text-gray-600">
+          <h1 className="text-3xl font-bold text-foreground">Admin Dashboard</h1>
+          <p className="mt-2 text-sm text-foreground/60">
             Manage users and email quotas
           </p>
         </div>
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
-          <div className="bg-white overflow-hidden shadow rounded-lg">
+          <div className="bg-card overflow-hidden shadow rounded-lg border border-border">
             <div className="p-5">
               <div className="flex items-center">
                 <div className="flex-shrink-0">
                   <svg
-                    className="h-6 w-6 text-gray-400"
+                    className="h-6 w-6 text-foreground/40"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -189,10 +192,10 @@ export default function AdminPage() {
                 </div>
                 <div className="ml-5 w-0 flex-1">
                   <dl>
-                    <dt className="text-sm font-medium text-gray-500 truncate">
+                    <dt className="text-sm font-medium text-foreground/50 truncate">
                       Total Users
                     </dt>
-                    <dd className="text-2xl font-semibold text-gray-900">
+                    <dd className="text-2xl font-semibold text-foreground">
                       {totalUsers}
                     </dd>
                   </dl>
@@ -201,12 +204,12 @@ export default function AdminPage() {
             </div>
           </div>
 
-          <div className="bg-white overflow-hidden shadow rounded-lg">
+          <div className="bg-card overflow-hidden shadow rounded-lg border border-border">
             <div className="p-5">
               <div className="flex items-center">
                 <div className="flex-shrink-0">
                   <svg
-                    className="h-6 w-6 text-green-400"
+                    className="h-6 w-6 text-green-400 dark:text-green-500"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -221,10 +224,10 @@ export default function AdminPage() {
                 </div>
                 <div className="ml-5 w-0 flex-1">
                   <dl>
-                    <dt className="text-sm font-medium text-gray-500 truncate">
+                    <dt className="text-sm font-medium text-foreground/50 truncate">
                       Active Subscriptions
                     </dt>
-                    <dd className="text-2xl font-semibold text-gray-900">
+                    <dd className="text-2xl font-semibold text-foreground">
                       {activeSubscriptions}
                     </dd>
                   </dl>
@@ -233,12 +236,12 @@ export default function AdminPage() {
             </div>
           </div>
 
-          <div className="bg-white overflow-hidden shadow rounded-lg">
+          <div className="bg-card overflow-hidden shadow rounded-lg border border-border">
             <div className="p-5">
               <div className="flex items-center">
                 <div className="flex-shrink-0">
                   <svg
-                    className="h-6 w-6 text-emerald-400"
+                    className="h-6 w-6 text-emerald-400 dark:text-emerald-500"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -253,10 +256,10 @@ export default function AdminPage() {
                 </div>
                 <div className="ml-5 w-0 flex-1">
                   <dl>
-                    <dt className="text-sm font-medium text-gray-500 truncate">
+                    <dt className="text-sm font-medium text-foreground/50 truncate">
                       Estimated MRR
                     </dt>
-                    <dd className="text-2xl font-semibold text-gray-900">
+                    <dd className="text-2xl font-semibold text-foreground">
                       ${estimatedMRR}
                     </dd>
                   </dl>
@@ -265,12 +268,12 @@ export default function AdminPage() {
             </div>
           </div>
 
-          <div className="bg-white overflow-hidden shadow rounded-lg">
+          <div className="bg-card overflow-hidden shadow rounded-lg border border-border">
             <div className="p-5">
               <div className="flex items-center">
                 <div className="flex-shrink-0">
                   <svg
-                    className="h-6 w-6 text-purple-400"
+                    className="h-6 w-6 text-purple-400 dark:text-purple-500"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -285,10 +288,10 @@ export default function AdminPage() {
                 </div>
                 <div className="ml-5 w-0 flex-1">
                   <dl>
-                    <dt className="text-sm font-medium text-gray-500 truncate">
+                    <dt className="text-sm font-medium text-foreground/50 truncate">
                       Admins
                     </dt>
-                    <dd className="text-2xl font-semibold text-gray-900">
+                    <dd className="text-2xl font-semibold text-foreground">
                       {adminUsers}
                     </dd>
                   </dl>
@@ -297,12 +300,12 @@ export default function AdminPage() {
             </div>
           </div>
 
-          <div className="bg-white overflow-hidden shadow rounded-lg">
+          <div className="bg-card overflow-hidden shadow rounded-lg border border-border">
             <div className="p-5">
               <div className="flex items-center">
                 <div className="flex-shrink-0">
                   <svg
-                    className="h-6 w-6 text-blue-400"
+                    className="h-6 w-6 text-blue-400 dark:text-blue-500"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -317,10 +320,10 @@ export default function AdminPage() {
                 </div>
                 <div className="ml-5 w-0 flex-1">
                   <dl>
-                    <dt className="text-sm font-medium text-gray-500 truncate">
+                    <dt className="text-sm font-medium text-foreground/50 truncate">
                       Emails This Month
                     </dt>
-                    <dd className="text-2xl font-semibold text-gray-900">
+                    <dd className="text-2xl font-semibold text-foreground">
                       {totalEmailsSent}
                     </dd>
                   </dl>
@@ -333,10 +336,12 @@ export default function AdminPage() {
         {/* User Management Section */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-2xl font-bold text-gray-900">User Management</h2>
-            <button
+            <h2 className="text-2xl font-bold text-foreground">User Management</h2>
+            <Button
               onClick={fetchUsers}
-              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors flex items-center gap-2"
+              variant="primary"
+              size="md"
+              className="gap-2"
             >
               <svg
                 className="h-4 w-4"
@@ -352,7 +357,7 @@ export default function AdminPage() {
                 />
               </svg>
               Refresh
-            </button>
+            </Button>
           </div>
           <UserManagementTable users={users} onRefresh={fetchUsers} />
         </div>

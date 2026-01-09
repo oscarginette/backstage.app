@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { X, Check } from 'lucide-react';
 import Modal from '@/components/ui/Modal';
+import Button from '@/components/ui/Button';
 
 interface ActivateSubscriptionModalProps {
   userCount: number;
@@ -74,21 +75,23 @@ export default function ActivateSubscriptionModal({
       size="5xl"
       className="rounded-2xl"
       customHeader={
-        <div className="px-8 py-5 border-b border-[#E8E6DF] bg-gradient-to-br from-[#FF5500]/5 to-orange-50">
+        <div className="px-8 py-5 border-b border-border bg-gradient-to-br from-primary/5 to-primary/10">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-2xl font-bold text-[#1c1c1c]">Activate Subscription</h2>
-              <p className="text-sm text-gray-600 mt-0.5">
+              <h2 className="text-2xl font-bold text-foreground">Activate Subscription</h2>
+              <p className="text-sm text-foreground/60 mt-0.5">
                 Activating for {userCount} user{userCount > 1 ? 's' : ''}
               </p>
             </div>
-            <button
+            <Button
               onClick={onClose}
               disabled={loading}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              variant="ghost"
+              size="sm"
+              className="p-2"
             >
-              <X className="w-5 h-5 text-gray-500" />
-            </button>
+              <X className="w-5 h-5" />
+            </Button>
           </div>
         </div>
       }
@@ -99,7 +102,7 @@ export default function ActivateSubscriptionModal({
           <div className="space-y-6">
             {/* Plan Selection */}
             <div>
-              <label className="block text-sm font-bold text-[#1c1c1c] mb-3">
+              <label className="block text-sm font-bold text-foreground mb-3">
                 Subscription Plan
               </label>
               <div className="grid grid-cols-4 gap-3">
@@ -114,23 +117,23 @@ export default function ActivateSubscriptionModal({
                       className={`
                         relative p-4 rounded-xl border-2 transition-all text-left hover:scale-105
                         ${isSelected
-                          ? 'border-[#FF5500] bg-[#FF5500]/5 shadow-md'
-                          : 'border-gray-200 hover:border-[#FF5500]/30'
+                          ? 'border-primary bg-primary/5 shadow-md'
+                          : 'border-border hover:border-primary/30'
                         }
                       `}
                     >
                       {isSelected && (
-                        <div className="absolute -top-2 -right-2 w-6 h-6 bg-[#FF5500] rounded-full flex items-center justify-center shadow-lg">
+                        <div className="absolute -top-2 -right-2 w-6 h-6 bg-primary rounded-full flex items-center justify-center shadow-lg">
                           <Check className="w-3.5 h-3.5 text-white" />
                         </div>
                       )}
-                      <div className="font-bold text-[#1c1c1c] text-xs uppercase tracking-wider mb-2">
+                      <div className="font-bold text-foreground text-xs uppercase tracking-wider mb-2">
                         {info.name}
                       </div>
-                      <div className="text-[10px] text-gray-500 leading-tight">
+                      <div className="text-[10px] text-foreground/50 leading-tight">
                         {info.contacts.toLocaleString()} contacts
                       </div>
-                      <div className="text-[10px] text-gray-500 leading-tight">
+                      <div className="text-[10px] text-foreground/50 leading-tight">
                         {typeof info.emails === 'number' ? `${info.emails.toLocaleString()} emails` : info.emails}
                       </div>
                     </button>
@@ -143,18 +146,18 @@ export default function ActivateSubscriptionModal({
             <div className="grid grid-cols-2 gap-6">
               {/* Billing Cycle */}
               <div>
-                <label className="block text-sm font-bold text-[#1c1c1c] mb-3">
+                <label className="block text-sm font-bold text-foreground mb-3">
                   Billing Cycle
                 </label>
-                <div className="flex items-center gap-2 bg-gray-50 p-1 rounded-xl">
+                <div className="flex items-center gap-2 bg-muted/50 p-1 rounded-xl">
                   <button
                     onClick={() => handleBillingCycleChange('monthly')}
                     disabled={loading}
                     className={`
                       flex-1 py-2.5 px-3 rounded-lg text-xs font-bold transition-all
                       ${billingCycle === 'monthly'
-                        ? 'bg-white text-[#1c1c1c] shadow-sm'
-                        : 'text-gray-500 hover:text-gray-700'
+                        ? 'bg-card text-foreground shadow-sm'
+                        : 'text-foreground/50 hover:text-foreground'
                       }
                     `}
                   >
@@ -166,20 +169,20 @@ export default function ActivateSubscriptionModal({
                     className={`
                       flex-1 py-2.5 px-3 rounded-lg text-xs font-bold transition-all
                       ${billingCycle === 'annual'
-                        ? 'bg-white text-[#1c1c1c] shadow-sm'
-                        : 'text-gray-500 hover:text-gray-700'
+                        ? 'bg-card text-foreground shadow-sm'
+                        : 'text-foreground/50 hover:text-foreground'
                       }
                     `}
                   >
                     Annual
-                    <div className="text-[9px] text-emerald-600 mt-0.5">Save 17%</div>
+                    <div className="text-[9px] text-emerald-600 dark:text-emerald-400 mt-0.5">Save 17%</div>
                   </button>
                 </div>
               </div>
 
               {/* Duration */}
               <div>
-                <label className="block text-sm font-bold text-[#1c1c1c] mb-3">
+                <label className="block text-sm font-bold text-foreground mb-3">
                   Duration
                 </label>
                 <div className="relative">
@@ -193,9 +196,9 @@ export default function ActivateSubscriptionModal({
                       setDurationMonths(billingCycle === 'annual' ? value * 12 : value);
                     }}
                     disabled={loading}
-                    className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:border-[#FF5500] focus:outline-none transition-colors font-semibold text-[#1c1c1c]"
+                    className="w-full px-4 py-2.5 border-2 border-border rounded-xl focus:border-primary focus:outline-none transition-colors font-semibold text-foreground bg-background"
                   />
-                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-gray-400 font-medium pointer-events-none">
+                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-foreground/40 font-medium pointer-events-none">
                     {billingCycle === 'annual' ? 'years' : 'months'}
                   </span>
                 </div>
@@ -204,67 +207,69 @@ export default function ActivateSubscriptionModal({
           </div>
 
           {/* Right Column - Price Summary */}
-          <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-5 border border-gray-200 h-fit sticky top-0">
-            <h3 className="text-xs font-bold text-[#1c1c1c] mb-3 uppercase tracking-wider">
+          <div className="bg-gradient-to-br from-muted/50 to-muted rounded-xl p-5 border border-border h-fit sticky top-0">
+            <h3 className="text-xs font-bold text-foreground mb-3 uppercase tracking-wider">
               Summary
             </h3>
 
             <div className="space-y-2 mb-3">
               <div className="flex items-center justify-between">
-                <span className="text-xs text-gray-600">Plan Price</span>
-                <span className="font-bold text-sm text-[#1c1c1c]">
-                  €{price.toFixed(2)}<span className="text-[10px] text-gray-500 font-normal">/{billingCycle === 'monthly' ? 'mo' : 'yr'}</span>
+                <span className="text-xs text-foreground/60">Plan Price</span>
+                <span className="font-bold text-sm text-foreground">
+                  €{price.toFixed(2)}<span className="text-[10px] text-foreground/50 font-normal">/{billingCycle === 'monthly' ? 'mo' : 'yr'}</span>
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-xs text-gray-600">Duration</span>
-                <span className="font-bold text-sm text-[#1c1c1c]">
+                <span className="text-xs text-foreground/60">Duration</span>
+                <span className="font-bold text-sm text-foreground">
                   {billingCycle === 'annual'
                     ? `${durationMonths / 12} year${durationMonths / 12 > 1 ? 's' : ''}`
                     : `${durationMonths} month${durationMonths > 1 ? 's' : ''}`}
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-xs text-gray-600">Users</span>
-                <span className="font-bold text-sm text-[#1c1c1c]">{userCount}</span>
+                <span className="text-xs text-foreground/60">Users</span>
+                <span className="font-bold text-sm text-foreground">{userCount}</span>
               </div>
             </div>
 
-            <div className="h-px bg-gray-300 my-3"></div>
+            <div className="h-px bg-border my-3"></div>
 
             <div className="flex items-center justify-between mb-4">
-              <span className="font-bold text-[#1c1c1c]">Total</span>
-              <span className="text-xl font-bold text-[#FF5500]">
+              <span className="font-bold text-foreground">Total</span>
+              <span className="text-xl font-bold text-primary">
                 €{(price * (billingCycle === 'annual' ? durationMonths / 12 : durationMonths) * userCount).toFixed(2)}
               </span>
             </div>
 
             {/* Actions */}
             <div className="flex flex-col gap-2">
-              <button
+              <Button
                 onClick={handleConfirm}
                 disabled={loading}
-                className="w-full px-4 py-2.5 rounded-xl text-xs font-bold bg-[#FF5500] text-white hover:bg-[#e64d00] transition-colors shadow-lg shadow-[#FF5500]/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                loading={loading}
+                variant="primary"
+                size="md"
+                className="w-full gap-2 shadow-lg shadow-primary/20"
               >
                 {loading ? (
-                  <>
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    Activating...
-                  </>
+                  'Activating...'
                 ) : (
                   <>
                     <Check className="w-4 h-4" />
                     Confirm Activation
                   </>
                 )}
-              </button>
-              <button
+              </Button>
+              <Button
                 onClick={onClose}
                 disabled={loading}
-                className="w-full px-4 py-2 rounded-xl text-xs font-bold text-gray-700 hover:bg-gray-200 transition-colors"
+                variant="ghost"
+                size="md"
+                className="w-full"
               >
                 Cancel
-              </button>
+              </Button>
             </div>
           </div>
         </div>

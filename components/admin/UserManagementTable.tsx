@@ -5,6 +5,7 @@ import { UserCheck, Mail, Calendar, Users, Shield, Trash2 } from 'lucide-react';
 import Toast from '@/components/ui/Toast';
 import DataTable from '@/components/dashboard/DataTable';
 import Modal, { ModalBody, ModalFooter } from '@/components/ui/Modal';
+import Button from '@/components/ui/Button';
 import ActivateSubscriptionModal from './ActivateSubscriptionModal';
 import { useActivateSubscription } from '@/hooks/useActivateSubscription';
 import { SUBSCRIPTION_PLANS } from '@/domain/types/subscriptions';
@@ -186,18 +187,18 @@ export default function UserManagementTable({ users, onRefresh, loading }: UserM
       className: 'flex-[2] min-w-[240px]',
       accessor: (user: UserData) => (
         <div className="flex items-center gap-4">
-          <div className="w-10 h-10 bg-gradient-to-br from-[#FF5500] to-orange-600 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-sm">
+          <div className="w-10 h-10 bg-gradient-to-br from-primary to-primary/80 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-sm">
             {user.email.charAt(0).toUpperCase()}
           </div>
           <div className="flex flex-col">
-            <div className="text-sm font-bold text-[#1c1c1c]">{user.email}</div>
+            <div className="text-sm font-bold text-foreground">{user.email}</div>
             <div className="flex items-center gap-2">
                {user.role === USER_ROLES.ADMIN && (
-                 <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-purple-600 bg-purple-100 px-2 py-0.5 rounded-full">
+                 <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-purple-600 dark:text-purple-400 bg-purple-100 dark:bg-purple-900/30 px-2 py-0.5 rounded-full">
                    <Shield className="w-3 h-3" /> Admin
                  </span>
                )}
-               {user.name && <span className="text-xs text-gray-500">{user.name}</span>}
+               {user.name && <span className="text-xs text-foreground/50">{user.name}</span>}
             </div>
           </div>
         </div>
@@ -210,12 +211,12 @@ export default function UserManagementTable({ users, onRefresh, loading }: UserM
         <span
           className={`px-3 py-1 inline-flex text-[10px] uppercase tracking-wider font-bold rounded-full ${
             user.subscriptionPlan === SUBSCRIPTION_PLANS.UNLIMITED
-              ? 'bg-purple-100 text-purple-700'
+              ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400'
               : user.subscriptionPlan === SUBSCRIPTION_PLANS.BUSINESS
-              ? 'bg-blue-100 text-blue-700'
+              ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
               : user.subscriptionPlan === SUBSCRIPTION_PLANS.PRO
-              ? 'bg-emerald-100 text-emerald-700'
-              : 'bg-gray-100 text-gray-600'
+              ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400'
+              : 'bg-secondary text-foreground/60'
           }`}
         >
           {user.subscriptionPlan}
@@ -239,17 +240,17 @@ export default function UserManagementTable({ users, onRefresh, loading }: UserM
             }}
             onBlur={() => handleQuotaCancel()}
             autoFocus
-            className="w-28 px-3 py-1 border-2 border-[#FF5500] rounded-lg text-sm font-semibold focus:outline-none"
+            className="w-28 px-3 py-1 border-2 border-primary rounded-lg text-sm font-semibold focus:outline-none bg-background text-foreground"
           />
         ) : (
           <div
             onDoubleClick={() => handleQuotaDoubleClick(user.id, user.monthlyQuota)}
-            className="flex items-center gap-2 text-sm text-[#1c1c1c] font-medium cursor-pointer hover:bg-gray-50 px-2 py-1 rounded transition-colors"
+            className="flex items-center gap-2 text-sm text-foreground font-medium cursor-pointer hover:bg-secondary px-2 py-1 rounded transition-colors"
             title="Double-click to edit"
           >
-            <Mail className="w-4 h-4 text-gray-400" />
+            <Mail className="w-4 h-4 text-foreground/40" />
             {user.monthlyQuota.toLocaleString()}
-            <span className="text-xs text-gray-400 font-normal">/mo</span>
+            <span className="text-xs text-foreground/40 font-normal">/mo</span>
           </div>
         );
       },
@@ -259,7 +260,7 @@ export default function UserManagementTable({ users, onRefresh, loading }: UserM
       className: 'flex-1 min-w-[180px]',
       accessor: (user: UserData) => {
         if (!user.quota) {
-          return <span className="text-xs text-gray-400">No data</span>;
+          return <span className="text-xs text-foreground/40">No data</span>;
         }
 
         const sent = user.quota.emailsSentToday;
@@ -272,16 +273,16 @@ export default function UserManagementTable({ users, onRefresh, loading }: UserM
         return (
           <div className="flex flex-col gap-1">
             <div className="flex items-center gap-2">
-              <span className="text-xs font-semibold text-[#1c1c1c]">
+              <span className="text-xs font-semibold text-foreground">
                 {sent.toLocaleString()} / {limit.toLocaleString()}
               </span>
               <span className={`text-[10px] font-bold ${
-                isDanger ? 'text-red-600' : isWarning ? 'text-orange-600' : 'text-gray-500'
+                isDanger ? 'text-red-600 dark:text-red-400' : isWarning ? 'text-orange-600 dark:text-orange-400' : 'text-foreground/50'
               }`}>
                 ({percentage}%)
               </span>
             </div>
-            <div className="w-full bg-gray-100 rounded-full h-1.5 overflow-hidden">
+            <div className="w-full bg-secondary rounded-full h-1.5 overflow-hidden">
               <div
                 className={`h-full rounded-full transition-all ${
                   isDanger ? 'bg-red-500' : isWarning ? 'bg-orange-500' : 'bg-emerald-500'
@@ -289,7 +290,7 @@ export default function UserManagementTable({ users, onRefresh, loading }: UserM
                 style={{ width: `${Math.min(percentage, 100)}%` }}
               />
             </div>
-            <span className="text-[10px] text-gray-400">
+            <span className="text-[10px] text-foreground/40">
               Resets {resetDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
             </span>
           </div>
@@ -300,9 +301,9 @@ export default function UserManagementTable({ users, onRefresh, loading }: UserM
       header: 'Activated',
       className: 'flex-1 min-w-[120px]',
       accessor: (user: UserData) => (
-        <div className="text-xs text-gray-500">
+        <div className="text-xs text-foreground/50">
           {user.subscriptionStartedAt ? formatDate(user.subscriptionStartedAt) : (
-            <span className="text-xs text-gray-400">Never</span>
+            <span className="text-xs text-foreground/40">Never</span>
           )}
         </div>
       ),
@@ -311,13 +312,13 @@ export default function UserManagementTable({ users, onRefresh, loading }: UserM
       header: 'Expires',
       className: 'flex-1 min-w-[120px]',
       accessor: (user: UserData) => (
-        <div className="text-xs text-gray-500">
+        <div className="text-xs text-foreground/50">
           {user.subscriptionExpiresAt ? (
-            <span className={new Date(user.subscriptionExpiresAt) < new Date() ? 'text-red-600 font-semibold' : ''}>
+            <span className={new Date(user.subscriptionExpiresAt) < new Date() ? 'text-red-600 dark:text-red-400 font-semibold' : ''}>
               {formatDate(user.subscriptionExpiresAt)}
             </span>
           ) : (
-            <span className="text-xs text-emerald-600 font-semibold">Active</span>
+            <span className="text-xs text-emerald-600 dark:text-emerald-400 font-semibold">Active</span>
           )}
         </div>
       ),
@@ -327,7 +328,7 @@ export default function UserManagementTable({ users, onRefresh, loading }: UserM
       className: 'w-32 flex-none pr-4',
       accessor: (user: UserData) => (
         <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest ${
-          user.active ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'
+          user.active ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400' : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'
         }`}>
           <div className={`w-1.5 h-1.5 rounded-full ${user.active ? 'bg-emerald-500' : 'bg-red-500'}`} />
           {user.active ? 'Active' : 'Inactive'}
@@ -362,29 +363,28 @@ export default function UserManagementTable({ users, onRefresh, loading }: UserM
         onSelectionChange={setSelectedUsers}
         actions={
           <div className="flex gap-2">
-            <button
+            <Button
               onClick={() => setShowActivationModal(true)}
               disabled={selectedUsers.length === 0}
-              className={`
-                flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all active:scale-95 shadow-lg
-                ${selectedUsers.length > 0
-                  ? 'bg-emerald-600 text-white hover:bg-emerald-700 shadow-emerald-500/20'
-                  : 'bg-gray-100 text-gray-400 cursor-not-allowed shadow-none'
-                }
-              `}
+              variant={selectedUsers.length > 0 ? 'primary' : 'secondary'}
+              size="sm"
+              className="gap-2"
             >
               <UserCheck className="w-4 h-4" />
               Activate ({selectedUsers.length})
-            </button>
+            </Button>
             {selectedUsers.length > 0 && (
-              <button
+              <Button
                 onClick={handleDeleteClick}
                 disabled={deleting}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-red-50 text-red-600 hover:bg-red-100 transition-all border border-red-200 text-xs font-bold active:scale-95 disabled:opacity-50"
+                loading={deleting}
+                variant="danger"
+                size="sm"
+                className="gap-2"
               >
                 <Trash2 className="w-4 h-4" />
                 {deleting ? 'Deleting...' : `Delete (${selectedUsers.length})`}
-              </button>
+              </Button>
             )}
           </div>
         }
@@ -411,34 +411,38 @@ export default function UserManagementTable({ users, onRefresh, loading }: UserM
       >
         <ModalBody>
           <div className="space-y-4">
-            <div className="flex items-center gap-3 p-4 bg-red-50 border border-red-100 rounded-xl">
-              <Trash2 className="w-5 h-5 text-red-600 flex-shrink-0" />
-              <p className="text-sm text-red-800">
+            <div className="flex items-center gap-3 p-4 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800/40 rounded-xl">
+              <Trash2 className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0" />
+              <p className="text-sm text-red-800 dark:text-red-300">
                 This action cannot be undone. This will permanently delete the selected user{selectedUsers.length !== 1 ? 's' : ''}.
               </p>
             </div>
-            <p className="text-sm text-gray-600">
-              You are about to delete <span className="font-bold text-gray-900">{selectedUsers.length}</span> user{selectedUsers.length !== 1 ? 's' : ''}.
+            <p className="text-sm text-foreground/60">
+              You are about to delete <span className="font-bold text-foreground">{selectedUsers.length}</span> user{selectedUsers.length !== 1 ? 's' : ''}.
             </p>
           </div>
         </ModalBody>
         <ModalFooter>
           <div className="flex gap-3 justify-end">
-            <button
+            <Button
               onClick={() => setShowDeleteModal(false)}
               disabled={deleting}
-              className="px-4 py-2 rounded-xl bg-gray-100 text-gray-700 hover:bg-gray-200 transition-all border border-gray-200 text-sm font-bold active:scale-95 disabled:opacity-50"
+              variant="secondary"
+              size="md"
             >
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button
               onClick={handleDeleteConfirm}
               disabled={deleting}
-              className="px-4 py-2 rounded-xl bg-red-600 text-white hover:bg-red-700 transition-all border border-red-700 text-sm font-bold active:scale-95 disabled:opacity-50 flex items-center gap-2"
+              loading={deleting}
+              variant="danger"
+              size="md"
+              className="gap-2"
             >
               <Trash2 className="w-4 h-4" />
               {deleting ? 'Deleting...' : 'Delete Users'}
-            </button>
+            </Button>
           </div>
         </ModalFooter>
       </Modal>
