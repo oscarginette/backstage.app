@@ -1,11 +1,7 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { sql } from '@/lib/db';
-import { FetchBrevoContactsUseCase } from '@/domain/services/FetchBrevoContactsUseCase';
-import { ImportContactsUseCase } from '@/domain/services/ImportContactsUseCase';
-import { BrevoAPIClient } from '@/infrastructure/brevo/BrevoAPIClient';
-import { PostgresContactRepository } from '@/infrastructure/database/repositories/PostgresContactRepository';
-import { PostgresContactImportHistoryRepository } from '@/infrastructure/database/repositories/PostgresContactImportHistoryRepository';
+import { UseCaseFactory } from '@/lib/di-container';
 import { ColumnMapping } from '@/domain/value-objects/ColumnMapping';
 
 export const maxDuration = 60;
@@ -83,8 +79,8 @@ export async function POST(request: Request) {
     console.log(`[User ${userId}] Starting Brevo import (with preview)...`);
 
     // 5. Fetch ALL contacts from Brevo
-    const brevoClient = new BrevoAPIClient(apiKey);
-    const fetchUseCase = new FetchBrevoContactsUseCase(brevoClient);
+    const brevoClient = UseCaseFactory.createBrevoAPIClient(apiKey);
+    const fetchUseCase = UseCaseFactory.createFetchBrevoContactsUseCase(brevoClient);
 
     const fetchResult = await fetchUseCase.execute({
       userId,
@@ -94,12 +90,7 @@ export async function POST(request: Request) {
     console.log(`[User ${userId}] Fetched ${fetchResult.contacts.length} contacts from Brevo`);
 
     // 6. Reuse ImportContactsUseCase for consistency with file imports
-    const contactRepository = new PostgresContactRepository();
-    const importHistoryRepository = new PostgresContactImportHistoryRepository();
-    const importUseCase = new ImportContactsUseCase(
-      contactRepository,
-      importHistoryRepository
-    );
+    const importUseCase = UseCaseFactory.createImportContactsUseCase();
 
     const importResult = await importUseCase.execute({
       userId,
