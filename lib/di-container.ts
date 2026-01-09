@@ -48,6 +48,13 @@ import { SoundCloudClient as SoundCloudRSSClient } from '@/infrastructure/music-
 import { SpotifyClient } from '@/infrastructure/music-platforms/SpotifyClient';
 import { PostgresSubscriptionRepository } from '@/infrastructure/database/repositories/PostgresSubscriptionRepository';
 import { PostgresSubscriptionHistoryRepository } from '@/infrastructure/database/repositories/PostgresSubscriptionHistoryRepository';
+import { PostgresContactListRepository } from '@/infrastructure/database/repositories/PostgresContactListRepository';
+import { PostgresUserAppearanceRepository } from '@/infrastructure/database/repositories/PostgresUserAppearanceRepository';
+import { PostgresAutoSaveSubscriptionRepository } from '@/infrastructure/database/repositories/PostgresAutoSaveSubscriptionRepository';
+import { PostgresInvoiceRepository } from '@/infrastructure/database/repositories/PostgresInvoiceRepository';
+import { PostgresBrevoIntegrationRepository } from '@/infrastructure/database/repositories/PostgresBrevoIntegrationRepository';
+import { PostgresBrevoImportHistoryRepository } from '@/infrastructure/database/repositories/PostgresBrevoImportHistoryRepository';
+import { PostgresSavedReleasesRepository } from '@/infrastructure/database/repositories/PostgresSavedReleasesRepository';
 
 // ============================================================================
 // Repository Interface Imports
@@ -75,6 +82,13 @@ import type { IProductRepository } from '@/domain/repositories/IProductRepositor
 import type { IPriceRepository } from '@/domain/repositories/IPriceRepository';
 import type { ISubscriptionRepository } from '@/domain/repositories/ISubscriptionRepository';
 import type { ISubscriptionHistoryRepository } from '@/domain/repositories/ISubscriptionHistoryRepository';
+import type { IContactListRepository } from '@/domain/repositories/IContactListRepository';
+import type { IUserAppearanceRepository } from '@/domain/repositories/IUserAppearanceRepository';
+import type { IAutoSaveSubscriptionRepository } from '@/domain/repositories/IAutoSaveSubscriptionRepository';
+import type { IInvoiceRepository } from '@/domain/repositories/IInvoiceRepository';
+import type { IBrevoIntegrationRepository } from '@/domain/repositories/IBrevoIntegrationRepository';
+import type { IBrevoImportHistoryRepository } from '@/domain/repositories/IBrevoImportHistoryRepository';
+import type { ISavedReleasesRepository } from '@/domain/repositories/ISavedReleasesRepository';
 
 // ============================================================================
 // Provider Imports
@@ -83,6 +97,7 @@ import { resendEmailProvider } from '@/infrastructure/email';
 import type { IEmailProvider } from '@/infrastructure/email/IEmailProvider';
 import type { IImageStorageProvider } from '@/infrastructure/storage/IImageStorageProvider';
 import { SoundCloudClient } from '@/lib/soundcloud-client';
+import { CsvGenerator } from '@/infrastructure/csv/CsvGenerator';
 
 // ============================================================================
 // Use Case Imports
@@ -103,6 +118,7 @@ import { SendDraftUseCase } from '@/domain/services/SendDraftUseCase';
 import { GetContactsWithStatsUseCase } from '@/domain/services/GetContactsWithStatsUseCase';
 import { DeleteContactsUseCase } from '@/domain/services/DeleteContactsUseCase';
 import { ImportContactsUseCase } from '@/domain/services/ImportContactsUseCase';
+import { ExportContactsUseCase } from '@/domain/services/ExportContactsUseCase';
 import { FetchBrevoContactsUseCase } from '@/domain/services/FetchBrevoContactsUseCase';
 import { CreateDownloadGateUseCase } from '@/domain/services/CreateDownloadGateUseCase';
 import { UpdateDownloadGateUseCase } from '@/domain/services/UpdateDownloadGateUseCase';
@@ -120,6 +136,8 @@ import { VerifySoundCloudFollowUseCase } from '@/domain/services/VerifySoundClou
 import { CheckAllMusicPlatformsUseCase } from '@/domain/services/CheckAllMusicPlatformsUseCase';
 import { GetSoundCloudTracksUseCase } from '@/domain/services/GetSoundCloudTracksUseCase';
 import { CheckNewTracksUseCase } from '@/domain/services/CheckNewTracksUseCase';
+import { CheckAllUsersSoundCloudReleasesUseCase } from '@/domain/services/CheckAllUsersSoundCloudReleasesUseCase';
+import { CheckAllUsersSpotifyReleasesUseCase } from '@/domain/services/CheckAllUsersSpotifyReleasesUseCase';
 import { ConnectSpotifyUseCase } from '@/domain/services/ConnectSpotifyUseCase';
 import { CheckQuotaUseCase } from '@/domain/services/CheckQuotaUseCase';
 import { CheckContactQuotaUseCase } from '@/domain/services/CheckContactQuotaUseCase';
@@ -143,6 +161,40 @@ import { BulkActivateUsersUseCase } from '@/domain/services/BulkActivateUsersUse
 import { GetProductsWithPricesUseCase } from '@/domain/services/GetProductsWithPricesUseCase';
 import { CreateSubscriptionUseCase } from '@/domain/services/CreateSubscriptionUseCase';
 import { CancelSubscriptionUseCase } from '@/domain/services/CancelSubscriptionUseCase';
+import { PromoteUserToAdminUseCase } from '@/domain/services/PromoteUserToAdminUseCase';
+import { DeleteUsersUseCase } from '@/domain/services/DeleteUsersUseCase';
+import { GetPricingPlansUseCase } from '@/domain/services/GetPricingPlansUseCase';
+import { DeleteTracksByPatternUseCase } from '@/domain/services/DeleteTracksByPatternUseCase';
+import { GetExecutionHistoryUseCase } from '@/domain/services/GetExecutionHistoryUseCase';
+import { UpdatePixelConfigUseCase } from '@/domain/services/UpdatePixelConfigUseCase';
+import { GetContactListsWithStatsUseCase } from '@/domain/services/GetContactListsWithStatsUseCase';
+import { CreateContactListUseCase } from '@/domain/services/CreateContactListUseCase';
+import { UpdateContactListUseCase } from '@/domain/services/UpdateContactListUseCase';
+import { DeleteContactListUseCase } from '@/domain/services/DeleteContactListUseCase';
+import { AddContactsToListUseCase } from '@/domain/services/AddContactsToListUseCase';
+import { RemoveContactsFromListUseCase } from '@/domain/services/RemoveContactsFromListUseCase';
+import { AddContactsToMultipleListsUseCase } from '@/domain/services/AddContactsToMultipleListsUseCase';
+import { GetUserAppearanceUseCase } from '@/domain/services/GetUserAppearanceUseCase';
+import { UpdateUserAppearanceUseCase } from '@/domain/services/UpdateUserAppearanceUseCase';
+import { UpdateEmailSignatureUseCase } from '@/domain/services/UpdateEmailSignatureUseCase';
+import { FollowSpotifyArtistUseCase } from '@/domain/services/FollowSpotifyArtistUseCase';
+import { CreateAutoSaveSubscriptionUseCase } from '@/domain/services/CreateAutoSaveSubscriptionUseCase';
+import { TrackPixelEventUseCase } from '@/domain/services/TrackPixelEventUseCase';
+import { GetPaymentHistoryUseCase } from '@/domain/services/GetPaymentHistoryUseCase';
+import { CreateManualPaymentUseCase } from '@/domain/services/CreateManualPaymentUseCase';
+// import { UpdateEmailTemplateUseCase } from '@/domain/services/UpdateEmailTemplateUseCase'; // TODO: Create this UseCase
+// import { DeleteEmailTemplateUseCase } from '@/domain/services/DeleteEmailTemplateUseCase'; // TODO: Create this UseCase
+import { CheckNewReleasesUseCase } from '@/domain/services/CheckNewReleasesUseCase';
+import { ImportBrevoContactsUseCase } from '@/domain/services/ImportBrevoContactsUseCase';
+import { GetBrevoImportHistoryUseCase } from '@/domain/services/GetBrevoImportHistoryUseCase';
+import { GetAllUsersUseCase } from '@/domain/services/admin/GetAllUsersUseCase';
+import { ToggleUserActiveUseCase } from '@/domain/services/admin/ToggleUserActiveUseCase';
+import { UpdateUserQuotaUseCase } from '@/domain/services/admin/UpdateUserQuotaUseCase';
+
+// ============================================================================
+// Infrastructure Imports
+// ============================================================================
+import { BrevoAPIClient } from '@/infrastructure/brevo/BrevoAPIClient';
 
 // ============================================================================
 // REPOSITORY FACTORY
@@ -254,6 +306,34 @@ export class RepositoryFactory {
     return new PostgresSubscriptionHistoryRepository();
   }
 
+  static createContactListRepository(): IContactListRepository {
+    return new PostgresContactListRepository();
+  }
+
+  static createUserAppearanceRepository(): IUserAppearanceRepository {
+    return new PostgresUserAppearanceRepository();
+  }
+
+  static createAutoSaveSubscriptionRepository(): IAutoSaveSubscriptionRepository {
+    return new PostgresAutoSaveSubscriptionRepository();
+  }
+
+  static createInvoiceRepository(): IInvoiceRepository {
+    return new PostgresInvoiceRepository();
+  }
+
+  static createBrevoIntegrationRepository(): IBrevoIntegrationRepository {
+    return new PostgresBrevoIntegrationRepository();
+  }
+
+  static createBrevoImportHistoryRepository(): IBrevoImportHistoryRepository {
+    return new PostgresBrevoImportHistoryRepository();
+  }
+
+  static createSavedReleasesRepository(): ISavedReleasesRepository {
+    return new PostgresSavedReleasesRepository();
+  }
+
   static createMusicPlatformRepository(platform: 'soundcloud' | 'spotify'): IMusicPlatformRepository {
     if (platform === 'soundcloud') {
       return new SoundCloudRepository(new SoundCloudRSSClient());
@@ -355,8 +435,35 @@ export class UseCaseFactory {
     );
   }
 
+  static createExportContactsUseCase(): ExportContactsUseCase {
+    return new ExportContactsUseCase(
+      RepositoryFactory.createContactRepository(),
+      RepositoryFactory.createUserSettingsRepository(),
+      new CsvGenerator()
+    );
+  }
+
   static createFetchBrevoContactsUseCase(brevoClient: any): FetchBrevoContactsUseCase {
     return new FetchBrevoContactsUseCase(brevoClient);
+  }
+
+  static createBrevoAPIClient(apiKeyEncrypted: string): BrevoAPIClient {
+    return new BrevoAPIClient(apiKeyEncrypted);
+  }
+
+  static createImportBrevoContactsUseCase(brevoClient: BrevoAPIClient): ImportBrevoContactsUseCase {
+    return new ImportBrevoContactsUseCase(
+      RepositoryFactory.createBrevoIntegrationRepository(),
+      RepositoryFactory.createBrevoImportHistoryRepository(),
+      RepositoryFactory.createContactRepository(),
+      brevoClient
+    );
+  }
+
+  static createGetBrevoImportHistoryUseCase(): GetBrevoImportHistoryUseCase {
+    return new GetBrevoImportHistoryUseCase(
+      RepositoryFactory.createBrevoImportHistoryRepository()
+    );
   }
 
   // ============================================================================
@@ -428,6 +535,12 @@ export class UseCaseFactory {
     );
   }
 
+  static createUpdatePixelConfigUseCase(): UpdatePixelConfigUseCase {
+    return new UpdatePixelConfigUseCase(
+      RepositoryFactory.createDownloadGateRepository()
+    );
+  }
+
   static createDeleteDownloadGateUseCase(): DeleteDownloadGateUseCase {
     return new DeleteDownloadGateUseCase(
       RepositoryFactory.createDownloadGateRepository()
@@ -462,11 +575,14 @@ export class UseCaseFactory {
   }
 
   static createSubmitEmailUseCase(): SubmitEmailUseCase {
+    // Note: PixelTrackingService can be injected here if needed
+    const { PixelTrackingService } = require('@/infrastructure/pixel/PixelTrackingService');
     return new SubmitEmailUseCase(
       RepositoryFactory.createDownloadGateRepository(),
       RepositoryFactory.createDownloadSubmissionRepository(),
       RepositoryFactory.createDownloadAnalyticsRepository(),
-      RepositoryFactory.createContactRepository()
+      RepositoryFactory.createContactRepository(),
+      new PixelTrackingService()
     );
   }
 
@@ -539,6 +655,34 @@ export class UseCaseFactory {
     return new CheckNewTracksUseCase(
       RepositoryFactory.createMusicPlatformRepository('soundcloud'),
       RepositoryFactory.createTrackRepository()
+    );
+  }
+
+  static createDeleteTracksByPatternUseCase(): DeleteTracksByPatternUseCase {
+    return new DeleteTracksByPatternUseCase(
+      RepositoryFactory.createTrackRepository()
+    );
+  }
+
+  static createCheckAllUsersSoundCloudReleasesUseCase(): CheckAllUsersSoundCloudReleasesUseCase {
+    return new CheckAllUsersSoundCloudReleasesUseCase(
+      RepositoryFactory.createUserRepository(),
+      RepositoryFactory.createMusicPlatformRepository('soundcloud'),
+      RepositoryFactory.createTrackRepository(),
+      RepositoryFactory.createContactRepository(),
+      ProviderFactory.createEmailProvider(),
+      RepositoryFactory.createExecutionLogRepository()
+    );
+  }
+
+  static createCheckAllUsersSpotifyReleasesUseCase(): CheckAllUsersSpotifyReleasesUseCase {
+    return new CheckAllUsersSpotifyReleasesUseCase(
+      RepositoryFactory.createUserRepository(),
+      RepositoryFactory.createMusicPlatformRepository('spotify'),
+      RepositoryFactory.createTrackRepository(),
+      RepositoryFactory.createContactRepository(),
+      ProviderFactory.createEmailProvider(),
+      RepositoryFactory.createExecutionLogRepository()
     );
   }
 
@@ -621,6 +765,13 @@ export class UseCaseFactory {
   static createGetCampaignStatsUseCase(): GetCampaignStatsUseCase {
     return new GetCampaignStatsUseCase(
       RepositoryFactory.createEmailAnalyticsRepository()
+    );
+  }
+
+  static createGetExecutionHistoryUseCase(): GetExecutionHistoryUseCase {
+    return new GetExecutionHistoryUseCase(
+      RepositoryFactory.createTrackRepository(),
+      RepositoryFactory.createExecutionLogRepository()
     );
   }
 
@@ -709,6 +860,12 @@ export class UseCaseFactory {
     );
   }
 
+  static createGetPricingPlansUseCase(): GetPricingPlansUseCase {
+    return new GetPricingPlansUseCase(
+      RepositoryFactory.createPricingPlanRepository()
+    );
+  }
+
   static createCreateSubscriptionUseCase(): CreateSubscriptionUseCase {
     return new CreateSubscriptionUseCase(
       RepositoryFactory.createSubscriptionRepository(),
@@ -720,6 +877,165 @@ export class UseCaseFactory {
   static createCancelSubscriptionUseCase(): CancelSubscriptionUseCase {
     return new CancelSubscriptionUseCase(
       RepositoryFactory.createSubscriptionRepository()
+    );
+  }
+
+  static createDeleteUsersUseCase(): DeleteUsersUseCase {
+    return new DeleteUsersUseCase(
+      RepositoryFactory.createUserRepository()
+    );
+  }
+
+  static createPromoteUserToAdminUseCase(expectedSecret: string): PromoteUserToAdminUseCase {
+    return new PromoteUserToAdminUseCase(
+      RepositoryFactory.createUserRepository(),
+      expectedSecret
+    );
+  }
+
+  // ============================================================================
+  // Contact List Use Cases
+  // ============================================================================
+
+  static createGetContactListsWithStatsUseCase(): GetContactListsWithStatsUseCase {
+    return new GetContactListsWithStatsUseCase(
+      RepositoryFactory.createContactListRepository()
+    );
+  }
+
+  static createCreateContactListUseCase(): CreateContactListUseCase {
+    return new CreateContactListUseCase(
+      RepositoryFactory.createContactListRepository()
+    );
+  }
+
+  static createUpdateContactListUseCase(): UpdateContactListUseCase {
+    return new UpdateContactListUseCase(
+      RepositoryFactory.createContactListRepository()
+    );
+  }
+
+  static createDeleteContactListUseCase(): DeleteContactListUseCase {
+    return new DeleteContactListUseCase(
+      RepositoryFactory.createContactListRepository()
+    );
+  }
+
+  static createAddContactsToListUseCase(): AddContactsToListUseCase {
+    return new AddContactsToListUseCase(
+      RepositoryFactory.createContactListRepository(),
+      RepositoryFactory.createContactRepository()
+    );
+  }
+
+  static createRemoveContactsFromListUseCase(): RemoveContactsFromListUseCase {
+    return new RemoveContactsFromListUseCase(
+      RepositoryFactory.createContactListRepository()
+    );
+  }
+
+  static createAddContactsToMultipleListsUseCase(): AddContactsToMultipleListsUseCase {
+    return new AddContactsToMultipleListsUseCase(
+      RepositoryFactory.createContactListRepository(),
+      RepositoryFactory.createContactRepository()
+    );
+  }
+
+  // ============================================================================
+  // User Appearance Use Cases
+  // ============================================================================
+
+  static createGetUserAppearanceUseCase(): GetUserAppearanceUseCase {
+    return new GetUserAppearanceUseCase(
+      RepositoryFactory.createUserAppearanceRepository()
+    );
+  }
+
+  static createUpdateUserAppearanceUseCase(): UpdateUserAppearanceUseCase {
+    return new UpdateUserAppearanceUseCase(
+      RepositoryFactory.createUserAppearanceRepository()
+    );
+  }
+
+  // ============================================================================
+  // Email Signature Use Cases
+  // ============================================================================
+
+  static createUpdateEmailSignatureUseCase(): UpdateEmailSignatureUseCase {
+    return new UpdateEmailSignatureUseCase(
+      RepositoryFactory.createEmailSignatureRepository()
+    );
+  }
+
+  // ============================================================================
+  // Payment Use Cases
+  // ============================================================================
+
+  static createGetPaymentHistoryUseCase(): GetPaymentHistoryUseCase {
+    return new GetPaymentHistoryUseCase(
+      RepositoryFactory.createInvoiceRepository()
+    );
+  }
+
+  static createCreateManualPaymentUseCase(): CreateManualPaymentUseCase {
+    return new CreateManualPaymentUseCase(
+      RepositoryFactory.createInvoiceRepository(),
+      RepositoryFactory.createUserRepository()
+    );
+  }
+
+  // ============================================================================
+  // Spotify Use Cases
+  // ============================================================================
+
+  static createFollowSpotifyArtistUseCase(spotifyClient: any): FollowSpotifyArtistUseCase {
+    return new FollowSpotifyArtistUseCase(
+      spotifyClient,
+      RepositoryFactory.createDownloadSubmissionRepository()
+    );
+  }
+
+  static createCreateAutoSaveSubscriptionUseCase(tokenEncryption: any): CreateAutoSaveSubscriptionUseCase {
+    return new CreateAutoSaveSubscriptionUseCase(
+      RepositoryFactory.createAutoSaveSubscriptionRepository(),
+      tokenEncryption
+    );
+  }
+
+  static createCheckNewReleasesUseCase(): CheckNewReleasesUseCase {
+    return new CheckNewReleasesUseCase(
+      RepositoryFactory.createAutoSaveSubscriptionRepository(),
+      RepositoryFactory.createSavedReleasesRepository(),
+      RepositoryFactory.createUserRepository(),
+      ProviderFactory.createEmailProvider()
+    );
+  }
+
+  // ============================================================================
+  // Email Template Use Cases
+  // ============================================================================
+
+  // TODO: Uncomment when UpdateEmailTemplateUseCase is created
+  // static createUpdateEmailTemplateUseCase(): UpdateEmailTemplateUseCase {
+  //   return new UpdateEmailTemplateUseCase(
+  //     RepositoryFactory.createEmailTemplateRepository()
+  //   );
+  // }
+
+  // TODO: Uncomment when DeleteEmailTemplateUseCase is created
+  // static createDeleteEmailTemplateUseCase(): DeleteEmailTemplateUseCase {
+  //   return new DeleteEmailTemplateUseCase(
+  //     RepositoryFactory.createEmailTemplateRepository()
+  //   );
+  // }
+
+  // ============================================================================
+  // Pixel Tracking Use Cases
+  // ============================================================================
+
+  static createTrackPixelEventUseCase(): TrackPixelEventUseCase {
+    return new TrackPixelEventUseCase(
+      RepositoryFactory.createDownloadAnalyticsRepository()
     );
   }
 
