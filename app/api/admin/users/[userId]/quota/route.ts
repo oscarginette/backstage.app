@@ -8,9 +8,9 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
-import { UpdateUserQuotaUseCase } from '@/domain/services/admin/UpdateUserQuotaUseCase';
-import { PostgresUserRepository } from '@/infrastructure/database/repositories/PostgresUserRepository';
+import { UseCaseFactory } from '@/lib/di-container';
 import { UnauthorizedError } from '@/domain/services/admin/GetAllUsersUseCase';
+import { USER_ROLES } from '@/domain/types/user-roles';
 
 interface UpdateQuotaRequest {
   monthlyQuota: number;
@@ -35,7 +35,7 @@ async function handleQuotaUpdate(
     }
 
     // Check admin role
-    if (session.user.role !== 'admin') {
+    if (session.user.role !== USER_ROLES.ADMIN) {
       return NextResponse.json(
         { error: 'Admin access required.' },
         { status: 403 }
@@ -67,22 +67,11 @@ async function handleQuotaUpdate(
       );
     }
 
-    // Get admin user
-    const userRepository = new PostgresUserRepository();
-    const adminUser = await userRepository.findByEmail(session.user.email!);
-
-    if (!adminUser) {
-      return NextResponse.json(
-        { error: 'Admin user not found' },
-        { status: 404 }
-      );
-    }
-
     // Execute use case
-    const useCase = new UpdateUserQuotaUseCase(userRepository);
+    const useCase = UseCaseFactory.createUpdateUserQuotaUseCase();
 
     const result = await useCase.execute({
-      adminUserId: adminUser.id,
+      adminUserId: parseInt(session.user.id),
       targetUserId,
       monthlyQuota: body.monthlyQuota,
     });

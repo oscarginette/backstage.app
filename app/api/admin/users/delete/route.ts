@@ -4,15 +4,18 @@
  * POST /api/admin/users/delete - Delete multiple users by IDs
  *
  * Admin-only endpoint for bulk user deletion
+ * Clean Architecture: API route only orchestrates, business logic in DeleteUsersUseCase
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
-import { sql } from '@/lib/db';
+import { UseCaseFactory } from '@/lib/di-container';
+import { ValidationError } from '@/domain/errors/ValidationError';
+import { ForbiddenError } from '@/domain/errors/ForbiddenError';
 
 export async function POST(request: NextRequest) {
   try {
-    // Check authentication
+    // 1. Check authentication
     const session = await auth();
 
     if (!session?.user) {
@@ -22,63 +25,44 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check admin role
-    if (session.user.role !== 'admin') {
+    // 2. Parse request body
+    const body = await request.json();
+    const { ids } = body;
+
+    // 3. Execute use case
+    const useCase = UseCaseFactory.createDeleteUsersUseCase();
+    const result = await useCase.execute({
+      ids,
+      requestingUserRole: session.user.role,
+    });
+
+    // 4. Return success response
+    return NextResponse.json(result, { status: 200 });
+  } catch (error) {
+    console.error('Delete users API error:', error);
+
+    // Handle specific error types
+    if (error instanceof ValidationError) {
       return NextResponse.json(
-        { error: 'Admin access required.' },
+        {
+          success: false,
+          error: error.message,
+        },
+        { status: 400 }
+      );
+    }
+
+    if (error instanceof ForbiddenError) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: error.message,
+        },
         { status: 403 }
       );
     }
 
-    // Parse request body
-    const body = await request.json();
-    const { ids } = body;
-
-    // Validate input
-    if (!ids || !Array.isArray(ids) || ids.length === 0) {
-      return NextResponse.json(
-        { error: 'Invalid request. Expected array of user IDs.' },
-        { status: 400 }
-      );
-    }
-
-    // Prevent deletion of admin users
-    const adminCheck = await sql`
-      SELECT id, email, role
-      FROM users
-      WHERE id = ANY(${ids})
-      AND role = 'admin'
-    `;
-
-    if (adminCheck.rows.length > 0) {
-      const adminEmails = adminCheck.rows.map((row: any) => row.email).join(', ');
-      return NextResponse.json(
-        { error: `Cannot delete admin users: ${adminEmails}` },
-        { status: 400 }
-      );
-    }
-
-    // Delete users
-    const result = await sql`
-      DELETE FROM users
-      WHERE id = ANY(${ids})
-      AND role != 'admin'
-      RETURNING id
-    `;
-
-    const deletedCount = result.rows.length;
-
-    return NextResponse.json(
-      {
-        success: true,
-        deleted: deletedCount,
-        message: `Successfully deleted ${deletedCount} user${deletedCount !== 1 ? 's' : ''}`,
-      },
-      { status: 200 }
-    );
-  } catch (error) {
-    console.error('Delete users API error:', error);
-
+    // Generic error
     return NextResponse.json(
       {
         success: false,

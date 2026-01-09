@@ -8,8 +8,8 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
-import { GetAllUsersUseCase } from '@/domain/services/admin/GetAllUsersUseCase';
-import { PostgresUserRepository } from '@/infrastructure/database/repositories/PostgresUserRepository';
+import { UseCaseFactory } from '@/lib/di-container';
+import { USER_ROLES } from '@/domain/types/user-roles';
 
 export async function GET(request: NextRequest) {
   try {
@@ -24,27 +24,16 @@ export async function GET(request: NextRequest) {
     }
 
     // Check admin role
-    if (session.user.role !== 'admin') {
+    if (session.user.role !== USER_ROLES.ADMIN) {
       return NextResponse.json(
         { error: 'Admin access required.' },
         { status: 403 }
       );
     }
 
-    // Get admin user
-    const userRepository = new PostgresUserRepository();
-    const adminUser = await userRepository.findByEmail(session.user.email!);
-
-    if (!adminUser) {
-      return NextResponse.json(
-        { error: 'Admin user not found' },
-        { status: 404 }
-      );
-    }
-
     // Execute use case
-    const useCase = new GetAllUsersUseCase(userRepository);
-    const users = await useCase.execute(adminUser.id);
+    const useCase = UseCaseFactory.createGetAllUsersUseCase();
+    const users = await useCase.execute(parseInt(session.user.id));
 
     return NextResponse.json(
       {

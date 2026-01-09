@@ -8,9 +8,9 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
-import { ToggleUserActiveUseCase } from '@/domain/services/admin/ToggleUserActiveUseCase';
-import { PostgresUserRepository } from '@/infrastructure/database/repositories/PostgresUserRepository';
+import { UseCaseFactory } from '@/lib/di-container';
 import { UnauthorizedError } from '@/domain/services/admin/GetAllUsersUseCase';
+import { USER_ROLES } from '@/domain/types/user-roles';
 
 interface ToggleActiveRequest {
   active: boolean;
@@ -35,7 +35,7 @@ export async function POST(
     }
 
     // Check admin role
-    if (session.user.role !== 'admin') {
+    if (session.user.role !== USER_ROLES.ADMIN) {
       return NextResponse.json(
         { error: 'Admin access required.' },
         { status: 403 }
@@ -63,22 +63,11 @@ export async function POST(
       );
     }
 
-    // Get admin user
-    const userRepository = new PostgresUserRepository();
-    const adminUser = await userRepository.findByEmail(session.user.email!);
-
-    if (!adminUser) {
-      return NextResponse.json(
-        { error: 'Admin user not found' },
-        { status: 404 }
-      );
-    }
-
     // Execute use case
-    const useCase = new ToggleUserActiveUseCase(userRepository);
+    const useCase = UseCaseFactory.createToggleUserActiveUseCase();
 
     const result = await useCase.execute({
-      adminUserId: adminUser.id,
+      adminUserId: parseInt(session.user.id),
       targetUserId,
       active: body.active,
     });

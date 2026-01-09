@@ -10,11 +10,9 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
-import { CreateManualPaymentUseCase } from '@/domain/services/CreateManualPaymentUseCase';
-import { GetPaymentHistoryUseCase } from '@/domain/services/GetPaymentHistoryUseCase';
-import { PostgresInvoiceRepository } from '@/infrastructure/database/repositories/PostgresInvoiceRepository';
-import { PostgresUserRepository } from '@/infrastructure/database/repositories/PostgresUserRepository';
+import { UseCaseFactory } from '@/lib/di-container';
 import { PaymentMethod } from '@/domain/types/payments';
+import { USER_ROLES } from '@/domain/types/user-roles';
 
 /**
  * POST - Create manual payment
@@ -32,7 +30,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 2. Check admin role
-    if (session.user.role !== 'admin') {
+    if (session.user.role !== USER_ROLES.ADMIN) {
       return NextResponse.json(
         { error: 'Admin access required.' },
         { status: 403 }
@@ -50,12 +48,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 5. Initialize repositories
-    const invoiceRepository = new PostgresInvoiceRepository();
-    const userRepository = new PostgresUserRepository();
-
-    // 6. Execute use case
-    const useCase = new CreateManualPaymentUseCase(invoiceRepository, userRepository);
+    // 5. Execute use case
+    const useCase = UseCaseFactory.createCreateManualPaymentUseCase();
     const result = await useCase.execute({
       customer_id: parseInt(body.customer_id),
       amount: parseFloat(body.amount),
@@ -112,7 +106,7 @@ export async function GET(request: NextRequest) {
     }
 
     // 2. Check admin role
-    if (session.user.role !== 'admin') {
+    if (session.user.role !== USER_ROLES.ADMIN) {
       return NextResponse.json(
         { error: 'Admin access required.' },
         { status: 403 }
@@ -143,11 +137,8 @@ export async function GET(request: NextRequest) {
       ? new Date(searchParams.get('end_date')!)
       : undefined;
 
-    // 4. Initialize repository
-    const invoiceRepository = new PostgresInvoiceRepository();
-
-    // 5. Execute use case
-    const useCase = new GetPaymentHistoryUseCase(invoiceRepository);
+    // 4. Execute use case
+    const useCase = UseCaseFactory.createGetPaymentHistoryUseCase();
     const result = await useCase.execute({
       filters: {
         customer_id,

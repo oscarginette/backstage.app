@@ -8,9 +8,8 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
-import { BulkActivateUsersUseCase } from '@/domain/services/admin/BulkActivateUsersUseCase';
-import { PostgresUserRepository } from '@/infrastructure/database/repositories/PostgresUserRepository';
-import { User } from '@/domain/entities/User';
+import { UseCaseFactory } from '@/lib/di-container';
+import { USER_ROLES } from '@/domain/types/user-roles';
 
 interface BulkActivateRequest {
   userIds: number[];
@@ -32,7 +31,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check admin role
-    if (session.user.role !== 'admin') {
+    if (session.user.role !== USER_ROLES.ADMIN) {
       return NextResponse.json(
         { error: 'Admin access required.' },
         { status: 403 }
@@ -64,28 +63,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get admin user
-    const userRepository = new PostgresUserRepository();
-    const adminUser = await userRepository.findByEmail(session.user.email!);
-
-    if (!adminUser) {
-      return NextResponse.json(
-        { error: 'Admin user not found' },
-        { status: 404 }
-      );
-    }
-
-    // Get IP address and user agent for audit trail
-    const ipAddress = request.headers.get('x-forwarded-for') ||
-                     request.headers.get('x-real-ip') ||
-                     'unknown';
-    const userAgent = request.headers.get('user-agent') || 'unknown';
-
     // Execute use case
-    const useCase = new BulkActivateUsersUseCase(userRepository);
+    const useCase = UseCaseFactory.createBulkActivateUsersUseCase();
 
     const result = await useCase.execute({
-      adminUserId: adminUser.id,
+      adminUserId: parseInt(session.user.id),
       userIds: body.userIds,
       planName: body.plan,
       durationMonths: body.durationMonths,
