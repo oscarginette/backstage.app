@@ -44,6 +44,17 @@ export async function GET(request: NextRequest) {
 
     const userId = parseInt(session.user.id);
 
+    // Get artist name from user settings
+    let artistName: string | null = null;
+    try {
+      const userSettingsRepo = new PostgresUserSettingsRepository();
+      const userSettings = await userSettingsRepo.getByUserId(userId);
+      artistName = userSettings.name;
+    } catch (error) {
+      // If user settings not found, continue with null name
+      console.warn('[API Export] Could not fetch user settings:', error);
+    }
+
     // Parse query params
     const { searchParams } = new URL(request.url);
     const scope = (searchParams.get('scope') || EXPORT_SCOPES.ALL) as ExportScope;
