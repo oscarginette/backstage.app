@@ -110,7 +110,7 @@ export default function SelectContactsToAddModal({
   ];
 
   // Filter out contacts already in the list for selection
-  const availableContacts = allContacts.filter(c => !existingContactIds.includes(c.id));
+  const availableContacts = allContacts?.filter(c => !existingContactIds.includes(c.id)) || [];
 
   return (
     <Modal
