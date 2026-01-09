@@ -3,6 +3,7 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { Search, X } from 'lucide-react';
+import { useTranslations } from '@/lib/i18n/context';
 
 interface Genre {
   value: string;
@@ -77,6 +78,7 @@ interface GenreSelectorProps {
 }
 
 export default function GenreSelector({ value, onChange }: GenreSelectorProps) {
+  const t = useTranslations('downloadGates.createForm.genre');
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0, width: 0 });
@@ -150,12 +152,12 @@ export default function GenreSelector({ value, onChange }: GenreSelectorProps) {
         ref={triggerRef}
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full px-5 py-3 rounded-xl border border-[#E8E6DF] bg-white/50 hover:bg-white focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#FF5500]/10 focus:border-[#FF5500] transition-all text-sm text-left flex items-center justify-between"
+        className="w-full px-5 py-3 rounded-xl border border-border bg-background/50 hover:bg-background focus:bg-background focus:outline-none focus:ring-4 focus:ring-accent/10 focus:border-accent transition-all text-sm text-left flex items-center justify-between"
       >
-        <span className={selectedGenre ? 'text-gray-900' : 'text-gray-400'}>
-          {selectedGenre ? selectedGenre.label : 'Select genre...'}
+        <span className={selectedGenre ? 'text-foreground' : 'text-foreground/40'}>
+          {selectedGenre ? selectedGenre.label : t('selectGenre')}
         </span>
-        <Search className="w-4 h-4 text-gray-400" />
+        <Search className="w-4 h-4 text-foreground/40" />
       </button>
 
       {/* Dropdown Portal */}
@@ -172,7 +174,7 @@ export default function GenreSelector({ value, onChange }: GenreSelectorProps) {
 
           {/* Dropdown Content */}
           <div
-            className="fixed z-[101] bg-white rounded-xl border border-[#E8E6DF] shadow-2xl overflow-hidden"
+            className="fixed z-[101] bg-background rounded-xl border border-border shadow-2xl overflow-hidden"
             style={{
               top: `${dropdownPosition.top}px`,
               left: `${dropdownPosition.left}px`,
@@ -180,22 +182,22 @@ export default function GenreSelector({ value, onChange }: GenreSelectorProps) {
             }}
           >
             {/* Search Input */}
-            <div className="p-3 border-b border-[#E8E6DF] bg-gray-50">
+            <div className="p-3 border-b border-border bg-foreground/5">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground/40" />
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search genres..."
-                  className="w-full pl-10 pr-10 py-2 rounded-lg border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-[#FF5500]/20 focus:border-[#FF5500] text-sm"
+                  placeholder={t('searchGenres')}
+                  className="w-full pl-10 pr-10 py-2 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent text-sm text-foreground placeholder:text-foreground/40"
                   autoFocus
                 />
                 {searchQuery && (
                   <button
                     type="button"
                     onClick={() => setSearchQuery('')}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-foreground/40 hover:text-foreground/60"
                   >
                     <X className="w-4 h-4" />
                   </button>
@@ -206,15 +208,15 @@ export default function GenreSelector({ value, onChange }: GenreSelectorProps) {
             {/* Genre List */}
             <div className="max-h-80 overflow-y-auto">
               {Object.keys(groupedGenres).length === 0 ? (
-                <div className="p-8 text-center text-gray-400 text-sm">
-                  No genres found
+                <div className="p-8 text-center text-foreground/40 text-sm">
+                  {t('noGenresFound')}
                 </div>
               ) : (
                 Object.entries(groupedGenres).map(([category, genres]) => (
                   <div key={category}>
                     {/* Category Header */}
-                    <div className="sticky top-0 px-4 py-2 bg-gray-100 border-b border-gray-200">
-                      <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">
+                    <div className="sticky top-0 px-4 py-2 bg-foreground/10 border-b border-border">
+                      <span className="text-[10px] font-bold text-foreground/50 uppercase tracking-widest">
                         {category}
                       </span>
                     </div>
@@ -225,10 +227,10 @@ export default function GenreSelector({ value, onChange }: GenreSelectorProps) {
                         key={genre.value}
                         type="button"
                         onClick={() => handleSelect(genre.value)}
-                        className={`w-full px-4 py-2.5 text-left text-sm hover:bg-gray-50 transition-colors ${
+                        className={`w-full px-4 py-2.5 text-left text-sm hover:bg-foreground/5 transition-colors ${
                           value === genre.value
-                            ? 'bg-[#FF5500]/5 text-[#FF5500] font-medium'
-                            : 'text-gray-700'
+                            ? 'bg-accent/5 text-accent font-medium'
+                            : 'text-foreground'
                         }`}
                       >
                         {genre.label}
