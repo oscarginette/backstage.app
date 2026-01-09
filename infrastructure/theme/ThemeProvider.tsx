@@ -160,11 +160,8 @@ export function ThemeProvider({
     return () => mediaQuery.removeEventListener('change', handleChange);
   }, [theme, updateDOMTheme]);
 
-  // Prevent flicker: don't render until mounted
-  if (!mounted) {
-    return <>{children}</>;
-  }
-
+  // Always provide context (even during SSR) to prevent useTheme errors
+  // The theme script in <head> handles the actual theme application before hydration
   return (
     <ThemeContext.Provider value={{ theme, resolvedTheme, setTheme, systemTheme }}>
       {children}

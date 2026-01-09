@@ -1,8 +1,13 @@
 @import "tailwindcss";
 
+/* Tailwind v4: Enable dark mode with class strategy */
+@custom-variant dark (&:where(.dark, .dark *));
+
 /* Light theme (default) */
 :root,
 .light {
+  color-scheme: light;
+
   /* Liftoff Palette - Light Mode */
   --background: #FDFCF8; /* Cream off-white */
   --foreground: #1c1c1c; /* Almost black */
@@ -31,35 +36,50 @@
 
 /* Dark theme */
 .dark {
-  --background: #0A0A0A; /* Near black */
-  --foreground: #EDEDED; /* Off-white */
-  --card: #1A1A1A;
-  --card-foreground: #EDEDED;
-  --popover: #1A1A1A;
-  --popover-foreground: #EDEDED;
-  --primary: #FF6B2C; /* Slightly brighter orange for dark mode */
+  color-scheme: dark;
+
+  --background: #050505; /* Almost pure black */
+  --foreground: #FFFFFF; /* Pure white */
+  --card: #0A0A0A; /* Very dark gray, almost black */
+  --card-foreground: #FFFFFF;
+  --popover: #0A0A0A;
+  --popover-foreground: #FFFFFF;
+  --primary: #FF6B2C;
   --primary-foreground: #FFFFFF;
-  --secondary: #262626;
-  --secondary-foreground: #EDEDED;
-  --muted: #262626;
+  --secondary: #1A1A1A;
+  --secondary-foreground: #FFFFFF;
+  --muted: #1A1A1A;
   --muted-foreground: #A1A1A1;
   --accent: #FF6B2C;
   --accent-foreground: #FFFFFF;
-  --destructive: #F87171;
+  --destructive: #EF4444;
   --destructive-foreground: #FFFFFF;
-  --border: #2D2D2D;
-  --input: #2D2D2D;
+  --border: #262626; /* Darker border */
+  --input: #1A1A1A;
   --ring: #FF6B2C;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
   --font-serif: var(--font-serif);
   --font-sans: var(--font-sans);
-  
+
   --animate-blob: blob 7s infinite;
-  
+
   @keyframes blob {
     0% {
       transform: translate(0px, 0px) scale(1);
@@ -129,4 +149,17 @@ h1, h2, h3, h4, h5, h6 {
     radial-gradient(at 0% 0%, hsla(343,100%,76%,1) 0px, transparent 50%);
   filter: blur(80px);
   opacity: 0.15;
+}
+
+.bg-aurora-dark {
+  background-image: 
+    radial-gradient(at 40% 20%, hsla(260, 50%, 15%, 1) 0px, transparent 50%),
+    radial-gradient(at 80% 0%, hsla(220, 50%, 15%, 1) 0px, transparent 50%),
+    radial-gradient(at 0% 50%, hsla(280, 50%, 15%, 1) 0px, transparent 50%),
+    radial-gradient(at 80% 50%, hsla(0, 0%, 10%, 0) 0px, transparent 50%),
+    radial-gradient(at 0% 100%, hsla(260, 50%, 15%, 1) 0px, transparent 50%),
+    radial-gradient(at 80% 100%, hsla(220, 50%, 15%, 1) 0px, transparent 50%),
+    radial-gradient(at 0% 0%, hsla(20, 80%, 30%, 0.3) 0px, transparent 50%); /* Subtle brand orange hint */
+  filter: blur(80px);
+  opacity: 0.4;
 }
