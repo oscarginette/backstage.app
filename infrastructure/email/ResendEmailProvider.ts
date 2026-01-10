@@ -11,6 +11,14 @@ export class ResendEmailProvider implements IEmailProvider {
 
   async send(params: EmailParams): Promise<EmailResult> {
     try {
+      // Validate SENDER_EMAIL is configured (runtime check)
+      if (!env.SENDER_EMAIL) {
+        throw new Error(
+          'SENDER_EMAIL environment variable is required for sending emails. ' +
+          'Please configure it in your environment settings.'
+        );
+      }
+
       // Build email payload
       const emailPayload: any = {
         from: params.from || `Gee Beat <${env.SENDER_EMAIL}>`,

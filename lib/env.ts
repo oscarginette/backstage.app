@@ -1,11 +1,28 @@
 /**
  * Environment Variable Validation
  *
- * Validates all environment variables at startup using Zod.
+ * Validates environment variables using Zod with build-time vs runtime awareness.
  * Provides type-safe access to environment variables throughout the application.
  *
- * IMPORTANT: Import this file early in the application lifecycle to fail fast
- * if required environment variables are missing or invalid.
+ * ARCHITECTURE:
+ * - Build-time validation: Only validates variables needed for Next.js compilation
+ * - Runtime validation: Validates remaining variables when the app starts serving requests
+ *
+ * This prevents Vercel build failures when runtime-only secrets aren't set during build.
+ *
+ * BUILD-TIME REQUIREMENTS (must be set in Vercel):
+ * - POSTGRES_URL: Required for Prisma schema generation during build
+ *
+ * RUNTIME-ONLY VARIABLES (validated when app starts):
+ * - SENDER_EMAIL: Only needed when sending emails
+ * - TOKEN_ENCRYPTION_KEY: Only needed when encrypting OAuth tokens
+ * - RESEND_API_KEY: Only needed when sending emails via Resend
+ * - All other service credentials (Stripe, Cloudinary, etc.)
+ *
+ * WHY THIS MATTERS:
+ * During Vercel deployment, the build runs in a sandboxed environment without
+ * access to runtime secrets. By deferring validation of runtime-only variables,
+ * we allow the build to succeed while still ensuring security at runtime.
  */
 
 import { z } from 'zod';
@@ -16,11 +33,15 @@ const optionalString = () => z.preprocess(
   z.string().optional()
 );
 
+// Detect if we're in build mode (Next.js compilation)
+const isBuildTime = process.env.NEXT_PHASE === 'phase-production-build' ||
+                    process.argv.includes('build');
+
 const envSchema = z.object({
   // Node Environment
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
 
-  // Database (Required for core functionality)
+  // Database (Required for build - Prisma needs it)
   POSTGRES_URL: z.string().url('Invalid POSTGRES_URL - must be a valid PostgreSQL URL'),
 
   // Database (Optional - Vercel-specific)
@@ -38,14 +59,18 @@ const envSchema = z.object({
   // Legacy: Accept AUTH_SECRET for backward compatibility (NextAuth v5)
   AUTH_SECRET: z.preprocess((val) => (val === '' ? undefined : val), z.string().min(32, 'AUTH_SECRET must be at least 32 characters for security').optional()),
 
-  // Email Provider (Resend - Required for email functionality)
+  // Email Provider (Resend - Required for email functionality at runtime)
   RESEND_API_KEY: z.preprocess(
     (val) => (val === '' ? undefined : val),
-    z.string().startsWith('re_', 'Invalid Resend API key format - must start with re_').optional()
+    isBuildTime
+      ? z.string().optional()  // Build: any string or undefined
+      : z.string().startsWith('re_', 'Invalid Resend API key format - must start with re_').optional()
   ),
   SENDER_EMAIL: z.preprocess(
     (val) => (val === '' ? undefined : val),
-    z.string().email('Invalid SENDER_EMAIL - must be a valid email address').optional()
+    isBuildTime
+      ? z.string().optional()  // Build: any string or undefined
+      : z.string().email('Invalid SENDER_EMAIL - must be a valid email address').optional()
   ),
 
   // Email Recipients (JSON array)
@@ -61,10 +86,12 @@ const envSchema = z.object({
   // Download Gates
   DOWNLOAD_TOKEN_SECRET: z.preprocess((val) => (val === '' ? undefined : val), z.string().min(32, 'DOWNLOAD_TOKEN_SECRET must be at least 32 characters').optional()),
 
-  // Token Encryption (for storing OAuth tokens)
+  // Token Encryption (for storing OAuth tokens - Runtime only)
   TOKEN_ENCRYPTION_KEY: z.preprocess(
     (val) => (val === '' ? undefined : val),
-    z.string().length(64, 'TOKEN_ENCRYPTION_KEY must be exactly 64 hexadecimal characters (32 bytes)').optional()
+    isBuildTime
+      ? z.string().optional()  // Build: any string or undefined
+      : z.string().length(64, 'TOKEN_ENCRYPTION_KEY must be exactly 64 hexadecimal characters (32 bytes)').optional()
   ),
 
   // Cron Jobs
@@ -131,21 +158,36 @@ function validateEnv(): Env {
   const parsed = envSchema.safeParse(process.env);
 
   if (!parsed.success) {
-    console.error('❌ Invalid environment variables:');
-    console.error(JSON.stringify(parsed.error.format(), null, 2));
-
-    // Extract field-level errors for clearer messaging
     const errors = parsed.error.issues.map(issue => ({
       path: issue.path.join('.'),
       message: issue.message,
     }));
 
+    // During build, provide helpful context
+    if (isBuildTime) {
+      console.error('❌ Build-time environment validation failed:');
+      for (const error of errors) {
+        console.error(`  - ${error.path}: ${error.message}`);
+      }
+      console.error('\n💡 Tip: Make sure POSTGRES_URL is set in your Vercel project settings.');
+      throw new Error('Build-time environment validation failed');
+    }
+
+    // At runtime, show detailed errors
+    console.error('❌ Invalid environment variables:');
+    console.error(JSON.stringify(parsed.error.format(), null, 2));
     console.error('\n📋 Missing or invalid variables:');
     for (const error of errors) {
       console.error(`  - ${error.path}: ${error.message}`);
     }
 
     throw new Error('Environment validation failed - check the errors above');
+  }
+
+  // Log build vs runtime mode for debugging
+  if (isBuildTime) {
+    console.log('✅ Build-time environment validation passed');
+    console.log('   Runtime-only variables will be validated when the app starts.');
   }
 
   return parsed.data;
@@ -166,6 +208,33 @@ export function getRequiredEnv<K extends keyof Env>(key: K): NonNullable<Env[K]>
     throw new Error(`Required environment variable ${String(key)} is not set`);
   }
   return value as NonNullable<Env[K]>;
+}
+
+/**
+ * Runtime-only validation helper
+ *
+ * Use this for variables that must be valid at runtime but aren't needed during build.
+ * Provides additional validation beyond what was done at module load time.
+ *
+ * @example
+ * const senderEmail = getRequiredRuntimeEnv('SENDER_EMAIL');
+ * // Throws if SENDER_EMAIL is missing or invalid
+ */
+export function getRequiredRuntimeEnv<K extends keyof Env>(
+  key: K,
+  customValidator?: (value: NonNullable<Env[K]>) => boolean
+): NonNullable<Env[K]> {
+  const value = getRequiredEnv(key);
+
+  // Additional runtime validation if provided
+  if (customValidator && !customValidator(value)) {
+    throw new Error(
+      `Environment variable ${String(key)} failed runtime validation. ` +
+      `This may indicate the variable was not properly validated during build.`
+    );
+  }
+
+  return value;
 }
 
 // Environment-specific helpers
