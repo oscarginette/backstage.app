@@ -103,6 +103,18 @@ model contact_import_history {
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// metadata JSONB structure:
+/// {
+///   "types": ["fan", "dj"],  // Contact can be both fan and DJ
+///   "djMetadata": {
+///     "emailSource": "networking",  // MANDATORY for DJ type (GDPR compliance)
+///     "genres": ["house", "techno"],
+///     "platforms": ["soundcloud", "mixcloud"],
+///     "location": "Berlin",
+///     "followersCount": 5000,
+///     "notes": "Plays at Berghain"
+///   }
+/// }
 model contacts {
   id                Int               @id @default(autoincrement())
   user_id           Int?
@@ -119,6 +131,8 @@ model contacts {
   consent_history   consent_history[]
   users             users?            @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
   email_logs        email_logs[]
+  demo_sends        demo_sends[]
+  demo_supports     demo_supports[]
 
   @@unique([user_id, email])
   @@index([email], map: "idx_contacts_email")
@@ -174,6 +188,8 @@ model download_gates {
   require_soundcloud_repost Boolean?                  @default(true)
   require_soundcloud_follow Boolean?                  @default(false)
   require_spotify_connect   Boolean?                  @default(false)
+  require_instagram_follow  Boolean?                  @default(false)
+  instagram_profile_url     String?                   @db.VarChar(500)
   active                    Boolean?                  @default(true)
   max_downloads             Int?
   expires_at                DateTime?                 @db.Timestamp(6)
@@ -192,36 +208,38 @@ model download_gates {
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model download_submissions {
-  id                            String                    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  gate_id                       String                    @db.Uuid
-  email                         String                    @db.VarChar(255)
-  first_name                    String?                   @db.VarChar(255)
-  soundcloud_user_id            String?                   @db.VarChar(255)
-  soundcloud_username           String?                   @db.VarChar(255)
-  soundcloud_permalink          String?                   @db.VarChar(255)
-  spotify_user_id               String?                   @db.VarChar(255)
-  spotify_display_name          String?                   @db.VarChar(255)
-  email_verified                Boolean?                  @default(false)
-  soundcloud_repost_verified    Boolean?                  @default(false)
-  soundcloud_repost_verified_at DateTime?                 @db.Timestamp(6)
-  soundcloud_follow_verified    Boolean?                  @default(false)
-  soundcloud_follow_verified_at DateTime?                 @db.Timestamp(6)
-  spotify_connected             Boolean?                  @default(false)
-  spotify_connected_at          DateTime?                 @db.Timestamp(6)
-  spotify_follow_completed      Boolean?                  @default(false)
-  spotify_follow_completed_at   DateTime?                 @db.Timestamp(6)
-  download_token                String?                   @unique @db.VarChar(255)
-  download_token_generated_at   DateTime?                 @db.Timestamp(6)
-  download_token_expires_at     DateTime?                 @db.Timestamp(6)
-  download_completed            Boolean?                  @default(false)
-  download_completed_at         DateTime?                 @db.Timestamp(6)
-  consent_marketing             Boolean?                  @default(true)
-  ip_address                    String?                   @db.VarChar(45)
-  user_agent                    String?
-  created_at                    DateTime?                 @default(now()) @db.Timestamp(6)
-  updated_at                    DateTime?                 @default(now()) @db.Timestamp(6)
+  id                              String                            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  gate_id                         String                            @db.Uuid
+  email                           String                            @db.VarChar(255)
+  first_name                      String?                           @db.VarChar(255)
+  soundcloud_user_id              String?                           @db.VarChar(255)
+  soundcloud_username             String?                           @db.VarChar(255)
+  soundcloud_permalink            String?                           @db.VarChar(255)
+  spotify_user_id                 String?                           @db.VarChar(255)
+  spotify_display_name            String?                           @db.VarChar(255)
+  email_verified                  Boolean?                          @default(false)
+  soundcloud_repost_verified      Boolean?                          @default(false)
+  soundcloud_repost_verified_at   DateTime?                         @db.Timestamp(6)
+  soundcloud_follow_verified      Boolean?                          @default(false)
+  soundcloud_follow_verified_at   DateTime?                         @db.Timestamp(6)
+  spotify_connected               Boolean?                          @default(false)
+  spotify_connected_at            DateTime?                         @db.Timestamp(6)
+  spotify_follow_completed        Boolean?                          @default(false)
+  spotify_follow_completed_at     DateTime?                         @db.Timestamp(6)
+  instagram_click_tracked         Boolean?                          @default(false)
+  instagram_click_tracked_at      DateTime?                         @db.Timestamp(6)
+  download_token                  String?                           @unique @db.VarChar(255)
+  download_token_generated_at     DateTime?                         @db.Timestamp(6)
+  download_token_expires_at       DateTime?                         @db.Timestamp(6)
+  download_completed              Boolean?                          @default(false)
+  download_completed_at           DateTime?                         @db.Timestamp(6)
+  consent_marketing               Boolean?                          @default(true)
+  ip_address                      String?                           @db.VarChar(45)
+  user_agent                      String?
+  created_at                      DateTime?                         @default(now()) @db.Timestamp(6)
+  updated_at                      DateTime?                         @default(now()) @db.Timestamp(6)
   download_gate_analytics         download_gate_analytics[]
-  download_gates                  download_gates                  @relation(fields: [gate_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  download_gates                  download_gates                    @relation(fields: [gate_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
   oauth_states                    oauth_states[]
   spotify_auto_save_subscriptions spotify_auto_save_subscriptions[]
 
@@ -295,15 +313,15 @@ model email_logs {
 }
 
 model email_signatures {
-  id                 Int       @id @default(autoincrement())
-  user_id            Int       @unique @map("user_id")
-  logo_url           String?   @map("logo_url") @db.VarChar(500)
-  custom_text        String?   @map("custom_text") @db.VarChar(500)
-  social_links       Json      @default("[]") @map("social_links")
-  default_to_geebeat Boolean   @default(false) @map("default_to_geebeat")
-  created_at         DateTime  @default(now()) @map("created_at") @db.Timestamp(6)
-  updated_at         DateTime  @updatedAt @map("updated_at") @db.Timestamp(6)
-  users              users     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  id                 Int      @id @default(autoincrement())
+  user_id            Int      @unique @map("user_id")
+  logo_url           String?  @map("logo_url") @db.VarChar(500)
+  custom_text        String?  @map("custom_text") @db.VarChar(500)
+  social_links       Json     @default("[]") @map("social_links")
+  default_to_geebeat Boolean  @default(false) @map("default_to_geebeat")
+  created_at         DateTime @default(now()) @map("created_at") @db.Timestamp(6)
+  updated_at         DateTime @updatedAt @map("updated_at") @db.Timestamp(6)
+  users              users    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@index([user_id], map: "idx_email_signatures_user_id")
   @@map("email_signatures")
@@ -615,34 +633,35 @@ model subscriptions {
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model users {
-  id                                                                  Int                      @id @default(autoincrement())
-  email                                                               String                   @unique @db.VarChar(255)
-  password_hash                                                       String                   @db.VarChar(255)
-  name                                                                String?                  @db.VarChar(255)
-  role                                                                String                   @default("artist") @db.VarChar(20)
-  soundcloud_id                                                       String?                  @db.VarChar(255)
-  spotify_id                                                          String?                  @db.VarChar(255)
-  subscription_plan                                                   String                   @default("free") @db.VarChar(20)
-  monthly_quota                                                       Int                      @default(1000)
-  emails_sent_this_month                                              Int                      @default(0)
-  quota_reset_at                                                      DateTime?                @default(dbgenerated("(date_trunc('month'::text, CURRENT_TIMESTAMP) + '1 mon'::interval)")) @db.Timestamp(6)
-  active                                                              Boolean?                 @default(true)
-  email_verified                                                      Boolean?                 @default(false)
-  created_at                                                          DateTime?                @default(now()) @db.Timestamp(6)
-  updated_at                                                          DateTime?                @default(now()) @db.Timestamp(6)
-  last_login_at                                                       DateTime?                @db.Timestamp(6)
-  stripe_customer_id                                                  String?                  @db.VarChar(255)
-  stripe_subscription_id                                              String?                  @db.VarChar(255)
-  subscription_status                                                 String?                  @db.VarChar(50)
-  current_period_end                                                  DateTime?                @db.Timestamp(6)
-  cancel_at_period_end                                                Boolean?                 @default(false)
-  subscription_expires_at                                             DateTime?                @db.Timestamp(6)
-  max_contacts                                                        Int?                     @default(100)
-  max_monthly_emails                                                  Int?                     @default(500)
-  soundcloud_permalink                                                String?                  @db.VarChar(255)
-  subscription_started_at                                             DateTime?                @db.Timestamp(6)
-  theme                                                               String                   @default("system") @db.VarChar(10)
-  theme_updated_at                                                    DateTime?                @default(now()) @db.Timestamp(6)
+  id                                                                  Int                               @id @default(autoincrement())
+  email                                                               String                            @unique @db.VarChar(255)
+  password_hash                                                       String                            @db.VarChar(255)
+  name                                                                String?                           @db.VarChar(255)
+  role                                                                String                            @default("artist") @db.VarChar(20)
+  soundcloud_id                                                       String?                           @db.VarChar(255)
+  spotify_id                                                          String?                           @db.VarChar(255)
+  subscription_plan                                                   String                            @default("free") @db.VarChar(20)
+  monthly_quota                                                       Int                               @default(1000)
+  emails_sent_this_month                                              Int                               @default(0)
+  quota_reset_at                                                      DateTime?                         @default(dbgenerated("(date_trunc('month'::text, CURRENT_TIMESTAMP) + '1 mon'::interval)")) @db.Timestamp(6)
+  active                                                              Boolean?                          @default(true)
+  email_verified                                                      Boolean?                          @default(false)
+  created_at                                                          DateTime?                         @default(now()) @db.Timestamp(6)
+  updated_at                                                          DateTime?                         @default(now()) @db.Timestamp(6)
+  last_login_at                                                       DateTime?                         @db.Timestamp(6)
+  stripe_customer_id                                                  String?                           @db.VarChar(255)
+  stripe_subscription_id                                              String?                           @db.VarChar(255)
+  subscription_status                                                 String?                           @db.VarChar(50)
+  current_period_end                                                  DateTime?                         @db.Timestamp(6)
+  cancel_at_period_end                                                Boolean?                          @default(false)
+  subscription_expires_at                                             DateTime?                         @db.Timestamp(6)
+  max_contacts                                                        Int?                              @default(100)
+  max_monthly_emails                                                  Int?                              @default(500)
+  soundcloud_permalink                                                String?                           @db.VarChar(255)
+  instagram_url                                                       String?                           @db.VarChar(500)
+  subscription_started_at                                             DateTime?                         @db.Timestamp(6)
+  theme                                                               String                            @default("system") @db.VarChar(10)
+  theme_updated_at                                                    DateTime?                         @default(now()) @db.Timestamp(6)
   brevo_import_history                                                brevo_import_history[]
   brevo_integrations                                                  brevo_integrations?
   consent_history                                                     consent_history[]
@@ -655,15 +674,19 @@ model users {
   email_signatures                                                    email_signatures?
   email_templates                                                     email_templates[]
   execution_logs                                                      execution_logs[]
-  invoices_invoices_created_by_user_idTousers                         invoices[]               @relation("invoices_created_by_user_idTousers")
-  invoices_invoices_customer_idTousers                                invoices[]               @relation("invoices_customer_idTousers")
+  invoices_invoices_created_by_user_idTousers                         invoices[]                        @relation("invoices_created_by_user_idTousers")
+  invoices_invoices_customer_idTousers                                invoices[]                        @relation("invoices_customer_idTousers")
   sessions                                                            sessions[]
   soundcloud_tracks                                                   soundcloud_tracks[]
   spotify_tracks                                                      spotify_tracks[]
-  subscription_history_subscription_history_changed_by_user_idTousers subscription_history[]             @relation("subscription_history_changed_by_user_idTousers")
-  subscription_history_subscription_history_user_idTousers            subscription_history[]             @relation("subscription_history_user_idTousers")
+  subscription_history_subscription_history_changed_by_user_idTousers subscription_history[]            @relation("subscription_history_changed_by_user_idTousers")
+  subscription_history_subscription_history_user_idTousers            subscription_history[]            @relation("subscription_history_user_idTousers")
   subscriptions                                                       subscriptions[]
   user_notification_preferences                                       user_notification_preferences?
+  demos                                                               demos[]
+  demo_sends                                                          demo_sends[]
+  demo_supports                                                       demo_supports[]
+  spotify_auto_save_subscriptions                                     spotify_auto_save_subscriptions[]
 
   @@index([active], map: "idx_users_active")
   @@index([email], map: "idx_users_email")
@@ -673,27 +696,26 @@ model users {
   @@index([subscription_expires_at], map: "idx_users_subscription_expires_at")
   @@index([subscription_plan], map: "idx_users_subscription_plan")
   @@index([theme], map: "idx_users_theme")
-  spotify_auto_save_subscriptions spotify_auto_save_subscriptions[]
 }
 
 /// This model or at least one of its fields has comments in the database, and requires additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model spotify_auto_save_subscriptions {
-  id                     String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  submission_id          String                  @db.Uuid
-  spotify_user_id        String                  @db.VarChar(255)
-  artist_user_id         Int
-  artist_spotify_id      String                  @db.VarChar(255)
-  access_token_encrypted String
+  id                      String                   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  submission_id           String                   @db.Uuid
+  spotify_user_id         String                   @db.VarChar(255)
+  artist_user_id          Int
+  artist_spotify_id       String                   @db.VarChar(255)
+  access_token_encrypted  String
   refresh_token_encrypted String
-  token_expires_at       DateTime                @db.Timestamp(6)
-  active                 Boolean?                @default(true)
-  last_check_at          DateTime?               @db.Timestamp(6)
-  next_check_at          DateTime?               @db.Timestamp(6)
-  created_at             DateTime?               @default(now()) @db.Timestamp(6)
-  updated_at             DateTime?               @default(now()) @db.Timestamp(6)
-  download_submissions   download_submissions    @relation(fields: [submission_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  users                  users                   @relation(fields: [artist_user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  spotify_saved_releases spotify_saved_releases[]
+  token_expires_at        DateTime                 @db.Timestamp(6)
+  active                  Boolean?                 @default(true)
+  last_check_at           DateTime?                @db.Timestamp(6)
+  next_check_at           DateTime?                @db.Timestamp(6)
+  created_at              DateTime?                @default(now()) @db.Timestamp(6)
+  updated_at              DateTime?                @default(now()) @db.Timestamp(6)
+  download_submissions    download_submissions     @relation(fields: [submission_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users                   users                    @relation(fields: [artist_user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  spotify_saved_releases  spotify_saved_releases[]
 
   @@unique([spotify_user_id, artist_spotify_id])
   @@index([active, next_check_at], map: "idx_spotify_auto_save_active")
@@ -729,4 +751,88 @@ model user_notification_preferences {
   users                users    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@index([user_id], map: "idx_user_notification_preferences_user_id")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model demos {
+  id               String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id          Int
+  title            String          @db.VarChar(500)
+  artist_name      String          @db.VarChar(255)
+  genre            String?         @db.VarChar(100)
+  bpm              Int?
+  key              String?         @db.VarChar(10)
+  file_url         String
+  artwork_url      String?
+  waveform_url     String?
+  duration_seconds Int?
+  release_date     DateTime?       @db.Date
+  notes            String?
+  active           Boolean?        @default(true)
+  created_at       DateTime?       @default(now()) @db.Timestamp(6)
+  updated_at       DateTime?       @default(now()) @db.Timestamp(6)
+  users            users           @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  demo_sends       demo_sends[]
+  demo_supports    demo_supports[]
+
+  @@index([user_id], map: "idx_demos_user_id")
+  @@index([active], map: "idx_demos_active")
+  @@index([genre], map: "idx_demos_genre")
+  @@index([created_at(sort: Desc)], map: "idx_demos_created_at")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model demo_sends {
+  id              String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  demo_id         String    @db.Uuid
+  contact_id      Int
+  user_id         Int
+  email_subject   String    @db.VarChar(500)
+  email_body_html String
+  personal_note   String?
+  status          String    @default("sent") @db.VarChar(20)
+  sent_at         DateTime  @default(now()) @db.Timestamp(6)
+  opened_at       DateTime? @db.Timestamp(6)
+  clicked_at      DateTime? @db.Timestamp(6)
+  resend_email_id String?   @db.VarChar(255)
+  metadata        Json?
+  created_at      DateTime? @default(now()) @db.Timestamp(6)
+  demos           demos     @relation(fields: [demo_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  contacts        contacts  @relation(fields: [contact_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users           users     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([demo_id, contact_id])
+  @@index([demo_id], map: "idx_demo_sends_demo_id")
+  @@index([contact_id], map: "idx_demo_sends_contact_id")
+  @@index([user_id], map: "idx_demo_sends_user_id")
+  @@index([status], map: "idx_demo_sends_status")
+  @@index([sent_at(sort: Desc)], map: "idx_demo_sends_sent_at")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model demo_supports {
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  demo_id      String    @db.Uuid
+  contact_id   Int
+  user_id      Int
+  support_type String    @db.VarChar(50)
+  platform     String?   @db.VarChar(255)
+  event_name   String?   @db.VarChar(500)
+  played_at    DateTime? @db.Timestamp(6)
+  proof_url    String?
+  notes        String?
+  created_at   DateTime? @default(now()) @db.Timestamp(6)
+  updated_at   DateTime? @default(now()) @db.Timestamp(6)
+  demos        demos     @relation(fields: [demo_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  contacts     contacts  @relation(fields: [contact_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users        users     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([demo_id], map: "idx_demo_supports_demo_id")
+  @@index([contact_id], map: "idx_demo_supports_contact_id")
+  @@index([user_id], map: "idx_demo_supports_user_id")
+  @@index([support_type], map: "idx_demo_supports_support_type")
+  @@index([played_at(sort: Desc)], map: "idx_demo_supports_played_at")
 }
