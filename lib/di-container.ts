@@ -45,7 +45,7 @@ import { SoundCloudRepository } from '@/infrastructure/music-platforms/SoundClou
 import { SpotifyRepository } from '@/infrastructure/music-platforms/SpotifyRepository';
 import type { IMusicPlatformRepository } from '@/domain/repositories/IMusicPlatformRepository';
 import { SoundCloudClient as SoundCloudRSSClient } from '@/infrastructure/music-platforms/SoundCloudClient';
-import { SpotifyClient } from '@/infrastructure/music-platforms/SpotifyClient';
+import { SpotifyClient as SpotifyMusicPlatformClient } from '@/infrastructure/music-platforms/SpotifyClient';
 import { PostgresSubscriptionRepository } from '@/infrastructure/database/repositories/PostgresSubscriptionRepository';
 import { PostgresSubscriptionHistoryRepository } from '@/infrastructure/database/repositories/PostgresSubscriptionHistoryRepository';
 import { PostgresContactListRepository } from '@/infrastructure/database/repositories/PostgresContactListRepository';
@@ -97,6 +97,7 @@ import { resendEmailProvider } from '@/infrastructure/email';
 import type { IEmailProvider } from '@/infrastructure/email/IEmailProvider';
 import type { IImageStorageProvider } from '@/infrastructure/storage/IImageStorageProvider';
 import { SoundCloudClient } from '@/lib/soundcloud-client';
+import { SpotifyClient } from '@/lib/spotify-client';
 import { CsvGenerator } from '@/infrastructure/csv/CsvGenerator';
 
 // ============================================================================
@@ -196,6 +197,7 @@ import { UpdateUserQuotaUseCase } from '@/domain/services/admin/UpdateUserQuotaU
 // Infrastructure Imports
 // ============================================================================
 import { BrevoAPIClient } from '@/infrastructure/brevo/BrevoAPIClient';
+import { env } from '@/lib/env';
 
 // ============================================================================
 // REPOSITORY FACTORY
@@ -339,7 +341,7 @@ export class RepositoryFactory {
     if (platform === 'soundcloud') {
       return new SoundCloudRepository(new SoundCloudRSSClient());
     } else {
-      return new SpotifyRepository(new SpotifyClient());
+      return new SpotifyRepository(new SpotifyMusicPlatformClient());
     }
   }
 }
@@ -849,9 +851,8 @@ export class UseCaseFactory {
   }
 
   static createBulkActivateUsersUseCase(): BulkActivateUsersUseCase {
-    return new BulkActivateUsersUseCase(
-      RepositoryFactory.createUserRepository()
-    );
+    const activateSubscriptionUseCase = UseCaseFactory.createActivateUserSubscriptionUseCase();
+    return new BulkActivateUsersUseCase(activateSubscriptionUseCase);
   }
 
   static createGetProductsWithPricesUseCase(): GetProductsWithPricesUseCase {
@@ -968,6 +969,12 @@ export class UseCaseFactory {
   // Email Signature Use Cases
   // ============================================================================
 
+  static createGetUserEmailSignatureUseCase(): GetUserEmailSignatureUseCase {
+    return new GetUserEmailSignatureUseCase(
+      RepositoryFactory.createEmailSignatureRepository()
+    );
+  }
+
   static createUpdateEmailSignatureUseCase(): UpdateEmailSignatureUseCase {
     return new UpdateEmailSignatureUseCase(
       RepositoryFactory.createEmailSignatureRepository()
@@ -1040,8 +1047,9 @@ export class UseCaseFactory {
   // ============================================================================
 
   static createTrackPixelEventUseCase(): TrackPixelEventUseCase {
+    const { PixelTrackingService } = require('@/infrastructure/pixel/PixelTrackingService');
     return new TrackPixelEventUseCase(
-      RepositoryFactory.createDownloadAnalyticsRepository()
+      new PixelTrackingService()
     );
   }
 

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo, useRef } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { Search, Filter, Loader2, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { CARD_STYLES, INPUT_STYLES, BUTTON_STYLES, TEXT_STYLES, cn } from '@/domain/types/design-tokens';
@@ -63,6 +63,7 @@ export default function DataTable<T>({
   const [sortColumnIndex, setSortColumnIndex] = useState<number | null>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection>(null);
   const [activeFilters, setActiveFilters] = useState<ActiveFilters>(initialFilters);
+  const [announcement, setAnnouncement] = useState('');
   const tableContainerRef = useRef<HTMLDivElement>(null);
 
   const handleSort = (columnIndex: number) => {
@@ -97,6 +98,48 @@ export default function DataTable<T>({
     setActiveFilters(newFilters);
     onFilterChange?.(newFilters);
   };
+
+  // Helper function to announce changes to screen readers
+  const announceToScreenReader = (message: string) => {
+    setAnnouncement(message);
+    setTimeout(() => setAnnouncement(''), 1000);
+  };
+
+  // ESC key handler to deselect all items
+  useEffect(() => {
+    if (!selectable || !onSelectionChange) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Only handle ESC key
+      if (e.key !== 'Escape') return;
+
+      // Don't trigger if no items are selected
+      if (selectedIds.length === 0) return;
+
+      // Don't trigger if a modal is open
+      const isModalOpen = document.querySelector('[role="dialog"]') !== null;
+      if (isModalOpen) return;
+
+      // Don't trigger if user is typing in an input/textarea
+      const activeElement = document.activeElement;
+      const isInputFocused =
+        activeElement?.tagName === 'INPUT' ||
+        activeElement?.tagName === 'TEXTAREA' ||
+        activeElement?.hasAttribute('contenteditable');
+      if (isInputFocused) return;
+
+      // Deselect all items
+      const count = selectedIds.length;
+      onSelectionChange([]);
+
+      // Announce to screen readers
+      const itemWord = count === 1 ? 'item' : 'items';
+      announceToScreenReader(`${count} ${itemWord} deselected`);
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [selectable, selectedIds, onSelectionChange]);
 
   const sortedAndFilteredData = useMemo(() => {
     let result = [...data];
@@ -158,10 +201,16 @@ export default function DataTable<T>({
   const handleSelectAll = () => {
     if (!selectable || !getItemId || !onSelectionChange) return;
 
-    if (selectedIds.length === sortedAndFilteredData.length) {
-      onSelectionChange([]);
-    } else {
+    const isSelectingAll = selectedIds.length !== sortedAndFilteredData.length;
+
+    if (isSelectingAll) {
+      const count = sortedAndFilteredData.length;
       onSelectionChange(sortedAndFilteredData.map(getItemId));
+      announceToScreenReader(`All ${count} ${count === 1 ? 'item' : 'items'} selected`);
+    } else {
+      const count = selectedIds.length;
+      onSelectionChange([]);
+      announceToScreenReader(`${count} ${count === 1 ? 'item' : 'items'} deselected`);
     }
   };
 
@@ -242,6 +291,22 @@ export default function DataTable<T>({
           {sortedAndFilteredData.length} {sortedAndFilteredData.length === 1 ? 'record' : 'records'}
         </div>
       </div>
+
+      {/* Keyboard shortcut hint - Shows when items are selected */}
+      {selectable && selectedIds.length > 0 && (
+        <div className="px-6 md:px-8 py-3 bg-primary/5 border-b border-border/40 flex items-center justify-between text-sm">
+          <span className={cn(TEXT_STYLES.body.small, 'text-foreground')}>
+            {selectedIds.length} {selectedIds.length === 1 ? 'item' : 'items'} selected
+          </span>
+          <span className="flex items-center gap-2 text-xs text-foreground/70">
+            <span className="hidden sm:inline">Press</span>
+            <kbd className="px-2 py-1 bg-background border border-border rounded text-xs font-mono font-medium shadow-sm">
+              ESC
+            </kbd>
+            <span>to deselect all</span>
+          </span>
+        </div>
+      )}
 
       {/* Table Header Row - Fixed */}
       {sortedAndFilteredData.length > 0 && (
@@ -362,6 +427,16 @@ export default function DataTable<T>({
             })}
           </div>
         )}
+      </div>
+
+      {/* ARIA live region for screen reader announcements */}
+      <div
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+        className="sr-only"
+      >
+        {announcement}
       </div>
     </div>
   );

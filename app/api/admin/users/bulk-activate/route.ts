@@ -10,10 +10,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { UseCaseFactory } from '@/lib/di-container';
 import { USER_ROLES } from '@/domain/types/user-roles';
+import { SUBSCRIPTION_PLANS, SubscriptionPlanName } from '@/domain/types/subscriptions';
 
 interface BulkActivateRequest {
   userIds: number[];
-  plan: 'free' | 'pro' | 'business' | 'unlimited';
+  plan: SubscriptionPlanName;
   billingCycle?: 'monthly' | 'annual';
   durationMonths: number;
 }
@@ -49,9 +50,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!body.plan || !['free', 'pro', 'business', 'unlimited'].includes(body.plan)) {
+    const validPlans = [
+      SUBSCRIPTION_PLANS.FREE,
+      SUBSCRIPTION_PLANS.PRO,
+      SUBSCRIPTION_PLANS.BUSINESS,
+      SUBSCRIPTION_PLANS.UNLIMITED,
+    ];
+
+    if (!body.plan || !validPlans.includes(body.plan)) {
       return NextResponse.json(
-        { error: 'Invalid plan. Must be one of: free, pro, business, unlimited' },
+        { error: `Invalid plan. Must be one of: ${validPlans.join(', ')}` },
         { status: 400 }
       );
     }
@@ -67,7 +75,7 @@ export async function POST(request: NextRequest) {
     const useCase = UseCaseFactory.createBulkActivateUsersUseCase();
 
     const result = await useCase.execute({
-      adminUserId: parseInt(session.user.id),
+      changedBy: parseInt(session.user.id),
       userIds: body.userIds,
       planName: body.plan,
       durationMonths: body.durationMonths,
