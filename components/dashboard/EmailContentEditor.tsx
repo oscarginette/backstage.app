@@ -5,8 +5,9 @@ import { EmailContent } from '../../types/dashboard';
 import { useTranslations } from '@/lib/i18n/context';
 import ListSelector from './ListSelector';
 import { LIST_FILTER_MODES } from '@/domain/value-objects/ListFilterCriteria';
-import { useEmailContentValidation } from '@/hooks/useEmailContentValidation';
-import { Tooltip } from '@/components/ui/Tooltip';
+// TODO: Re-enable when email content validation feature is committed
+// import { useEmailContentValidation } from '@/hooks/useEmailContentValidation';
+// import { Tooltip } from '@/components/ui/Tooltip';
 
 interface EmailContentEditorProps {
   initialContent: EmailContent;
@@ -219,12 +220,19 @@ export default function EmailContentEditor({
   const [savingDraft, setSavingDraft] = useState(false);
 
   // Real-time validation
-  const validation = useEmailContentValidation({
-    subject,
-    greeting,
-    message,
-    signature
-  });
+  // TODO: Re-enable when email content validation feature is committed
+  // const validation = useEmailContentValidation({
+  //   subject,
+  //   greeting,
+  //   message,
+  //   signature
+  // });
+  // Temporary stub until validation feature is added
+  const validation = {
+    isValid: true,
+    saveButtonTooltip: '',
+    errors: []
+  };
 
   // List filter state
   const [listFilterMode, setListFilterMode] = useState<'all' | 'include' | 'exclude'>(
@@ -490,34 +498,31 @@ export default function EmailContentEditor({
             >
               {t('cancel')}
             </button>
-            <Tooltip
-              content={validation.isValid ? t('saveDraft') : validation.saveButtonTooltip}
-              disabled={validation.isValid}
+            {/* TODO: Re-enable Tooltip when validation feature is committed */}
+            <button
+              onClick={handleSaveDraft}
+              disabled={!validation.isValid || saving || savingDraft}
+              className={`px-6 py-3 rounded-full border text-foreground flex items-center gap-2 transition-all ${
+                validation.isValid && !saving && !savingDraft
+                  ? 'border-border hover:border-foreground hover:bg-muted cursor-pointer'
+                  : 'border-border opacity-50 cursor-not-allowed'
+              }`}
+              title={validation.isValid ? t('saveDraft') : validation.saveButtonTooltip}
             >
-              <button
-                onClick={handleSaveDraft}
-                disabled={!validation.isValid || saving || savingDraft}
-                className={`px-6 py-3 rounded-full border text-foreground flex items-center gap-2 transition-all ${
-                  validation.isValid && !saving && !savingDraft
-                    ? 'border-border hover:border-foreground hover:bg-muted cursor-pointer'
-                    : 'border-border opacity-50 cursor-not-allowed'
-                }`}
-              >
-                {savingDraft ? (
-                  <>
-                    <div className="w-4 h-4 border-2 border-muted-foreground/30 border-t-muted-foreground rounded-full animate-spin" />
-                    {t('saving')}
-                  </>
-                ) : (
-                  <>
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
-                    </svg>
-                    {t('saveDraft')}
-                  </>
-                )}
-              </button>
-            </Tooltip>
+              {savingDraft ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-muted-foreground/30 border-t-muted-foreground rounded-full animate-spin" />
+                  {t('saving')}
+                </>
+              ) : (
+                <>
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+                  </svg>
+                  {t('saveDraft')}
+                </>
+              )}
+            </button>
             <button
               onClick={handleSave}
               disabled={saving || savingDraft}
