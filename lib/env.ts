@@ -34,7 +34,7 @@ const envSchema = z.object({
 
   // Email Provider (Resend - Required for email functionality)
   RESEND_API_KEY: z.string().startsWith('re_', 'Invalid Resend API key format - must start with re_').optional(),
-  SENDER_EMAIL: z.string().email('Invalid SENDER_EMAIL - must be a valid email address').optional(),
+  SENDER_EMAIL: z.string().email('Invalid SENDER_EMAIL - must be a valid email address').or(z.literal('')).optional(),
 
   // Email Recipients (JSON array)
   RECIPIENT_EMAILS: z.string().optional(),
@@ -47,7 +47,7 @@ const envSchema = z.object({
   DOWNLOAD_TOKEN_SECRET: z.string().min(32, 'DOWNLOAD_TOKEN_SECRET must be at least 32 characters').optional(),
 
   // Token Encryption (for storing OAuth tokens)
-  TOKEN_ENCRYPTION_KEY: z.string().length(64, 'TOKEN_ENCRYPTION_KEY must be exactly 64 hexadecimal characters (32 bytes)').optional(),
+  TOKEN_ENCRYPTION_KEY: z.string().length(64, 'TOKEN_ENCRYPTION_KEY must be exactly 64 hexadecimal characters (32 bytes)').or(z.literal('')).optional(),
 
   // Cron Jobs
   CRON_SECRET: z.string().min(32, 'CRON_SECRET must be at least 32 characters').optional(),
