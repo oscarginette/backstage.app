@@ -6,12 +6,12 @@ import { CreateEmailTemplateSchema } from '@/lib/validation-schemas';
 export const GET = withErrorHandler(async () => {
   const requestId = generateRequestId();
   const useCase = UseCaseFactory.createGetEmailTemplatesUseCase();
-  const result = await useCase.execute({});
+  const templates = await useCase.execute({});
 
   return successResponse(
     {
-      templates: result.templates.map(t => t.toJSON()),
-      count: result.count
+      templates: templates.map(t => t.toJSON()),
+      count: templates.length
     },
     200,
     requestId
@@ -29,12 +29,12 @@ export const POST = withErrorHandler(async (request: Request) => {
   }
 
   const useCase = UseCaseFactory.createCreateEmailTemplateUseCase();
-  const result = await useCase.execute(validation.data);
+  const template = await useCase.execute(validation.data);
 
   return createdResponse(
     {
-      template: result.template.toJSON(),
-      success: result.success
+      template: template.toJSON(),
+      success: true
     },
     requestId
   );
