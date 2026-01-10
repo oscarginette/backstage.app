@@ -105,7 +105,7 @@ const [error, setError] = useState<string | null>(null);
   <Input
     label="SoundCloud Track URL"
     name="soundcloudTrackUrl"
-    placeholder="https://soundcloud.com/geebeat/el-house"
+    placeholder="https://soundcloud.com/thebackstage/el-house"
     hint="We'll extract the track ID automatically"
     required
   />

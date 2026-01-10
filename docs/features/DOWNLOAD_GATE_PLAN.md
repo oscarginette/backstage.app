@@ -662,7 +662,7 @@ SPOTIFY_ARTIST_ID=xxx  # Para auto-follow
 R2_ACCOUNT_ID=xxx
 R2_ACCESS_KEY_ID=xxx
 R2_SECRET_ACCESS_KEY=xxx
-R2_BUCKET_NAME=geebeat-downloads
+R2_BUCKET_NAME=thebackstage-downloads
 R2_PUBLIC_URL=https://downloads.thebackstage.app
 
 # JWT para download tokens

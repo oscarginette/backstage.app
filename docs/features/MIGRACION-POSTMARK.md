@@ -65,7 +65,7 @@ Value: pm.mtasv.net
   <a href="{{track_url}}" class="button">🎧 Escuchar Ahora</a>
 
   <p style="color: #666; font-size: 12px; margin-top: 40px;">
-    Recibiste este email porque estás suscrito a las notificaciones de Gee Beat.
+    Recibiste este email porque estás suscrito a las notificaciones de The Backstage.
     <a href="{{unsubscribe_url}}">Cancelar suscripción</a>
   </p>
 </body>
@@ -160,7 +160,7 @@ export async function GET() {
 
     const emailPromises = contacts.rows.map(contact =>
       client.sendEmailWithTemplate({
-        From: `Gee Beat <${process.env.SENDER_EMAIL}>`,
+        From: `The Backstage <${process.env.SENDER_EMAIL}>`,
         To: contact.email,
         TemplateId: Number(process.env.POSTMARK_TEMPLATE_ID),
         TemplateModel: {

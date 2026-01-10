@@ -478,7 +478,7 @@ curl -X POST http://localhost:3000/api/send-custom-email \
     "subject": "New Music!",
     "greeting": "Hey mate,",
     "message": "Check out my latest track!",
-    "signature": "Much love,\nGee Beat",
+    "signature": "Much love,\nThe Backstage",
     "coverImage": "https://example.com/cover.jpg"
   }'
 ```

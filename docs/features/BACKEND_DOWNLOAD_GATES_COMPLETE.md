@@ -377,7 +377,7 @@ curl -X POST https://thebackstage.app/api/download-gates \
   -H "Authorization: Bearer YOUR_SESSION_TOKEN" \
   -d '{
     "title": "El House (Edit x Alejandro Paz)",
-    "soundcloudTrackUrl": "https://soundcloud.com/geebeat/el-house",
+    "soundcloudTrackUrl": "https://soundcloud.com/thebackstage/el-house",
     "fileUrl": "https://www.dropbox.com/s/xxx/track.wav?dl=1",
     "requireSoundcloudRepost": false,
     "requireSoundcloudFollow": false

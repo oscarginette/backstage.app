@@ -255,10 +255,10 @@ CREATE TABLE email_campaigns (
 INSERT INTO email_templates (name, subject, greeting, message, signature, type, is_default)
 VALUES (
   'Default Track Template',
-  'New music from Gee Beat',
+  'New music from The Backstage',
   'Hey mate,',
   'This is my new track **{{trackTitle}}** and it''s now on Soundcloud!',
-  'Much love,\nGee Beat',
+  'Much love,\nThe Backstage',
   'track',
   true
 );
