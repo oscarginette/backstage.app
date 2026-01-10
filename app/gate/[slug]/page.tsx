@@ -20,6 +20,7 @@ export default function DownloadGatePage({ params }: { params: Promise<{ slug: s
   const [oauthLoading, setOauthLoading] = useState(false);
   const [oauthError, setOauthError] = useState<string | null>(null);
   const [spotifyAutoSaveOptIn, setSpotifyAutoSaveOptIn] = useState(false);
+  const [instagramLoading, setInstagramLoading] = useState(false);
 
   useEffect(() => {
     const fetchGate = async () => {
@@ -31,7 +32,7 @@ export default function DownloadGatePage({ params }: { params: Promise<{ slug: s
         } else {
           setGate({
             title: 'El House (Edit x Alejandro Paz) [Backstage DL]',
-            artistName: 'Gee Beat',
+            artistName: 'The Backstage',
             artworkUrl: 'https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17',
             requireSoundcloudRepost: true,
             requireSoundcloudFollow: true,
@@ -41,7 +42,7 @@ export default function DownloadGatePage({ params }: { params: Promise<{ slug: s
       } catch (e) {
          setGate({
             title: 'El House (Edit x Alejandro Paz) [Backstage DL]',
-            artistName: 'Gee Beat',
+            artistName: 'The Backstage',
             artworkUrl: 'https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17',
             requireSoundcloudRepost: true,
             requireSoundcloudFollow: true,
@@ -101,10 +102,12 @@ export default function DownloadGatePage({ params }: { params: Promise<{ slug: s
     if (gate && submission) {
       if (submission.downloadCompleted) {
         setCurrentStep('download');
-      } else if (gate.requireSpotifyConnect && !submission.spotifyConnected && (submission.soundcloudRepostVerified || (!gate.requireSoundcloudFollow && !gate.requireSoundcloudRepost))) {
-        setCurrentStep('spotify');
       } else if ((gate.requireSoundcloudFollow || gate.requireSoundcloudRepost) && !submission.soundcloudRepostVerified) {
         setCurrentStep('soundcloud');
+      } else if (gate.requireInstagramFollow && !submission.instagramClickTracked) {
+        setCurrentStep('instagram');
+      } else if (gate.requireSpotifyConnect && !submission.spotifyConnected) {
+        setCurrentStep('spotify');
       } else {
         setCurrentStep('download');
       }
@@ -114,10 +117,12 @@ export default function DownloadGatePage({ params }: { params: Promise<{ slug: s
   const steps: Step[] = [
     { id: 'email', label: 'Email', completed: !!submission, current: currentStep === 'email' },
     { id: 'soundcloud', label: 'Support', completed: submission?.soundcloudRepostVerified, current: currentStep === 'soundcloud' },
+    { id: 'instagram', label: 'Instagram', completed: submission?.instagramClickTracked, current: currentStep === 'instagram' },
     { id: 'spotify', label: 'Spotify', completed: submission?.spotifyConnected, current: currentStep === 'spotify' },
     { id: 'download', label: 'Download', completed: submission?.downloadCompleted, current: currentStep === 'download' },
   ].filter(s => {
     if (s.id === 'soundcloud') return gate?.requireSoundcloudRepost || gate?.requireSoundcloudFollow;
+    if (s.id === 'instagram') return gate?.requireInstagramFollow;
     if (s.id === 'spotify') return gate?.requireSpotifyConnect;
     return true;
   });
@@ -171,6 +176,41 @@ export default function DownloadGatePage({ params }: { params: Promise<{ slug: s
     // Redirect to Spotify OAuth flow with auto-save opt-in preference
     const redirectUrl = `/api/auth/spotify?submissionId=${submission.id}&gateId=${gate.id}&autoSaveOptIn=${spotifyAutoSaveOptIn}`;
     window.location.href = redirectUrl;
+  };
+
+  const handleInstagramClick = async () => {
+    if (!submission?.id || !gate?.id) return;
+
+    setInstagramLoading(true);
+
+    try {
+      // Track click via API
+      const res = await fetch(
+        `/api/instagram/track?submissionId=${submission.id}&gateId=${gate.id}`
+      );
+
+      const data = await res.json();
+
+      if (data.success && data.instagramUrl) {
+        // Update submission state
+        const updatedSubmission = {
+          ...submission,
+          instagramClickTracked: true,
+          instagramClickTrackedAt: new Date(),
+        };
+        setSubmission(updatedSubmission);
+        localStorage.setItem(`gate_submission_${slug}`, JSON.stringify(updatedSubmission));
+
+        // Redirect to Instagram (opens in new tab)
+        window.open(data.instagramUrl, '_blank');
+      } else {
+        console.error('Failed to track Instagram click:', data.error);
+      }
+    } catch (error) {
+      console.error('Instagram click error:', error);
+    } finally {
+      setInstagramLoading(false);
+    }
   };
 
   const handleDownload = async () => {
@@ -299,6 +339,19 @@ export default function DownloadGatePage({ params }: { params: Promise<{ slug: s
                     isLoading={oauthLoading}
                   />
                 )}
+
+                  {currentStep === 'instagram' && (
+                    <SocialActionStep
+                      key="instagram"
+                      title="Follow on Instagram"
+                      description="Support the artist by following them on Instagram"
+                      buttonText="Follow on Instagram"
+                      icon="instagram"
+                      onAction={handleInstagramClick}
+                      isCompleted={submission?.instagramClickTracked}
+                      isLoading={instagramLoading}
+                    />
+                  )}
 
                   {currentStep === 'spotify' && (
                     <SocialActionStep

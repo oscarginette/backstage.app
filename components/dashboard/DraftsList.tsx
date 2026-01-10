@@ -182,7 +182,7 @@ export default function DraftsList({ onDraftSent }: DraftsListProps) {
               subject: editingDraft.subject,
               greeting: 'Hey mate,',
               message: '',
-              signature: 'Much love,\nGee Beat'
+              signature: 'Much love,\nThe Backstage'
             }}
             onSave={handleSendEditedDraft}
             onSaveDraft={handleUpdateDraft}

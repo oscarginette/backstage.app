@@ -26,10 +26,10 @@ export default function EmailPreviewModal({
   const [editMode, setEditMode] = useState(false);
 
   // Email content states
-  const [subject, setSubject] = useState('New music from Gee Beat');
+  const [subject, setSubject] = useState('New music from The Backstage');
   const [greeting, setGreeting] = useState('Hey mate,');
   const [message, setMessage] = useState(`This is my new track **${track.title}** and it's now on Soundcloud!`);
-  const [signature, setSignature] = useState('Much love,\nGee Beat');
+  const [signature, setSignature] = useState('Much love,\nThe Backstage');
 
   useEffect(() => {
     fetchPreview();
@@ -202,10 +202,10 @@ export default function EmailPreviewModal({
                 {/* Reset Button */}
                 <button
                   onClick={() => {
-                    setSubject('New music from Gee Beat');
+                    setSubject('New music from The Backstage');
                     setGreeting('Hey mate,');
                     setMessage(`This is my new track **${track.title}** and it's now on Soundcloud!`);
-                    setSignature('Much love,\nGee Beat');
+                    setSignature('Much love,\nThe Backstage');
                   }}
                   className="w-full px-4 py-2 rounded-xl border border-border text-sm text-muted-foreground hover:bg-card hover:text-foreground transition-colors"
                 >

@@ -36,7 +36,7 @@ export default function EmailEditorModal({
       subject: '',
       greeting: '',
       message: '',
-      signature: 'Much love,\nGee Beat'
+      signature: 'Much love,\nThe Backstage'
     });
     setStep('edit');
   };
@@ -52,10 +52,10 @@ export default function EmailEditorModal({
     } else {
       // Fallback to hardcoded default
       setContent({
-        subject: 'New music from Gee Beat',
+        subject: 'New music from The Backstage',
         greeting: 'Hey mate,',
         message: 'This is my new track and it\'s now on Soundcloud!',
-        signature: 'Much love,\nGee Beat'
+        signature: 'Much love,\nThe Backstage'
       });
     }
     setStep('edit');

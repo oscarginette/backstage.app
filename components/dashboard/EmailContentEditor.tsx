@@ -5,6 +5,8 @@ import { EmailContent } from '../../types/dashboard';
 import { useTranslations } from '@/lib/i18n/context';
 import ListSelector from './ListSelector';
 import { LIST_FILTER_MODES } from '@/domain/value-objects/ListFilterCriteria';
+import { useEmailContentValidation } from '@/hooks/useEmailContentValidation';
+import { Tooltip } from '@/components/ui/Tooltip';
 
 interface EmailContentEditorProps {
   initialContent: EmailContent;
@@ -216,6 +218,14 @@ export default function EmailContentEditor({
   const [loadingPreview, setLoadingPreview] = useState(false);
   const [savingDraft, setSavingDraft] = useState(false);
 
+  // Real-time validation
+  const validation = useEmailContentValidation({
+    subject,
+    greeting,
+    message,
+    signature
+  });
+
   // List filter state
   const [listFilterMode, setListFilterMode] = useState<'all' | 'include' | 'exclude'>(
     initialContent.listFilter?.mode === LIST_FILTER_MODES.SPECIFIC_LISTS ? 'include' :
@@ -316,14 +326,26 @@ export default function EmailContentEditor({
             <div>
               <label className="block text-sm font-medium text-foreground/70 mb-2 font-serif">
                 {t('subject')}
+                <span className="text-red-500 ml-1">*</span>
               </label>
               <input
                 type="text"
                 value={subject}
                 onChange={(e) => setSubject(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent transition-all"
+                className={`w-full px-4 py-2.5 rounded-xl border bg-background text-foreground focus:outline-none focus:ring-2 transition-all ${
+                  validation.fieldHasError('subject')
+                    ? 'border-red-500 focus:ring-red-500/20 focus:border-red-500'
+                    : 'border-border focus:ring-accent/20 focus:border-accent'
+                }`}
                 placeholder={t('subjectPlaceholder')}
+                aria-invalid={validation.fieldHasError('subject')}
+                aria-describedby={validation.fieldHasError('subject') ? 'subject-error' : undefined}
               />
+              {validation.fieldHasError('subject') && (
+                <p id="subject-error" className="mt-1 text-sm text-red-600" role="alert">
+                  {validation.getFieldErrorMessages('subject').join('. ')}
+                </p>
+              )}
             </div>
 
             {/* List Selector */}
@@ -351,9 +373,20 @@ export default function EmailContentEditor({
                 type="text"
                 value={greeting}
                 onChange={(e) => setGreeting(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent transition-all"
+                className={`w-full px-4 py-2.5 rounded-xl border bg-background text-foreground focus:outline-none focus:ring-2 transition-all ${
+                  validation.fieldHasError('greeting')
+                    ? 'border-red-500 focus:ring-red-500/20 focus:border-red-500'
+                    : 'border-border focus:ring-accent/20 focus:border-accent'
+                }`}
                 placeholder={t('greetingPlaceholder')}
+                aria-invalid={validation.fieldHasError('greeting')}
+                aria-describedby={validation.fieldHasError('greeting') ? 'greeting-error' : undefined}
               />
+              {validation.fieldHasError('greeting') && (
+                <p id="greeting-error" className="mt-1 text-sm text-red-600" role="alert">
+                  {validation.getFieldErrorMessages('greeting').join('. ')}
+                </p>
+              )}
             </div>
 
             {/* Message */}
@@ -366,9 +399,20 @@ export default function EmailContentEditor({
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 rows={6}
-                className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent transition-all resize-none"
+                className={`w-full px-4 py-2.5 rounded-xl border bg-background text-foreground focus:outline-none focus:ring-2 transition-all resize-none ${
+                  validation.fieldHasError('message')
+                    ? 'border-red-500 focus:ring-red-500/20 focus:border-red-500'
+                    : 'border-border focus:ring-accent/20 focus:border-accent'
+                }`}
                 placeholder={t('messagePlaceholder')}
+                aria-invalid={validation.fieldHasError('message')}
+                aria-describedby={validation.fieldHasError('message') ? 'message-error' : undefined}
               />
+              {validation.fieldHasError('message') && (
+                <p id="message-error" className="mt-1 text-sm text-red-600" role="alert">
+                  {validation.getFieldErrorMessages('message').join('. ')}
+                </p>
+              )}
             </div>
 
             {/* Signature */}
@@ -380,9 +424,20 @@ export default function EmailContentEditor({
                 value={signature}
                 onChange={(e) => setSignature(e.target.value)}
                 rows={3}
-                className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent transition-all resize-none"
+                className={`w-full px-4 py-2.5 rounded-xl border bg-background text-foreground focus:outline-none focus:ring-2 transition-all resize-none ${
+                  validation.fieldHasError('signature')
+                    ? 'border-red-500 focus:ring-red-500/20 focus:border-red-500'
+                    : 'border-border focus:ring-accent/20 focus:border-accent'
+                }`}
                 placeholder={t('signaturePlaceholder')}
+                aria-invalid={validation.fieldHasError('signature')}
+                aria-describedby={validation.fieldHasError('signature') ? 'signature-error' : undefined}
               />
+              {validation.fieldHasError('signature') && (
+                <p id="signature-error" className="mt-1 text-sm text-red-600" role="alert">
+                  {validation.getFieldErrorMessages('signature').join('. ')}
+                </p>
+              )}
             </div>
 
             {/* Reset Button */}
@@ -435,25 +490,34 @@ export default function EmailContentEditor({
             >
               {t('cancel')}
             </button>
-            <button
-              onClick={handleSaveDraft}
-              disabled={saving || savingDraft}
-              className="px-6 py-3 rounded-full border border-border text-foreground hover:border-foreground hover:bg-muted transition-all disabled:opacity-50 flex items-center gap-2"
+            <Tooltip
+              content={validation.isValid ? t('saveDraft') : validation.saveButtonTooltip}
+              disabled={validation.isValid}
             >
-              {savingDraft ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-muted-foreground/30 border-t-muted-foreground rounded-full animate-spin" />
-                  {t('saving')}
-                </>
-              ) : (
-                <>
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
-                  </svg>
-                  {t('saveDraft')}
-                </>
-              )}
-            </button>
+              <button
+                onClick={handleSaveDraft}
+                disabled={!validation.isValid || saving || savingDraft}
+                className={`px-6 py-3 rounded-full border text-foreground flex items-center gap-2 transition-all ${
+                  validation.isValid && !saving && !savingDraft
+                    ? 'border-border hover:border-foreground hover:bg-muted cursor-pointer'
+                    : 'border-border opacity-50 cursor-not-allowed'
+                }`}
+              >
+                {savingDraft ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-muted-foreground/30 border-t-muted-foreground rounded-full animate-spin" />
+                    {t('saving')}
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+                    </svg>
+                    {t('saveDraft')}
+                  </>
+                )}
+              </button>
+            </Tooltip>
             <button
               onClick={handleSave}
               disabled={saving || savingDraft}

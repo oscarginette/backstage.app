@@ -51,16 +51,32 @@ export default function CreateGateForm() {
     fileType: 'audio/wav',
     requireSoundcloudRepost: true,
     requireSoundcloudFollow: true,
+    requireInstagramFollow: true,
+    instagramProfileUrl: '',
     requireSpotifyConnect: true,
     maxDownloads: undefined,
     expiresAt: '',
     slug: ''
   });
 
-  // Load SoundCloud tracks on mount
+  // Load SoundCloud tracks and user Instagram URL on mount
   useEffect(() => {
     loadSoundCloudTracks();
+    loadUserInstagramUrl();
   }, []);
+
+  const loadUserInstagramUrl = async () => {
+    try {
+      const res = await fetch('/api/user/settings');
+      const data = await res.json();
+
+      if (data.instagramUrl) {
+        setFormData(prev => ({ ...prev, instagramProfileUrl: data.instagramUrl }));
+      }
+    } catch (error) {
+      console.error('Error loading user Instagram URL:', error);
+    }
+  };
 
   const loadSoundCloudTracks = async () => {
     setLoadingTracks(true);
@@ -464,35 +480,71 @@ export default function CreateGateForm() {
 
                       <div className="grid grid-cols-1 gap-2">
                         {[
-                          { id: 'requireSoundcloudRepost' as const, label: t('gateSteps.soundcloudRepost'), icon: RefreshCw },
-                          { id: 'requireSoundcloudFollow' as const, label: t('gateSteps.soundcloudFollow'), icon: Plus },
-                          { id: 'requireSpotifyConnect' as const, label: t('gateSteps.spotifyConnect'), icon: Music },
+                          { id: 'requireSoundcloudRepost' as const, label: t('gateSteps.soundcloudRepost'), icon: RefreshCw, hasInput: false },
+                          { id: 'requireSoundcloudFollow' as const, label: t('gateSteps.soundcloudFollow'), icon: Plus, hasInput: false },
+                          { id: 'requireSpotifyConnect' as const, label: t('gateSteps.spotifyConnect'), icon: Music, hasInput: false },
+                          { id: 'requireInstagramFollow' as const, label: 'Instagram Follow', icon: ExternalLink, hasInput: true },
                         ].map((req) => {
                           const isChecked = formData[req.id];
                           return (
                             <div
                               key={req.id}
                               className={cn(
-                                'p-3 rounded-xl border cursor-pointer flex items-center justify-between transition-all',
-                                isChecked ? 'border-accent/20 bg-accent/5' : 'border-foreground/10 hover:border-foreground/20'
+                                'rounded-xl border transition-all',
+                                isChecked ? 'border-accent/20 bg-accent/5' : 'border-foreground/10'
                               )}
-                              onClick={() => setFormData((p: CreateGateFormData) => ({ ...p, [req.id]: !p[req.id] }))}
                             >
-                              <div className="flex items-center gap-3">
-                                <div className={cn(
-                                  'w-7 h-7 rounded-lg flex items-center justify-center transition-colors',
-                                  isChecked ? 'bg-accent text-white' : 'bg-foreground/10 text-foreground/40'
-                                )}>
-                                  <req.icon className="w-3.5 h-3.5" />
+                              <div
+                                className={cn(
+                                  'p-3 flex items-center justify-between cursor-pointer',
+                                  req.hasInput ? '' : 'hover:bg-foreground/5'
+                                )}
+                                onClick={() => setFormData((p: CreateGateFormData) => ({ ...p, [req.id]: !p[req.id] }))}
+                              >
+                                <div className="flex items-center gap-3">
+                                  <div className={cn(
+                                    'w-7 h-7 rounded-lg flex items-center justify-center transition-colors',
+                                    isChecked ? 'bg-accent text-white' : 'bg-foreground/10 text-foreground/40'
+                                  )}>
+                                    <req.icon className="w-3.5 h-3.5" />
+                                  </div>
+                                  <span className="text-[10px] font-bold uppercase tracking-widest text-foreground/60">{req.label}</span>
                                 </div>
-                                <span className="text-[10px] font-bold uppercase tracking-widest text-foreground/60">{req.label}</span>
+                                <input
+                                  type="checkbox"
+                                  checked={isChecked}
+                                  readOnly
+                                  className="w-3.5 h-3.5 rounded text-accent focus:ring-accent border-foreground/30"
+                                />
                               </div>
-                              <input
-                                type="checkbox"
-                                checked={isChecked}
-                                readOnly
-                                className="w-3.5 h-3.5 rounded text-accent focus:ring-accent border-foreground/30"
-                              />
+
+                              {/* Instagram URL Input inside card */}
+                              {req.hasInput && isChecked && (
+                                <div className="px-3 pb-3 pt-0">
+                                  <Input
+                                    type="url"
+                                    name="instagramProfileUrl"
+                                    value={formData.instagramProfileUrl}
+                                    onChange={async (e) => {
+                                      handleChange(e);
+                                      // Save to user settings
+                                      try {
+                                        await fetch('/api/user/settings', {
+                                          method: 'PATCH',
+                                          headers: { 'Content-Type': 'application/json' },
+                                          body: JSON.stringify({ instagramUrl: e.target.value })
+                                        });
+                                      } catch (error) {
+                                        console.error('Error saving Instagram URL:', error);
+                                      }
+                                    }}
+                                    placeholder="https://instagram.com/yourusername"
+                                  />
+                                  <p className="text-[9px] text-foreground/40 mt-1.5 leading-relaxed">
+                                    Se guardará para futuros gates
+                                  </p>
+                                </div>
+                              )}
                             </div>
                           );
                         })}
