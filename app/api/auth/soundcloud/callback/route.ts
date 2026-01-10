@@ -1,18 +1,19 @@
 /**
  * GET /api/auth/soundcloud/callback
- * SoundCloud OAuth callback handler (public endpoint)
+ * SoundCloud OAuth 2.1 callback handler with PKCE verification (public endpoint)
  *
  * Clean Architecture: API route only orchestrates, business logic in use cases.
  *
  * Flow:
  * 1. Validate state token (CSRF protection)
- * 2. Exchange authorization code for access token
- * 3. Get SoundCloud user profile
- * 4. Update submission with SoundCloud profile
- * 5. Verify repost (if required by gate)
- * 6. Verify follow (if required by gate)
- * 7. Mark state token as used
- * 8. Redirect back to gate page with success/error
+ * 2. Validate PKCE code_verifier exists (OAuth 2.1 requirement)
+ * 3. Exchange authorization code + code_verifier for access token
+ * 4. Get SoundCloud user profile
+ * 5. Update submission with SoundCloud profile
+ * 6. Verify repost (if required by gate)
+ * 7. Verify follow (if required by gate)
+ * 8. Mark state token as used
+ * 9. Redirect back to gate page with success/error
  *
  * Query Parameters:
  * - code: Authorization code from SoundCloud
@@ -20,6 +21,7 @@
  * - error: OAuth error (if authorization failed)
  *
  * Security:
+ * - PKCE prevents authorization code interception (OAuth 2.1)
  * - State token validation (exists, not used, not expired)
  * - One-time use tokens
  * - Access token never exposed to browser
@@ -81,6 +83,11 @@ export async function GET(request: Request) {
       return redirectToGateWithError('Invalid OAuth provider', null);
     }
 
+    // Validate PKCE code_verifier exists (OAuth 2.1 requirement)
+    if (!oauthState.codeVerifier) {
+      return redirectToGateWithError('Invalid authorization request (missing PKCE)', null);
+    }
+
     // Get gate to construct redirect URL
     const gateRepository = RepositoryFactory.createDownloadGateRepository();
     const gate = await gateRepository.findById(1, oauthState.gateId.toString());
@@ -89,14 +96,15 @@ export async function GET(request: Request) {
     }
 
     try {
-      // 2. Exchange code for access token
+      // 2. Exchange code for access token (with PKCE verification)
       const redirectUri =
         env.SOUNDCLOUD_REDIRECT_URI ||
         `${getAppUrl()}/api/auth/soundcloud/callback`;
 
       const tokenResponse = await soundCloudClient.exchangeCodeForToken(
         code,
-        redirectUri
+        redirectUri,
+        oauthState.codeVerifier // OAuth 2.1 PKCE verifier
       );
 
       // 3. Get SoundCloud user profile

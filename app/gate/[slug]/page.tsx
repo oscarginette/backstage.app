@@ -157,9 +157,9 @@ export default function DownloadGatePage({ params }: { params: Promise<{ slug: s
     if (!submission?.id || !gate?.id) return;
 
     setOauthLoading(true);
-    // Redirect to SoundCloud OAuth flow
+    // Redirect to SoundCloud OAuth flow (OAuth 2.1 with PKCE)
     // The OAuth callback will handle verification and redirect back to this page
-    const redirectUrl = `/api/gate/oauth/soundcloud?submissionId=${submission.id}&gateId=${gate.id}`;
+    const redirectUrl = `/api/auth/soundcloud?submissionId=${submission.id}&gateId=${gate.id}`;
     window.location.href = redirectUrl;
   };
 

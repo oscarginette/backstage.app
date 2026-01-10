@@ -1,19 +1,21 @@
 /**
  * GET /api/auth/soundcloud
- * Initiate SoundCloud OAuth flow (public endpoint)
+ * Initiate SoundCloud OAuth 2.1 flow with PKCE (public endpoint)
  *
  * Clean Architecture: API route only orchestrates, state management via repository.
  *
  * Flow:
  * 1. Validate submissionId and gateId query parameters
- * 2. Create OAuth state token (CSRF protection)
- * 3. Redirect to SoundCloud authorization URL
+ * 2. Generate PKCE pair (code_verifier + code_challenge)
+ * 3. Create OAuth state token (CSRF protection + PKCE storage)
+ * 4. Redirect to SoundCloud authorization URL with code_challenge
  *
  * Query Parameters:
  * - submissionId: Download submission ID
  * - gateId: Download gate ID
  *
  * Security:
+ * - PKCE prevents authorization code interception (OAuth 2.1 requirement)
  * - State token prevents CSRF attacks
  * - State expires in 15 minutes
  * - State can only be used once
@@ -70,7 +72,10 @@ export async function GET(request: Request) {
     const { randomBytes } = await import('node:crypto');
     const stateToken = randomBytes(32).toString('hex');
 
-    // Create OAuth state token (CSRF protection)
+    // Generate PKCE pair (OAuth 2.1 requirement)
+    const { codeVerifier, codeChallenge } = soundCloudClient.generatePKCE();
+
+    // Create OAuth state token (CSRF protection + PKCE storage)
     const expiresAt = new Date(Date.now() + STATE_EXPIRATION_MS);
 
     const oauthStateRepository = RepositoryFactory.createOAuthStateRepository();
@@ -79,6 +84,7 @@ export async function GET(request: Request) {
       provider: 'soundcloud',
       submissionId,
       gateId,
+      codeVerifier, // Store for callback verification
       expiresAt,
     });
 
@@ -87,10 +93,11 @@ export async function GET(request: Request) {
       env.SOUNDCLOUD_REDIRECT_URI ||
       `${getAppUrl()}/api/auth/soundcloud/callback`;
 
-    // Generate SoundCloud authorization URL
+    // Generate SoundCloud authorization URL with PKCE
     const authUrl = soundCloudClient.getAuthorizationUrl(
       oauthState.stateToken,
-      redirectUri
+      redirectUri,
+      codeChallenge // OAuth 2.1 PKCE challenge
     );
 
     // Redirect to SoundCloud

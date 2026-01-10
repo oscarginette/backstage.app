@@ -1,21 +1,37 @@
 /**
  * SoundCloud API Client
  *
- * Wrapper for SoundCloud API v2 endpoints.
- * Handles OAuth flow and user verification (repost, follow).
+ * Wrapper for SoundCloud API with OAuth 2.1 PKCE flow.
+ * Implements Proof Key for Code Exchange (PKCE) as required by SoundCloud.
  *
- * Documentation:
- * - OAuth: https://developers.soundcloud.com/docs/api/guide#authentication
- * - API v2: Uses undocumented but stable v2 endpoints
+ * PKCE Flow:
+ * 1. Generate random code_verifier (128 chars, crypto-secure)
+ * 2. Hash code_verifier with SHA-256 to create code_challenge
+ * 3. Send code_challenge in authorization URL
+ * 4. Exchange authorization code + code_verifier for access token
  *
  * Security:
+ * - PKCE prevents authorization code interception attacks
  * - CSRF protection via state tokens
  * - Client secret never exposed to browser
  * - Access tokens stored server-side only
+ *
+ * Required by: SoundCloud OAuth 2.1 (October 2024+)
+ *
+ * Documentation:
+ * - OAuth 2.1: https://developers.soundcloud.com/docs/api/guide#authentication
+ * - Migration: https://developers.soundcloud.com/blog/oauth-migration/
+ * - API v2: Uses stable v2 endpoints for repost/follow verification
  */
 
+import { randomBytes, createHash } from 'crypto';
 import { env } from '@/lib/env';
 
+// OAuth 2.1 endpoints (updated October 2024)
+const SOUNDCLOUD_AUTH_URL = 'https://secure.soundcloud.com/authorize';
+const SOUNDCLOUD_TOKEN_URL = 'https://secure.soundcloud.com/oauth/token';
+
+// API endpoints (unchanged)
 const SOUNDCLOUD_API_BASE = 'https://api.soundcloud.com';
 const SOUNDCLOUD_API_V2_BASE = 'https://api-v2.soundcloud.com';
 
@@ -56,6 +72,14 @@ export interface SoundCloudRepost {
   };
 }
 
+/**
+ * PKCE code verifier/challenge pair
+ */
+export interface PKCEPair {
+  codeVerifier: string;
+  codeChallenge: string;
+}
+
 export class SoundCloudClient {
   private clientId: string;
   private clientSecret: string;
@@ -71,35 +95,64 @@ export class SoundCloudClient {
   }
 
   /**
-   * Generate SoundCloud OAuth authorization URL
+   * Generate PKCE code_verifier and code_challenge
+   *
+   * code_verifier: Random 128-character string (A-Z, a-z, 0-9, -, ., _, ~)
+   * code_challenge: Base64URL-encoded SHA256 hash of code_verifier
+   *
+   * @returns PKCE pair with code_verifier and code_challenge
+   */
+  public generatePKCE(): PKCEPair {
+    // Generate 64 random bytes (will become 128 hex chars)
+    const codeVerifier = this.base64URLEncode(randomBytes(64));
+
+    // Create SHA-256 hash of code_verifier
+    const hash = createHash('sha256').update(codeVerifier).digest();
+    const codeChallenge = this.base64URLEncode(hash);
+
+    return {
+      codeVerifier,
+      codeChallenge,
+    };
+  }
+
+  /**
+   * Generate SoundCloud OAuth authorization URL with PKCE
    * @param state - CSRF protection state token
    * @param redirectUri - OAuth callback URL
+   * @param codeChallenge - PKCE code challenge
    * @returns Authorization URL to redirect user to
    */
-  getAuthorizationUrl(state: string, redirectUri: string): string {
+  getAuthorizationUrl(state: string, redirectUri: string, codeChallenge: string): string {
     const params = new URLSearchParams({
       client_id: this.clientId,
       redirect_uri: redirectUri,
       response_type: 'code',
       scope: 'non-expiring', // Scope for API access
       state,
+      code_challenge_method: 'S256',
+      code_challenge: codeChallenge,
     });
 
-    return `${SOUNDCLOUD_API_BASE}/connect?${params.toString()}`;
+    return `${SOUNDCLOUD_AUTH_URL}?${params.toString()}`;
   }
 
   /**
    * Exchange authorization code for access token
+   * Uses PKCE code_verifier for verification
+   *
    * @param code - Authorization code from OAuth callback
    * @param redirectUri - Must match the redirect_uri from authorization
+   * @param codeVerifier - PKCE code verifier
    * @returns Access token response
    */
   async exchangeCodeForToken(
     code: string,
-    redirectUri: string
+    redirectUri: string,
+    codeVerifier: string
   ): Promise<SoundCloudTokenResponse> {
     try {
-      const response = await fetch(`${SOUNDCLOUD_API_BASE}/oauth2/token`, {
+      const response = await fetch(SOUNDCLOUD_TOKEN_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
@@ -110,6 +163,7 @@ export class SoundCloudClient {
           redirect_uri: redirectUri,
           grant_type: 'authorization_code',
           code,
+          code_verifier: codeVerifier,
         }),
       });
 
@@ -251,6 +305,21 @@ export class SoundCloudClient {
    */
   isConfigured(): boolean {
     return Boolean(this.clientId && this.clientSecret);
+  }
+
+  /**
+   * Base64URL encode (RFC 4648)
+   * Converts Buffer to base64url encoding (no padding, URL-safe)
+   *
+   * @param buffer - Buffer to encode
+   * @returns Base64URL encoded string
+   */
+  private base64URLEncode(buffer: Buffer): string {
+    return buffer
+      .toString('base64')
+      .replace(/\+/g, '-')
+      .replace(/\//g, '_')
+      .replace(/=/g, '');
   }
 }
 
