@@ -72,7 +72,7 @@ export default function GateSubmissions({ gateId }: { gateId: string }) {
     {
       key: 'status',
       label: t('statusFilter') || 'Status',
-      type: 'single',
+      type: 'select',
       options: [
         { value: SUBMISSION_FILTERS.STATUS.ALL, label: t('statusAll') || 'All' },
         { value: SUBMISSION_FILTERS.STATUS.DOWNLOADED, label: t('downloaded') || 'Downloaded' },
@@ -82,7 +82,7 @@ export default function GateSubmissions({ gateId }: { gateId: string }) {
     {
       key: 'verification',
       label: t('verificationFilter') || 'Verification',
-      type: 'single',
+      type: 'select',
       options: [
         { value: SUBMISSION_FILTERS.VERIFICATION.ALL, label: t('verificationAll') || 'All' },
         { value: SUBMISSION_FILTERS.VERIFICATION.ALL_VERIFIED, label: t('allVerified') || 'All Verified' },
@@ -178,7 +178,7 @@ export default function GateSubmissions({ gateId }: { gateId: string }) {
     {
       header: t('date'),
       accessor: (s: DownloadSubmission) => (
-        <div className={cn(TEXT_STYLES.label.base, 'text-muted-foreground')}>
+        <div className={cn(TEXT_STYLES.label.default, 'text-muted-foreground')}>
           {formatDate(s.createdAt)}
         </div>
       ),

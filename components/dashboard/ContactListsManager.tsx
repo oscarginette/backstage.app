@@ -307,7 +307,7 @@ export default function ContactListsManager() {
 
   const transition = {
     duration: 0.3,
-    ease: [0.4, 0.0, 0.2, 1], // Material Design easing
+    ease: [0.4, 0.0, 0.2, 1] as const, // Material Design easing
   };
 
   return (

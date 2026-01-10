@@ -337,7 +337,7 @@ export default function DataTableFilters({
                               }
                               className={cn(
                                 'w-4 h-4 rounded border-border text-primary focus:ring-primary cursor-pointer',
-                                filter.type === 'radio' ? 'rounded-full' : ''
+                                filter.type === 'select' ? 'rounded-full' : ''
                               )}
                             />
                             <span className={cn(TEXT_STYLES.body.base, 'text-foreground')}>
