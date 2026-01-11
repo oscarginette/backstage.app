@@ -1,8 +1,10 @@
-import { NextResponse } from 'next/server';
 import { GetCampaignUseCase } from '@/domain/services/campaigns/GetCampaignUseCase';
-import { UpdateCampaignUseCase, ValidationError as UpdateValidationError, NotFoundError as UpdateNotFoundError } from '@/domain/services/campaigns/UpdateCampaignUseCase';
-import { DeleteCampaignUseCase, ValidationError as DeleteValidationError, NotFoundError as DeleteNotFoundError } from '@/domain/services/campaigns/DeleteCampaignUseCase';
+import { UpdateCampaignUseCase } from '@/domain/services/campaigns/UpdateCampaignUseCase';
+import { DeleteCampaignUseCase } from '@/domain/services/campaigns/DeleteCampaignUseCase';
 import { emailCampaignRepository } from '@/infrastructure/database/repositories';
+import { withErrorHandler, generateRequestId } from '@/lib/error-handler';
+import { successResponse, noContentResponse } from '@/lib/api-response';
+import { ValidationError, NotFoundError } from '@/lib/errors';
 
 export const dynamic = 'force-dynamic';
 
@@ -10,29 +12,24 @@ export const dynamic = 'force-dynamic';
  * GET /api/campaigns/[id]
  * Get a specific email campaign by ID
  */
-export async function GET(
+async function handleGet(
   request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  context?: { params: Promise<{ id: string }> }
 ) {
-  const { id } = await params;
-  try {
-    const useCase = new GetCampaignUseCase(emailCampaignRepository);
-    const campaign = await useCase.execute(id);
+  const { id } = await context!.params;
+  const requestId = generateRequestId();
 
-    if (!campaign) {
-      return NextResponse.json(
-        { error: 'Campaign not found' },
-        { status: 404 }
-      );
-    }
+  const useCase = new GetCampaignUseCase(emailCampaignRepository);
+  const campaign = await useCase.execute(id);
 
-    return NextResponse.json({ campaign });
-  } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error instanceof Error ? error.message : "Unknown error" : 'Failed to fetch campaign';
-    console.error('Error fetching campaign:', errorMessage);
-    return NextResponse.json({ error: errorMessage }, { status: 500 });
+  if (!campaign) {
+    throw new NotFoundError('Campaign not found', { id });
   }
+
+  return successResponse({ campaign }, 200, requestId);
 }
+
+export const GET = withErrorHandler(handleGet);
 
 /**
  * PUT /api/campaigns/[id]
@@ -46,43 +43,35 @@ export async function GET(
  *
  * Note: Only draft campaigns can be updated. Sent campaigns are immutable.
  */
-export async function PUT(
+async function handlePut(
   request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  context?: { params: Promise<{ id: string }> }
 ) {
-  const { id } = await params;
-  try {
-    const body = await request.json();
+  const { id } = await context!.params;
+  const requestId = generateRequestId();
+  const body = await request.json();
 
-    const useCase = new UpdateCampaignUseCase(emailCampaignRepository);
-    const result = await useCase.execute({
-      id,
-      subject: body.subject,
-      htmlContent: body.htmlContent,
-      status: body.status,
-      scheduledAt: body.scheduledAt ? new Date(body.scheduledAt) : undefined,
-      sentAt: body.status === 'sent' ? new Date() : undefined
-    });
+  const useCase = new UpdateCampaignUseCase(emailCampaignRepository);
+  const result = await useCase.execute({
+    id,
+    subject: body.subject,
+    htmlContent: body.htmlContent,
+    status: body.status,
+    scheduledAt: body.scheduledAt ? new Date(body.scheduledAt) : undefined,
+    sentAt: body.status === 'sent' ? new Date() : undefined,
+  });
 
-    return NextResponse.json({
+  return successResponse(
+    {
       campaign: result.campaign,
-      success: result.success
-    });
-  } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error instanceof Error ? error.message : "Unknown error" : 'Failed to update campaign';
-    console.error('Error updating campaign:', errorMessage);
-
-    if (error instanceof UpdateNotFoundError) {
-      return NextResponse.json({ error: error instanceof Error ? error.message : "Unknown error" }, { status: 404 });
-    }
-
-    if (error instanceof UpdateValidationError) {
-      return NextResponse.json({ error: error instanceof Error ? error.message : "Unknown error" }, { status: 400 });
-    }
-
-    return NextResponse.json({ error: errorMessage }, { status: 500 });
-  }
+      success: result.success,
+    },
+    200,
+    requestId
+  );
 }
+
+export const PUT = withErrorHandler(handlePut);
 
 /**
  * DELETE /api/campaigns/[id]
@@ -92,31 +81,24 @@ export async function PUT(
  * - Draft campaigns are hard deleted
  * - Sent campaigns cannot be deleted (returns 400 error)
  */
-export async function DELETE(
+async function handleDelete(
   request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  context?: { params: Promise<{ id: string }> }
 ) {
-  const { id } = await params;
-  try {
-    const useCase = new DeleteCampaignUseCase(emailCampaignRepository);
-    await useCase.execute(id);
+  const { id} = await context!.params;
+  const requestId = generateRequestId();
 
-    return NextResponse.json({
+  const useCase = new DeleteCampaignUseCase(emailCampaignRepository);
+  await useCase.execute(id);
+
+  return successResponse(
+    {
       success: true,
-      message: 'Campaign deleted successfully'
-    });
-  } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error instanceof Error ? error.message : "Unknown error" : 'Failed to delete campaign';
-    console.error('Error deleting campaign:', errorMessage);
-
-    if (error instanceof DeleteNotFoundError) {
-      return NextResponse.json({ error: error instanceof Error ? error.message : "Unknown error" }, { status: 404 });
-    }
-
-    if (error instanceof DeleteValidationError) {
-      return NextResponse.json({ error: error instanceof Error ? error.message : "Unknown error" }, { status: 400 });
-    }
-
-    return NextResponse.json({ error: errorMessage }, { status: 500 });
-  }
+      message: 'Campaign deleted successfully',
+    },
+    200,
+    requestId
+  );
 }
+
+export const DELETE = withErrorHandler(handleDelete);

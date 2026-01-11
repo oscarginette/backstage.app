@@ -1,12 +1,14 @@
-import { NextResponse } from 'next/server';
 import { UseCaseFactory } from '@/lib/di-container';
+import { withErrorHandler, generateRequestId } from '@/lib/error-handler';
+import { successResponse } from '@/lib/api-response';
+import { ValidationError, NotFoundError } from '@/lib/errors';
 
 export const dynamic = 'force-dynamic';
 
 /**
  * Unsubscribe Endpoint (Clean Architecture)
  *
- * Acepta tanto GET como POST (CAN-SPAM compliant 1-click unsubscribe)
+ * Accepts both GET and POST (CAN-SPAM compliant 1-click unsubscribe)
  * Query params: ?token=xxx
  *
  * Features:
@@ -14,63 +16,51 @@ export const dynamic = 'force-dynamic';
  * - Idempotent (can call multiple times)
  * - GDPR audit trail logging
  * - IP and User-Agent tracking
+ * - Comprehensive error handling
  */
-export async function GET(request: Request) {
-  return handleUnsubscribe(request);
-}
-
-export async function POST(request: Request) {
-  return handleUnsubscribe(request);
-}
 
 async function handleUnsubscribe(request: Request) {
-  try {
-    const { searchParams } = new URL(request.url);
-    const token = searchParams.get('token');
+  const requestId = generateRequestId();
+  const { searchParams } = new URL(request.url);
+  const token = searchParams.get('token');
 
-    if (!token) {
-      return NextResponse.json(
-        { error: 'Missing unsubscribe token' },
-        { status: 400 }
-      );
-    }
+  // Validate token parameter
+  if (!token) {
+    throw new ValidationError('Missing unsubscribe token');
+  }
 
-    // Extract IP and User-Agent for audit trail
-    const ipAddress = request.headers.get('x-forwarded-for') ||
-                      request.headers.get('x-real-ip') ||
-                      null;
-    const userAgent = request.headers.get('user-agent') || null;
+  // Extract IP and User-Agent for audit trail (GDPR compliance)
+  const ipAddress =
+    request.headers.get('x-forwarded-for') ||
+    request.headers.get('x-real-ip') ||
+    null;
+  const userAgent = request.headers.get('user-agent') || null;
 
-    // Get use case from factory (DI)
-    const useCase = UseCaseFactory.createUnsubscribeUseCase();
+  // Execute use case (business logic)
+  const useCase = UseCaseFactory.createUnsubscribeUseCase();
+  const result = await useCase.execute({
+    token,
+    ipAddress,
+    userAgent,
+  });
 
-    const result = await useCase.execute({
-      token,
-      ipAddress,
-      userAgent
-    });
+  // Handle use case result
+  if (!result.success) {
+    throw new NotFoundError(result.error || 'Invalid unsubscribe token');
+  }
 
-    if (!result.success) {
-      return NextResponse.json(
-        { error: result.error },
-        { status: 404 }
-      );
-    }
-
-    // Return success response
-    return NextResponse.json({
-      success: true,
+  // Return success response
+  return successResponse(
+    {
       message: result.alreadyUnsubscribed
         ? 'Already unsubscribed'
         : 'Successfully unsubscribed',
-      email: result.email
-    });
-
-  } catch (error: unknown) {
-    console.error('Error in unsubscribe:', error);
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Unknown error" },
-      { status: 500 }
-    );
-  }
+      email: result.email,
+    },
+    200,
+    requestId
+  );
 }
+
+export const GET = withErrorHandler(handleUnsubscribe);
+export const POST = withErrorHandler(handleUnsubscribe);

@@ -3,9 +3,9 @@ import { CreateCampaignUseCase } from '@/domain/services/campaigns/CreateCampaig
 import { emailCampaignRepository } from '@/infrastructure/database/repositories';
 import { withErrorHandler, generateRequestId } from '@/lib/error-handler';
 import { successResponse, createdResponse } from '@/lib/api-response';
-import { CreateCampaignSchema } from '@/lib/validation-schemas';
+import { CreateCampaignSchema, GetCampaignsQuerySchema } from '@/lib/validation-schemas';
 import { auth } from '@/lib/auth';
-import { UnauthorizedError } from '@/lib/errors';
+import { UnauthorizedError, ValidationError } from '@/lib/errors';
 
 export const dynamic = 'force-dynamic';
 
@@ -34,12 +34,26 @@ export const GET = withErrorHandler(async (request: Request) => {
 
   const userId = parseInt(session.user.id);
 
-  // 2. Extract query parameters
+  // 2. Extract and validate query parameters
   const { searchParams } = new URL(request.url);
-  const status = searchParams.get('status') as 'draft' | 'sent' | null;
-  const trackId = searchParams.get('trackId');
-  const templateId = searchParams.get('templateId');
-  const scheduledOnly = searchParams.get('scheduledOnly') === 'true';
+  const queryParams = {
+    status: searchParams.get('status'),
+    trackId: searchParams.get('trackId'),
+    templateId: searchParams.get('templateId'),
+    scheduledOnly: searchParams.get('scheduledOnly'),
+  };
+
+  // Validate query parameters
+  const validation = GetCampaignsQuerySchema.safeParse(queryParams);
+  if (!validation.success) {
+    throw new ValidationError('Invalid query parameters', validation.error.format());
+  }
+
+  const validatedParams = validation.data;
+  const status = validatedParams.status as 'draft' | 'sent' | undefined;
+  const trackId = validatedParams.trackId;
+  const templateId = validatedParams.templateId;
+  const scheduledOnly = validatedParams.scheduledOnly === 'true';
 
   // 3. Execute use case with user isolation
   const useCase = new GetCampaignsUseCase(emailCampaignRepository);
@@ -94,7 +108,7 @@ export const POST = withErrorHandler(async (request: Request) => {
   const body = await request.json();
   const validation = CreateCampaignSchema.safeParse(body);
   if (!validation.success) {
-    throw new Error(`Validation failed: ${JSON.stringify(validation.error.format())}`);
+    throw new ValidationError('Validation failed', validation.error.format());
   }
 
   const validatedData = validation.data;

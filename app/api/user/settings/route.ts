@@ -9,7 +9,7 @@ import { auth } from '@/lib/auth';
 import { UseCaseFactory } from '@/lib/di-container';
 import { withErrorHandler, generateRequestId } from '@/lib/error-handler';
 import { successResponse } from '@/lib/api-response';
-import { UnauthorizedError } from '@/lib/errors';
+import { UnauthorizedError, ValidationError } from '@/lib/errors';
 import { UpdateUserSettingsSchema } from '@/lib/validation-schemas';
 
 export const dynamic = 'force-dynamic';
@@ -57,7 +57,7 @@ export const PATCH = withErrorHandler(async (request: Request) => {
   // Validate request body
   const validation = UpdateUserSettingsSchema.safeParse(body);
   if (!validation.success) {
-    throw new Error(`Validation failed: ${JSON.stringify(validation.error.format())}`);
+    throw new ValidationError('Validation failed', validation.error.format());
   }
 
   const validatedData = validation.data;
