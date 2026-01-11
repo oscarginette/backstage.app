@@ -77,6 +77,10 @@ describe('User Entity', () => {
           'artist',
           true,
           now,
+          now,
+          'free',
+          1000,
+          0,
           now
         );
 
@@ -95,10 +99,14 @@ describe('User Entity', () => {
           User.fromDatabase(
             1,
             'invalid-email',
-            '$2b$10$hashedpassword',
+            '$2b$10$hashedpasswordhashedpasswordhashedpasswordhashedpass',
             'artist',
             true,
             now,
+            now,
+            'free',
+            1000,
+            0,
             now
           )
         ).toThrow('Invalid email: must be valid email format');
@@ -114,6 +122,10 @@ describe('User Entity', () => {
             'artist',
             true,
             now,
+            now,
+            'free',
+            1000,
+            0,
             now
           )
         ).toThrow('Invalid passwordHash: must be valid bcrypt hash');

@@ -30,6 +30,10 @@ class MockUserRepository implements IUserRepository {
       'artist',
       true,
       new Date(),
+      new Date(),
+      'free',
+      1000,
+      0,
       new Date()
     );
   }
@@ -53,6 +57,50 @@ class MockUserRepository implements IUserRepository {
   }
 
   async updateActiveStatus(userId: number, active: boolean): Promise<void> {}
+
+  async updateSubscription(userId: number, input: any): Promise<void> {}
+
+  async incrementEmailsSent(userId: number, count: number): Promise<void> {}
+
+  async getQuotaInfo(userId: number): Promise<{
+    maxContacts: number;
+    maxMonthlyEmails: number;
+    emailsSentThisMonth: number;
+    subscriptionPlan: string;
+    subscriptionExpiresAt: Date | null;
+  }> {
+    return {
+      maxContacts: 1000,
+      maxMonthlyEmails: 1000,
+      emailsSentThisMonth: 0,
+      subscriptionPlan: 'free',
+      subscriptionExpiresAt: null,
+    };
+  }
+
+  async updateQuota(userId: number, monthlyQuota: number): Promise<void> {}
+
+  async updateRole(email: string, role: any): Promise<User> {
+    const user = this.users.get(email.toLowerCase());
+    if (!user) throw new Error('User not found');
+    return user;
+  }
+
+  async findAdminsByIds(ids: number[]): Promise<User[]> {
+    return [];
+  }
+
+  async deleteBulk(ids: number[]): Promise<number> {
+    return ids.length;
+  }
+
+  async findUsersWithSpotifyConfigured(): Promise<User[]> {
+    return [];
+  }
+
+  async findUsersWithSoundCloudConfigured(): Promise<User[]> {
+    return [];
+  }
 }
 
 class MockQuotaTrackingRepository implements IQuotaTrackingRepository {
@@ -68,11 +116,23 @@ class MockQuotaTrackingRepository implements IQuotaTrackingRepository {
     return this.quotas.get(userId) || null;
   }
 
+  async getByUserIdWithLock(userId: number, tx: any): Promise<QuotaTracking | null> {
+    return this.quotas.get(userId) || null;
+  }
+
   async incrementEmailCount(userId: number): Promise<void> {
     // Mock implementation - no-op for tests
   }
 
+  async incrementEmailCountInTransaction(userId: number, tx: any): Promise<void> {
+    // Mock implementation - no-op for tests
+  }
+
   async resetDailyCount(userId: number): Promise<void> {
+    // Mock implementation - no-op for tests
+  }
+
+  async resetDailyCountInTransaction(userId: number, tx: any): Promise<void> {
     // Mock implementation - no-op for tests
   }
 
