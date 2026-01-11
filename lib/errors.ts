@@ -111,6 +111,51 @@ export class DatabaseConnectionError extends AppError {
   }
 }
 
+// Rate limiting errors
+export class RateLimitError extends AppError {
+  constructor(message: string = 'Rate limit exceeded', details?: unknown) {
+    super(message, ERROR_CODES.QUOTA_EXCEEDED, 429, details);
+  }
+}
+
+// Webhook errors
+export class WebhookVerificationError extends AppError {
+  constructor(message: string = 'Webhook signature verification failed', details?: unknown) {
+    super(message, ERROR_CODES.AUTH_TOKEN_INVALID, 401, details);
+  }
+}
+
+// External service errors
+export class ExternalServiceError extends AppError {
+  constructor(message: string = 'External service error', details?: unknown) {
+    super(message, ERROR_CODES.EXTERNAL_SERVICE_ERROR, 502, details);
+  }
+}
+
+export class EmailProviderError extends AppError {
+  constructor(message: string = 'Email provider error', details?: unknown) {
+    super(message, ERROR_CODES.EMAIL_PROVIDER_ERROR, 502, details);
+  }
+}
+
+export class BrevoApiError extends AppError {
+  constructor(message: string = 'Brevo API error', details?: unknown) {
+    super(message, ERROR_CODES.BREVO_API_ERROR, 502, details);
+  }
+}
+
+export class SoundCloudApiError extends AppError {
+  constructor(message: string = 'SoundCloud API error', details?: unknown) {
+    super(message, ERROR_CODES.SOUNDCLOUD_API_ERROR, 502, details);
+  }
+}
+
+export class SpotifyApiError extends AppError {
+  constructor(message: string = 'Spotify API error', details?: unknown) {
+    super(message, ERROR_CODES.SPOTIFY_API_ERROR, 502, details);
+  }
+}
+
 /**
  * Type guard to check if error is AppError
  */
