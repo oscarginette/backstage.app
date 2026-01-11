@@ -20,7 +20,17 @@ import { isDevelopment } from '@/lib/env';
 
 const userRepository = new PostgresUserRepository();
 
+// Ensure AUTH_SECRET is set (NextAuth v5 requirement)
+// Support both AUTH_SECRET (v5) and NEXTAUTH_SECRET (legacy) for backward compatibility
+if (!process.env.AUTH_SECRET && !process.env.NEXTAUTH_SECRET) {
+  throw new Error(
+    'Missing AUTH_SECRET environment variable. ' +
+    'Generate one with: openssl rand -base64 32'
+  );
+}
+
 export const { handlers, signIn, signOut, auth } = NextAuth({
+  secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET,
   providers: [
     Credentials({
       name: 'Credentials',
