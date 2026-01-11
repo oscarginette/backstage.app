@@ -1,5 +1,5 @@
 import { ITrackRepository } from '../repositories/ITrackRepository';
-import { IMusicPlatformClient } from '@/infrastructure/music-platforms/IMusicPlatformClient';
+import { IMusicPlatformClient } from '../providers/IMusicPlatformClient';
 
 export interface SoundCloudTrackDTO {
   trackId: string;

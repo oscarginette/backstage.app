@@ -12,8 +12,8 @@
 
 import { IUserRepository } from '../repositories/IUserRepository';
 import { IEmailProvider } from '../providers/IEmailProvider';
-import { NewUserSignupEmail } from '@/infrastructure/email/templates/NewUserSignupEmail';
 import { env, getAppUrl, getBaseUrl } from '@/lib/env';
+import { NewUserSignupEmail } from '@/infrastructure/email/templates/NewUserSignupEmail';
 
 export interface SendNewUserNotificationInput {
   userId: number;

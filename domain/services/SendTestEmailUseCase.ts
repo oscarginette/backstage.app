@@ -10,9 +10,10 @@
  */
 
 import { IContactRepository } from '../repositories/IContactRepository';
-import { IEmailProvider, EmailParams } from '../../infrastructure/email/IEmailProvider';
+import { IEmailProvider, EmailParams } from '../providers/IEmailProvider';
 import { ITrackRepository, Track } from '../repositories/ITrackRepository';
 import { IEmailLogRepository } from '../repositories/IEmailLogRepository';
+import { Email } from '../value-objects/Email';
 
 export class ValidationError extends Error {
   constructor(message: string) {
@@ -105,7 +106,7 @@ export class SendTestEmailUseCase {
    * Validate test email input
    */
   private validateInput(input: SendTestEmailInput): void {
-    if (!input.testEmail || !this.isValidEmail(input.testEmail)) {
+    if (!input.testEmail || !Email.isValid(input.testEmail)) {
       throw new ValidationError('Valid test email address is required');
     }
 
@@ -124,10 +125,5 @@ export class SendTestEmailUseCase {
     if (!input.baseUrl) {
       throw new ValidationError('Base URL is required');
     }
-  }
-
-  private isValidEmail(email: string): boolean {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
   }
 }

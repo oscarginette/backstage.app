@@ -30,6 +30,7 @@ import { IEmailProvider } from '../providers/IEmailProvider';
 import { IQuotaTrackingRepository } from '../repositories/IQuotaTrackingRepository';
 import { QuotaExceededError, ValidationError, NotFoundError } from '@/lib/errors';
 import { withTransaction } from '@/lib/db-transaction-helper';
+import { Email } from '../value-objects/Email';
 
 export interface SendTrackEmailInput {
   userId: number;
@@ -161,7 +162,7 @@ export class SendTrackEmailUseCase {
       throw new ValidationError('Invalid userId');
     }
 
-    if (!input.to || !this.isValidEmail(input.to)) {
+    if (!input.to || !Email.isValid(input.to)) {
       throw new ValidationError('Invalid recipient email address');
     }
 
@@ -172,10 +173,5 @@ export class SendTrackEmailUseCase {
     if (!input.html || input.html.trim().length === 0) {
       throw new ValidationError('Email body cannot be empty');
     }
-  }
-
-  private isValidEmail(email: string): boolean {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
   }
 }

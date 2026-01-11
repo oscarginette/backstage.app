@@ -17,7 +17,7 @@
 
 import { IContactRepository, Contact } from '@/domain/repositories/IContactRepository';
 import { IUserSettingsRepository } from '@/domain/repositories/IUserSettingsRepository';
-import { CsvGenerator } from '@/infrastructure/csv/CsvGenerator';
+import { ICsvGenerator } from '@/domain/providers/ICsvGenerator';
 import {
   ExportContactsInput,
   ExportContactsResult,
@@ -31,7 +31,7 @@ export class ExportContactsUseCase {
   constructor(
     private contactRepository: IContactRepository,
     private userSettingsRepository: IUserSettingsRepository,
-    private csvGenerator: CsvGenerator
+    private csvGenerator: ICsvGenerator
   ) {}
 
   async execute(input: ExportContactsInput): Promise<ExportContactsResult> {

@@ -25,6 +25,7 @@ import { DownloadSubmission } from '../entities/DownloadSubmission';
 import { CreateSubmissionInput } from '../types/download-gates';
 import { PIXEL_EVENTS } from '../types/pixel-tracking';
 import { TrackPixelEventUseCase } from './TrackPixelEventUseCase';
+import { Email } from '../value-objects/Email';
 
 export interface SubmitEmailInput {
   gateSlug: string;
@@ -145,9 +146,7 @@ export class SubmitEmailUseCase {
       return { valid: false, error: 'Email is required' };
     }
 
-    // Basic email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
+    if (!Email.isValid(email)) {
       return { valid: false, error: 'Invalid email format' };
     }
 

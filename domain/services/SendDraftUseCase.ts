@@ -10,7 +10,7 @@
  */
 
 import { IContactRepository } from '@/domain/repositories/IContactRepository';
-import { IEmailProvider } from '@/infrastructure/email/IEmailProvider';
+import { IEmailProvider } from '@/domain/providers/IEmailProvider';
 import { IExecutionLogRepository } from '@/domain/repositories/IExecutionLogRepository';
 import { IEmailCampaignRepository } from '@/domain/repositories/IEmailCampaignRepository';
 import { env, getAppUrl, getBaseUrl } from '@/lib/env';

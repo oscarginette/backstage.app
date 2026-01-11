@@ -9,7 +9,7 @@
  * - Open/Closed: Easy to extend with different storage providers
  */
 
-import { IImageStorageProvider } from '@/infrastructure/storage/IImageStorageProvider';
+import { IImageStorageProvider } from '../providers/IImageStorageProvider';
 
 export interface UploadCoverImageInput {
   file: File;               // From browser file input

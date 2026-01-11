@@ -21,7 +21,7 @@ import { CheckNewTracksUseCase } from './CheckNewTracksUseCase';
 import { SendNewTrackEmailsUseCase } from './SendNewTrackEmailsUseCase';
 import { IMusicPlatformRepository } from '../repositories/IMusicPlatformRepository';
 import { IContactRepository } from '../repositories/IContactRepository';
-import { IEmailProvider } from '@/infrastructure/email/IEmailProvider';
+import { IEmailProvider } from '../providers/IEmailProvider';
 import { ITrackRepository } from '../repositories/ITrackRepository';
 import { IExecutionLogRepository } from '../repositories/IExecutionLogRepository';
 import { sql } from '@/lib/db';
