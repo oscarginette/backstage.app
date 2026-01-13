@@ -55,11 +55,12 @@ export type CardVariant = 'default' | 'subtle' | 'highlighted';
 
 /**
  * Card padding size types
+ * - compact: 12px (p-3) - For no-scroll layouts
  * - sm: 16px (p-4)
  * - md: 24px (p-6)
  * - lg: 32px (p-8)
  */
-export type CardPadding = 'sm' | 'md' | 'lg';
+export type CardPadding = 'compact' | 'sm' | 'md' | 'lg';
 
 /**
  * Props for the main Card component

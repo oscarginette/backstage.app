@@ -2,6 +2,7 @@ import React from 'react';
 import { Users, Rocket, BarChart3, TrendingUp } from 'lucide-react';
 import { useTranslations } from '@/lib/i18n/context';
 import StatCard, { StatCardColorScheme } from '@/components/ui/StatCard';
+import { LAYOUT_STYLES } from '@/domain/types/design-tokens';
 
 interface StatCardsProps {
   stats: {
@@ -77,7 +78,7 @@ export default function StatCards({ stats, labels, formatters }: StatCardsProps)
   if (!stats) return null;
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 w-full">
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 w-full">
       {cards.map((card) => (
         <StatCard
           key={card.label}
@@ -85,6 +86,7 @@ export default function StatCards({ stats, labels, formatters }: StatCardsProps)
           value={card.value}
           icon={card.icon}
           colorScheme={card.colorScheme}
+          compact
         />
       ))}
     </div>

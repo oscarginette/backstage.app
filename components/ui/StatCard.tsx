@@ -1,5 +1,6 @@
 import React from 'react';
 import { LucideIcon } from 'lucide-react';
+import { CARD_STYLES } from '@/domain/types/design-tokens';
 
 /**
  * StatCard Component
@@ -12,6 +13,7 @@ import { LucideIcon } from 'lucide-react';
  * - Four color schemes: blue, orange, purple, green
  * - Hover effects with transforms and shadows
  * - Backdrop blur and gradient effects
+ * - Compact mode for reduced vertical space
  */
 
 export type StatCardColorScheme = 'blue' | 'orange' | 'purple' | 'green';
@@ -21,6 +23,7 @@ interface StatCardProps {
   value: string | number;
   icon: LucideIcon;
   colorScheme: StatCardColorScheme;
+  compact?: boolean;
 }
 
 const COLOR_SCHEMES: Record<
@@ -58,13 +61,14 @@ const COLOR_SCHEMES: Record<
   },
 };
 
-export default function StatCard({ label, value, icon: Icon, colorScheme }: StatCardProps) {
+export default function StatCard({ label, value, icon: Icon, colorScheme, compact = false }: StatCardProps) {
   const colors = COLOR_SCHEMES[colorScheme];
 
   return (
     <div
       className={`
-        relative overflow-hidden flex items-center justify-between p-4
+        relative overflow-hidden flex items-center justify-between
+        ${compact ? CARD_STYLES.padding.compact : CARD_STYLES.padding.sm}
         bg-card/60 backdrop-blur-xl border ${colors.borderColor}
         rounded-2xl transition-all duration-500
         hover:shadow-xl hover:shadow-black/5 dark:hover:shadow-white/5
@@ -81,23 +85,23 @@ export default function StatCard({ label, value, icon: Icon, colorScheme }: Stat
       />
 
       {/* Icon and Title */}
-      <div className="flex items-center gap-2.5">
+      <div className="flex items-center gap-2">
         <div
           className={`
-            w-9 h-9 flex shrink-0 items-center justify-center ${colors.iconBg}
+            ${compact ? 'w-7 h-7' : 'w-9 h-9'} flex shrink-0 items-center justify-center ${colors.iconBg}
             rounded-xl transition-all duration-500
             group-hover:scale-110 group-hover:rotate-3 shadow-sm
           `}
         >
-          <Icon className={`w-4.5 h-4.5 ${colors.iconColor}`} />
+          <Icon className={`${compact ? 'w-3.5 h-3.5' : 'w-4.5 h-4.5'} ${colors.iconColor}`} />
         </div>
-        <p className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground font-semibold leading-tight">
+        <p className={`${compact ? 'text-[9px]' : 'text-[10px]'} uppercase tracking-[0.12em] text-muted-foreground font-semibold leading-tight`}>
           {label}
         </p>
       </div>
 
       {/* Value */}
-      <h3 className="text-2xl font-serif text-foreground tracking-tight tabular-nums">
+      <h3 className={`${compact ? 'text-lg' : 'text-2xl'} font-serif text-foreground tracking-tight tabular-nums`}>
         {value}
       </h3>
     </div>

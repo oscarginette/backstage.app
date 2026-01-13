@@ -202,9 +202,9 @@ export const LAYOUT_STYLES = {
     inlineCompact: 'flex gap-2',
   },
 
-  // Sidebar dimensions (Balanced proportion)
+  // Sidebar dimensions (Prominent sidebar)
   sidebar: {
-    width: 'w-[220px]',        // 220px sidebar for balanced proportion
+    width: 'w-[250px]',        // 250px sidebar for more prominence
     widthSettings: 'w-64',     // 256px for settings (16rem)
   },
 
@@ -232,15 +232,15 @@ export const DASHBOARD_STYLES = {
 
     // Header (brand section)
     header: 'p-4 pb-2',
-    headerTitle: 'text-xl font-serif tracking-tight text-foreground leading-[0.9]',
-    headerSubtitle: 'text-[10px] text-muted-foreground font-light mt-0.5',
+    headerTitle: 'text-[22px] font-serif tracking-tight text-foreground leading-[0.9]',
+    headerSubtitle: 'text-[11px] text-muted-foreground font-light mt-0.5',
 
     // Navigation
     nav: 'flex-1 px-3 py-4 space-y-0.5 overflow-y-auto',
-    navItem: 'w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs font-medium transition-all group relative',
+    navItem: 'w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] font-medium transition-all group relative',
     navItemActive: 'bg-foreground text-background shadow-md',
     navItemInactive: 'text-muted-foreground hover:bg-accent/5 hover:text-foreground',
-    navIcon: 'w-4 h-4 transition-colors',
+    navIcon: 'w-[18px] h-[18px] transition-colors',
 
     // Footer
     footer: 'p-3 space-y-3',

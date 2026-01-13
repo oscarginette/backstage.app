@@ -3,7 +3,7 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { Search, Filter, Loader2, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import { useVirtualizer } from '@tanstack/react-virtual';
-import { CARD_STYLES, INPUT_STYLES, BUTTON_STYLES, TEXT_STYLES, cn } from '@/domain/types/design-tokens';
+import { CARD_STYLES, INPUT_STYLES, BUTTON_STYLES, TEXT_STYLES, DASHBOARD_STYLES, cn } from '@/domain/types/design-tokens';
 import DataTableFilters, { FilterDefinition, ActiveFilters } from './DataTableFilters';
 
 type SortDirection = 'asc' | 'desc' | null;
@@ -244,7 +244,7 @@ export default function DataTable<T>({
   const rowVirtualizer = useVirtualizer({
     count: sortedAndFilteredData.length,
     getScrollElement: () => tableContainerRef.current,
-    estimateSize: () => 72, // Estimated row height in pixels
+    estimateSize: () => 40, // Compact row height (h-10 = 40px)
     overscan: 10, // Render 10 extra rows above/below viewport
   });
 
@@ -332,7 +332,7 @@ export default function DataTable<T>({
       {sortedAndFilteredData.length > 0 && (
         <div className="border-b border-border/40 flex bg-muted/30">
           {selectable && (
-            <div className="px-6 py-5 flex-shrink-0" style={{ width: '60px' }}>
+            <div className={cn(DASHBOARD_STYLES.table.cellPaddingCompact, "flex-shrink-0")} style={{ width: '60px' }}>
               <input
                 type="checkbox"
                 checked={sortedAndFilteredData.length > 0 && selectedIds.length === sortedAndFilteredData.length}
@@ -350,7 +350,8 @@ export default function DataTable<T>({
                 key={i}
                 onClick={() => isSortable && handleSort(i)}
                 className={cn(
-                  'px-8 py-5 text-[11px] font-black uppercase tracking-[0.2em]',
+                  DASHBOARD_STYLES.table.cellPaddingCompact,
+                  'text-[11px] font-black uppercase tracking-[0.2em]',
                   col.className?.includes('flex-') || col.className?.includes('w-') ? '' : 'flex-1',
                   col.className || '',
                   isSortable ? 'cursor-pointer hover:text-primary transition-colors select-none' : '',
@@ -430,7 +431,7 @@ export default function DataTable<T>({
                   }}
                 >
                   {selectable && (
-                    <div className="px-6 py-5 flex-shrink-0 flex items-center" style={{ width: '60px' }}>
+                    <div className={cn(DASHBOARD_STYLES.table.cellPaddingCompact, "flex-shrink-0 flex items-center")} style={{ width: '60px' }}>
                       <input
                         type="checkbox"
                         checked={isSelected}
@@ -441,7 +442,11 @@ export default function DataTable<T>({
                     </div>
                   )}
                   {columns.map((col, j) => (
-                    <div key={j} className={`px-8 py-5 ${col.className?.includes('flex-') || col.className?.includes('w-') ? '' : 'flex-1'} ${col.className || ''}`}>
+                    <div key={j} className={cn(
+                      DASHBOARD_STYLES.table.cellPaddingCompact,
+                      col.className?.includes('flex-') || col.className?.includes('w-') ? '' : 'flex-1',
+                      col.className || ''
+                    )}>
                       {col.accessor(item)}
                     </div>
                   ))}

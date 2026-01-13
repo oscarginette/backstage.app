@@ -90,22 +90,22 @@ export function DashboardSidebar({ activeTab, onTabChange, isAdmin = false, user
         {/* User Card */}
         {user && (
             <div className="p-2.5 rounded-lg bg-accent/5 border border-accent/10 flex items-center gap-2.5">
-                <div className="w-7 h-7 rounded-full bg-accent/20 flex items-center justify-center text-xs font-bold text-accent">
+                <div className="w-7 h-7 rounded-full bg-accent/20 flex items-center justify-center text-[13px] font-bold text-accent">
                     {user.email?.[0].toUpperCase() || 'U'}
                 </div>
                 <div className="flex-1 min-w-0">
-                    <p className="text-xs font-bold text-foreground truncate">{user.name || user.email?.split('@')[0]}</p>
-                    <p className="text-[10px] text-muted-foreground truncate">{user.role}</p>
+                    <p className="text-[13px] font-bold text-foreground truncate">{user.name || user.email?.split('@')[0]}</p>
+                    <p className="text-[11px] text-muted-foreground truncate">{user.role}</p>
                 </div>
             </div>
         )}
 
         <div className="flex items-center justify-between px-1 pt-1">
-             <Link href="/" target="_blank" className="text-[10px] font-medium text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors">
+             <Link href="/" target="_blank" className="text-[11px] font-medium text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors">
                 <ExternalLink className="w-3 h-3" />
                 Visit Website
              </Link>
-             <div className="text-[10px] text-muted-foreground/40">v1.2.0</div>
+             <div className="text-[11px] text-muted-foreground/40">v1.2.0</div>
         </div>
       </div>
     </aside>

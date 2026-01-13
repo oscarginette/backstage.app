@@ -230,8 +230,8 @@ function DashboardContent() {
                 <StatCards stats={derivedStats} />
 
                 <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-                    
-                    <div className="md:col-span-12 lg:col-span-12 flex flex-col gap-3">
+
+                    <div className="md:col-span-12 lg:col-span-12 flex flex-col gap-2">
                     <div className="flex items-center justify-between px-2">
                         <h3 className="text-lg font-serif text-foreground flex items-center gap-2.5">
                             <div className="w-7 h-7 rounded-lg bg-accent/10 flex items-center justify-center text-accent">
@@ -239,11 +239,11 @@ function DashboardContent() {
                             </div>
                             Active Gates
                         </h3>
-                        <Link href={PATHS.DASHBOARD.DOWNLOAD_GATES.NEW} className="group flex items-center gap-2 px-3 py-1.5 rounded-lg bg-foreground text-background text-[11px] font-bold hover:bg-foreground/90 transition-all active:scale-95">
-                        <Plus className="w-3.5 h-3.5" /> Create New
+                        <Link href={PATHS.DASHBOARD.DOWNLOAD_GATES.NEW} className="group flex items-center gap-2 px-4 py-2 rounded-lg bg-foreground text-background text-sm font-bold hover:bg-foreground/90 transition-all active:scale-95 shadow-sm">
+                        <Plus className="w-4 h-4" /> Create New
                         </Link>
                     </div>
-                    <Card padding="sm" className="rounded-2xl">
+                    <Card padding="compact" className="rounded-2xl">
                         <CompactGatesList gates={gates} loading={loadingGates} />
                     </Card>
                     </div>
