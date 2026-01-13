@@ -182,7 +182,7 @@ function DashboardContent() {
             <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-500/5 blur-[120px] rounded-full animate-pulse delay-700" />
         </div>
 
-        <div className="max-w-[1240px] mx-auto px-6 lg:px-8 pt-6 pb-12 relative z-10">
+        <div className="max-w-[1240px] mx-auto px-6 lg:px-8 pt-8 pb-16 relative z-10">
           
             {/* Mobile Header (Simple fallback for now) */}
             <div className={cn("lg:hidden mb-6", LAYOUT_STYLES.spacing.section)}>
@@ -191,7 +191,7 @@ function DashboardContent() {
             </div>
 
             {/* Page Header (Contextual) */}
-            <div className="hidden lg:flex items-center justify-between mb-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
+            <div className="hidden lg:flex items-center justify-between mb-8 animate-in fade-in slide-in-from-bottom-2 duration-500">
                 <h2 className="text-3xl font-serif text-foreground">
                     {activeTab === 'overview' && 'Overview'}
                     {activeTab === 'growth' && 'Growth Engine'}
@@ -229,9 +229,9 @@ function DashboardContent() {
 
                 <StatCards stats={derivedStats} />
 
-                <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
 
-                    <div className="md:col-span-12 lg:col-span-12 flex flex-col gap-2">
+                    <div className="md:col-span-12 lg:col-span-12 flex flex-col gap-3">
                     <div className="flex items-center justify-between px-2">
                         <h3 className="text-lg font-serif text-foreground flex items-center gap-2.5">
                             <div className="w-7 h-7 rounded-lg bg-accent/10 flex items-center justify-center text-accent">
@@ -284,9 +284,9 @@ function DashboardContent() {
                         </div>
                         <Link
                             href={PATHS.DASHBOARD.DOWNLOAD_GATES.NEW}
-                            className="flex items-center gap-2 px-6 py-3 rounded-xl bg-accent text-white hover:bg-accent/90 transition-all shadow-lg shadow-accent/10 font-bold active:scale-95 text-sm"
+                            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-accent text-white hover:bg-accent/90 transition-all shadow-lg shadow-accent/10 font-bold active:scale-95 text-sm"
                         >
-                            <Plus className="w-4 h-4 border-2 border-white/30 rounded-md" />
+                            <Plus className="w-4 h-4" />
                             New Download Gate
                         </Link>
                         </div>
@@ -305,7 +305,7 @@ function DashboardContent() {
                         </div>
                         <button
                             onClick={() => handleProtectedAction(() => setShowEmailEditor(true))}
-                            className={`flex items-center gap-2 px-6 py-3 rounded-xl transition-all shadow-lg font-bold active:scale-95 text-sm ${
+                            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all shadow-lg font-bold active:scale-95 text-sm ${
                             !hasAccess
                                 ? 'bg-foreground/20 text-foreground/40 cursor-not-allowed shadow-black/5'
                                 : 'bg-blue-600 text-white hover:bg-blue-700 shadow-blue-500/10'
@@ -313,7 +313,7 @@ function DashboardContent() {
                             disabled={!hasAccess}
                             title={!hasAccess ? 'Upgrade your plan to send emails' : ''}
                         >
-                            <Mail className="w-4 h-4 border-2 border-white/30 rounded-md" />
+                            <Mail className="w-4 h-4" />
                             {!hasAccess ? 'Upgrade to Send Emails' : 'Send Custom Email'}
                         </button>
                         </div>
