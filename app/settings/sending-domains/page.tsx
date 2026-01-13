@@ -10,6 +10,9 @@ export const metadata: Metadata = {
   description: 'Verify your domain to send emails from your own address',
 };
 
+// Force dynamic rendering (requires authentication)
+export const dynamic = 'force-dynamic';
+
 /**
  * Sending Domains Settings Page (Server Component)
  *
