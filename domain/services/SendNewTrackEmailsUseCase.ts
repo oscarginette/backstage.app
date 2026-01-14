@@ -13,6 +13,7 @@ import { IContactRepository } from '../repositories/IContactRepository';
 import { IEmailProvider, EmailParams } from '../../infrastructure/email/IEmailProvider';
 import { ITrackRepository, Track } from '../repositories/ITrackRepository';
 import { IExecutionLogRepository } from '../repositories/IExecutionLogRepository';
+import { IUserRepository } from '../repositories/IUserRepository';
 
 export interface SendNewTrackEmailsInput {
   userId: number;
@@ -34,7 +35,8 @@ export class SendNewTrackEmailsUseCase {
     private readonly contactRepository: IContactRepository,
     private readonly emailProvider: IEmailProvider,
     private readonly trackRepository: ITrackRepository,
-    private readonly executionLogRepository: IExecutionLogRepository
+    private readonly executionLogRepository: IExecutionLogRepository,
+    private readonly userRepository: IUserRepository
   ) {}
 
   async execute(input: SendNewTrackEmailsInput): Promise<SendNewTrackEmailsResult> {
@@ -47,7 +49,23 @@ export class SendNewTrackEmailsUseCase {
       subject: input.subject,
     });
 
-    // 1. Fetch all subscribed contacts
+    // 1. Fetch user to get custom sender email configuration
+    const user = await this.userRepository.findById(input.userId);
+    if (!user) {
+      throw new Error(`User not found: ${input.userId}`);
+    }
+
+    // Extract domain from baseUrl for default sender
+    const defaultDomain = input.baseUrl.replace(/^https?:\/\//, '').replace(/\/.*$/, '');
+    const senderEmail = user.getFormattedSenderEmail(defaultDomain);
+
+    console.log('[SendNewTrackEmailsUseCase] Sender configuration:', {
+      hasCustomSender: user.hasCustomSender(),
+      senderEmail,
+      userId: input.userId,
+    });
+
+    // 2. Fetch all subscribed contacts
     const contacts = await this.contactRepository.getSubscribed(input.userId);
     console.log('[SendNewTrackEmailsUseCase] Fetched contacts:', contacts.length);
 
@@ -70,11 +88,12 @@ export class SendNewTrackEmailsUseCase {
       };
     }
 
-    // 2. Send emails in batch (parallel execution)
+    // 3. Send emails in batch (parallel execution)
     const emailPromises = contacts.map(async (contact) => {
       const unsubscribeUrl = `${input.baseUrl}/unsubscribe?token=${contact.unsubscribeToken}`;
 
       const emailParams: EmailParams = {
+        from: senderEmail, // Use custom sender if configured
         to: contact.email,
         subject: input.subject,
         html: input.emailHtml,
@@ -103,7 +122,7 @@ export class SendNewTrackEmailsUseCase {
     // Wait for all emails to complete
     const results = await Promise.all(emailPromises);
 
-    // 3. Count successes and failures
+    // 4. Count successes and failures
     const sent = results.filter((r) => r.success).length;
     const failed = results.filter((r) => !r.success).length;
 
@@ -111,13 +130,14 @@ export class SendNewTrackEmailsUseCase {
       sent,
       failed,
       total: contacts.length,
+      senderEmail,
       firstFailureReason: results.find((r) => !r.success)?.error
     });
 
-    // 4. Save track to database
+    // 5. Save track to database
     await this.trackRepository.save(input.track, input.userId);
 
-    // 5. Log execution
+    // 6. Log execution
     await this.executionLogRepository.create({
       newTracks: 1,
       emailsSent: sent,

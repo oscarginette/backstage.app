@@ -25,8 +25,8 @@ export interface CreateCampaignResult {
  * Use case for creating email campaigns
  *
  * Business Rules:
- * - Subject is required and cannot be empty
- * - HTML content is required and cannot be empty
+ * - Drafts are flexible - allow saving with minimal/empty fields
+ * - Sent campaigns require subject and HTML content
  * - Status defaults to 'draft' if not specified
  * - Template ID and Track ID are optional
  * - Scheduled campaigns must have future date
@@ -68,22 +68,30 @@ export class CreateCampaignUseCase {
    * Validate campaign creation input
    *
    * Business Rules:
-   * - Subject must be present and non-empty
-   * - HTML content must be present and non-empty
+   * - Drafts are flexible - minimal validation (only length constraints)
+   * - Sent campaigns require subject and content
    * - Subject cannot exceed 500 characters
    * - Scheduled date must be in the future (if provided)
    */
   private validateInput(input: CreateCampaignInput): void {
-    if (!input.subject || input.subject.trim().length === 0) {
-      throw new ValidationError('Subject is required');
+    const isDraft = !input.status || input.status === 'draft';
+
+    // For drafts, be flexible - only validate if fields are present
+    if (!isDraft) {
+      // Sent campaigns require subject
+      if (!input.subject || input.subject.trim().length === 0) {
+        throw new ValidationError('Subject is required for sent campaigns');
+      }
+
+      // Sent campaigns require HTML content
+      if (!input.htmlContent || input.htmlContent.trim().length === 0) {
+        throw new ValidationError('HTML content is required for sent campaigns');
+      }
     }
 
-    if (input.subject.length > 500) {
+    // Validate length constraints if subject is present
+    if (input.subject && input.subject.length > 500) {
       throw new ValidationError('Subject cannot exceed 500 characters');
-    }
-
-    if (!input.htmlContent || input.htmlContent.trim().length === 0) {
-      throw new ValidationError('HTML content is required');
     }
 
     // Validate scheduled date is in the future

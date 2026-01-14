@@ -185,7 +185,8 @@ export class CheckAllUsersSpotifyReleasesUseCase {
       this.contactRepository,
       this.emailProvider,
       this.trackRepository,
-      this.executionLogRepository
+      this.executionLogRepository,
+      this.userRepository
     );
 
     const sendResult = await sendEmailsUseCase.execute({

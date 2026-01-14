@@ -24,6 +24,7 @@ import { IContactRepository } from '../repositories/IContactRepository';
 import { IEmailProvider } from '../providers/IEmailProvider';
 import { ITrackRepository } from '../repositories/ITrackRepository';
 import { IExecutionLogRepository } from '../repositories/IExecutionLogRepository';
+import { IUserRepository } from '../repositories/IUserRepository';
 import { sql } from '@/lib/db';
 import { render } from '@react-email/components';
 import NewTrackEmail from '@/emails/new-track';
@@ -63,6 +64,7 @@ export class CheckAllMusicPlatformsUseCase {
     private readonly emailProvider: IEmailProvider,
     private readonly trackRepository: ITrackRepository,
     private readonly executionLogRepository: IExecutionLogRepository,
+    private readonly userRepository: IUserRepository,
     private readonly baseUrl: string
   ) {}
 
@@ -240,7 +242,8 @@ export class CheckAllMusicPlatformsUseCase {
         this.contactRepository,
         this.emailProvider,
         this.trackRepository,
-        this.executionLogRepository
+        this.executionLogRepository,
+        this.userRepository
       );
 
       const sendResult = await sendEmailsUseCase.execute({

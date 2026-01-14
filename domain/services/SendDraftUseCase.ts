@@ -150,7 +150,7 @@ export class SendDraftUseCase {
 
   private async sendEmails(
     contacts: Array<{ id: number; email: string; name?: string | null; unsubscribeToken: string }>,
-    campaign: { id: string; subject: string; htmlContent: string }
+    campaign: { id: string; subject: string | null; htmlContent: string | null }
   ) {
     return trackOperation(
       'SendEmailBatch',
@@ -164,7 +164,7 @@ export class SendDraftUseCase {
           try {
             // Replace temporary unsubscribe URL with contact-specific one
             const unsubscribeUrl = `${baseUrl}/unsubscribe?token=${contact.unsubscribeToken}`;
-            const personalizedHtml = campaign.htmlContent.replace(
+            const personalizedHtml = (campaign.htmlContent || '').replace(
               /unsubscribe\?token=TEMP_TOKEN/g,
               `unsubscribe?token=${contact.unsubscribeToken}`
             );
@@ -173,7 +173,7 @@ export class SendDraftUseCase {
               'SendEmail',
               () => this.emailProvider.send({
                 to: contact.email,
-                subject: campaign.subject,
+                subject: campaign.subject || 'No Subject',
                 html: personalizedHtml,
                 tags: [
                   { name: 'category', value: 'campaign' },
@@ -231,7 +231,7 @@ export class SendDraftUseCase {
   }
 
   private async logExecution(
-    subject: string,
+    subject: string | null,
     emailsSent: number,
     campaignId: string,
     startTime: number
