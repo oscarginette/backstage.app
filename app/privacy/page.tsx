@@ -81,6 +81,20 @@ export default function PrivacyPolicyPage() {
               <li><strong>User Agent at Consent</strong>: Device/browser used during consent</li>
               <li><strong>Source</strong>: Where consent was obtained (signup form, settings page)</li>
             </ul>
+
+            <h3 className="text-xl font-semibold text-foreground mb-2 mt-6">3.5 Pre-Selected Consents</h3>
+            <p className="text-foreground/80 mb-4">
+              In some forms (e.g., Download Gates), marketing consents may be pre-selected to provide you
+              with added value (exclusive music content, industry tips). You can always uncheck these options
+              before submitting the form. Pre-selection does not affect your ability to download content - it
+              is simply a convenience feature to help you discover relevant content.
+            </p>
+            <ul>
+              <li><strong>Download Gates</strong>: Gee Beat subscription is pre-selected to provide exclusive releases</li>
+              <li><strong>Easy Opt-Out</strong>: Simply uncheck the box before clicking submit</li>
+              <li><strong>Unsubscribe Anytime</strong>: One-click unsubscribe in every email footer</li>
+              <li><strong>GDPR Compliance</strong>: Pre-selection is transparent, clearly visible, and easily reversible</li>
+            </ul>
           </section>
 
           <section className="mb-8">

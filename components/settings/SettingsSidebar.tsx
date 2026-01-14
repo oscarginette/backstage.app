@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { User, Palette, Bell, Globe, FileSignature, LayoutGrid, Plug, ArrowLeft } from 'lucide-react';
+import { User, Palette, Bell, Globe, FileSignature, LayoutGrid, Plug, ArrowLeft, Mail } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { PATHS } from '@/lib/paths';
 

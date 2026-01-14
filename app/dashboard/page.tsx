@@ -276,11 +276,11 @@ function DashboardContent() {
             {/* Other Tabs */}
             {activeTab === 'growth' && (
                 <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                    <Card padding="lg">
-                        <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+                    <Card padding="sm">
+                        <div className="flex flex-col md:flex-row items-center justify-between gap-4">
                         <div>
-                            <h2 className="text-xl font-serif text-foreground mb-1">Create & Manage Gates</h2>
-                            <p className="text-foreground/50 text-sm">Create high-converting download gates to grow your audience.</p>
+                            <h2 className="text-lg font-serif text-foreground mb-0.5">Create & Manage Gates</h2>
+                            <p className="text-foreground/50 text-xs">Create high-converting download gates to grow your audience.</p>
                         </div>
                         <Link
                             href={PATHS.DASHBOARD.DOWNLOAD_GATES.NEW}
@@ -297,11 +297,11 @@ function DashboardContent() {
 
             {activeTab === 'engagement' && (
                 <div className={cn(LAYOUT_STYLES.spacing.section, "animate-in fade-in slide-in-from-bottom-4 duration-500")}>
-                    <Card padding="lg">
-                        <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+                    <Card padding="sm">
+                        <div className="flex flex-col md:flex-row items-center justify-between gap-4">
                         <div>
-                            <h2 className="text-xl font-serif text-foreground mb-1">Email Campaigns</h2>
-                            <p className="text-foreground/50 text-sm">Nurture your fan community with personalized email campaigns.</p>
+                            <h2 className="text-lg font-serif text-foreground mb-0.5">Email Campaigns</h2>
+                            <p className="text-foreground/50 text-xs">Nurture your fan community with personalized email campaigns.</p>
                         </div>
                         <button
                             onClick={() => handleProtectedAction(() => setShowEmailEditor(true))}
@@ -347,7 +347,7 @@ function DashboardContent() {
             )}
 
             {activeTab === 'audience' && (
-                <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
                 {/* Sub-tabs */}
                 <div className="flex items-center justify-between">
                     <AudienceSubTabs

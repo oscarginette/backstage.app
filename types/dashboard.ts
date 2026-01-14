@@ -37,8 +37,8 @@ export interface EmailCampaign {
   id: string;
   templateId: string | null;
   trackId: string | null;
-  subject: string;
-  htmlContent: string;
+  subject: string | null;  // Nullable for drafts
+  htmlContent: string | null;  // Nullable for drafts
   status: 'draft' | 'sent';
   scheduledAt: string | null;
   sentAt: string | null;

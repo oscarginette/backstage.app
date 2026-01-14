@@ -190,16 +190,16 @@ export const LAYOUT_STYLES = {
   // Spacing (vertical rhythm)
   spacing: {
     // Section spacing (between major sections)
-    section: 'space-y-6',      // Default: 1.5rem (24px) - breathing room
-    sectionCompact: 'space-y-4', // Compact: 1rem (16px) - for denser layouts
+    section: 'space-y-8',      // Default: 2rem (32px) - more breathing room
+    sectionCompact: 'space-y-5', // Compact: 1.25rem (20px) - for denser layouts
 
     // Stack spacing (between related items)
-    stack: 'space-y-3',        // Default: 0.75rem (12px)
-    stackTight: 'space-y-2',   // Tight: 0.5rem (8px)
+    stack: 'space-y-4',        // Default: 1rem (16px)
+    stackTight: 'space-y-3',   // Tight: 0.75rem (12px)
 
     // Inline spacing
-    inline: 'flex gap-3',
-    inlineCompact: 'flex gap-2',
+    inline: 'flex gap-4',
+    inlineCompact: 'flex gap-3',
   },
 
   // Sidebar dimensions (Prominent sidebar)
@@ -232,12 +232,12 @@ export const DASHBOARD_STYLES = {
 
     // Header (brand section)
     header: 'p-4 pb-2',
-    headerTitle: 'text-[22px] font-serif tracking-tight text-foreground leading-[0.9]',
+    headerTitle: 'text-[28px] font-serif tracking-tight text-foreground leading-[0.9]',
     headerSubtitle: 'text-[11px] text-muted-foreground font-light mt-0.5',
 
     // Navigation
-    nav: 'flex-1 px-3 py-4 space-y-0.5 overflow-y-auto',
-    navItem: 'w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] font-medium transition-all group relative',
+    nav: 'flex-1 px-3 py-4 space-y-1.5 overflow-y-auto',
+    navItem: 'w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-[13px] font-medium transition-all group relative',
     navItemActive: 'bg-foreground text-background shadow-md',
     navItemInactive: 'text-muted-foreground hover:bg-accent/5 hover:text-foreground',
     navIcon: 'w-[18px] h-[18px] transition-colors',
@@ -254,10 +254,12 @@ export const DASHBOARD_STYLES = {
     container: 'min-w-full',
 
     // Row heights (compact for no-scroll)
-    rowCompact: 'h-10',  // Reduced from default ~12-14
-    rowDefault: 'h-12',
+    rowUltraCompact: 'h-8',  // 32px - ultra-compact for dense tables
+    rowCompact: 'h-10',  // 40px - compact
+    rowDefault: 'h-12',  // 48px - default
 
     // Cell padding
+    cellPaddingUltraCompact: 'px-3 py-1',  // Minimal vertical padding
     cellPaddingCompact: 'px-3 py-2',
     cellPaddingDefault: 'px-4 py-3',
   },
