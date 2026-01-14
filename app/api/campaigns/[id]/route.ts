@@ -37,6 +37,10 @@ export const GET = withErrorHandler(handleGet);
  *
  * Body:
  * - subject: string (optional) - Updated subject
+ * - greeting: string (optional) - Updated greeting
+ * - message: string (optional) - Updated message body
+ * - signature: string (optional) - Updated signature
+ * - coverImage: string (optional) - Updated cover image URL (also accepts coverImageUrl)
  * - htmlContent: string (optional) - Updated HTML content
  * - status: 'draft' | 'sent' (optional) - Updated status
  * - scheduledAt: string (optional) - Updated schedule (ISO date string)
@@ -55,6 +59,10 @@ async function handlePut(
   const result = await useCase.execute({
     id,
     subject: body.subject,
+    greeting: body.greeting,
+    message: body.message,
+    signature: body.signature,
+    coverImageUrl: body.coverImage || body.coverImageUrl, // Handle both field names
     htmlContent: body.htmlContent,
     status: body.status,
     scheduledAt: body.scheduledAt ? new Date(body.scheduledAt) : undefined,

@@ -399,74 +399,48 @@ export class PostgresEmailCampaignRepository implements IEmailCampaignRepository
 
   /**
    * Update campaign
-   * Simplified approach: Build SET clause dynamically
+   * Uses Vercel Postgres template literal syntax
+   * Only updates fields that are explicitly provided
    */
   async update(input: UpdateCampaignInput): Promise<IEmailCampaign> {
-    // Build update fields dynamically
-    const updateFields: string[] = [];
-    const updateValues: any[] = [];
-    let paramIndex = 1;
-
-    if (input.subject !== undefined) {
-      updateFields.push(`subject = $${paramIndex++}`);
-      updateValues.push(input.subject);
+    // Fetch existing campaign first
+    const existing = await this.findById(input.id);
+    if (!existing) {
+      throw new Error(`Campaign with ID ${input.id} not found`);
     }
 
-    if (input.greeting !== undefined) {
-      updateFields.push(`greeting = $${paramIndex++}`);
-      updateValues.push(input.greeting);
-    }
+    // Merge with existing values (only update provided fields)
+    const subject = input.subject !== undefined ? input.subject : existing.subject;
+    const greeting = input.greeting !== undefined ? input.greeting : existing.greeting;
+    const message = input.message !== undefined ? input.message : existing.message;
+    const signature = input.signature !== undefined ? input.signature : existing.signature;
+    const coverImageUrl = input.coverImageUrl !== undefined ? input.coverImageUrl : existing.coverImageUrl;
+    const htmlContent = input.htmlContent !== undefined ? input.htmlContent : existing.htmlContent;
+    const status = input.status !== undefined ? input.status : existing.status;
+    const scheduledAt = input.scheduledAt !== undefined
+      ? (input.scheduledAt ? input.scheduledAt.toISOString() : null)
+      : (existing.scheduledAt ? new Date(existing.scheduledAt).toISOString() : null);
+    const sentAt = input.sentAt !== undefined
+      ? (input.sentAt ? input.sentAt.toISOString() : null)
+      : (existing.sentAt ? new Date(existing.sentAt).toISOString() : null);
 
-    if (input.message !== undefined) {
-      updateFields.push(`message = $${paramIndex++}`);
-      updateValues.push(input.message);
-    }
-
-    if (input.signature !== undefined) {
-      updateFields.push(`signature = $${paramIndex++}`);
-      updateValues.push(input.signature);
-    }
-
-    if (input.coverImageUrl !== undefined) {
-      updateFields.push(`cover_image_url = $${paramIndex++}`);
-      updateValues.push(input.coverImageUrl);
-    }
-
-    if (input.htmlContent !== undefined) {
-      updateFields.push(`html_content = $${paramIndex++}`);
-      updateValues.push(input.htmlContent);
-    }
-
-    if (input.status !== undefined) {
-      updateFields.push(`status = $${paramIndex++}`);
-      updateValues.push(input.status);
-    }
-
-    if (input.scheduledAt !== undefined) {
-      updateFields.push(`scheduled_at = $${paramIndex++}`);
-      updateValues.push(input.scheduledAt ? input.scheduledAt.toISOString() : null);
-    }
-
-    if (input.sentAt !== undefined) {
-      updateFields.push(`sent_at = $${paramIndex++}`);
-      updateValues.push(input.sentAt ? input.sentAt.toISOString() : null);
-    }
-
-    // Always update updated_at
-    updateFields.push('updated_at = NOW()');
-
-    // Add id as the last parameter
-    updateValues.push(input.id);
-
-    // Build and execute query
-    const query = `
+    // Execute update with Vercel Postgres template literal syntax
+    const result = await sql`
       UPDATE email_campaigns
-      SET ${updateFields.join(', ')}
-      WHERE id = $${paramIndex}
+      SET
+        subject = ${subject},
+        greeting = ${greeting},
+        message = ${message},
+        signature = ${signature},
+        cover_image_url = ${coverImageUrl},
+        html_content = ${htmlContent},
+        status = ${status},
+        scheduled_at = ${scheduledAt},
+        sent_at = ${sentAt},
+        updated_at = NOW()
+      WHERE id = ${input.id}
       RETURNING *
     `;
-
-    const result = await sql.query(query, updateValues);
 
     if (result.rows.length === 0) {
       throw new Error(`Campaign with ID ${input.id} not found`);
