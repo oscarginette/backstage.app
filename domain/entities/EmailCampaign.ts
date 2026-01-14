@@ -13,8 +13,8 @@ export interface EmailCampaignProps {
   id: string;
   templateId: string | null;
   trackId: string | null;
-  subject: string;
-  htmlContent: string;
+  subject: string | null;  // Nullable for drafts
+  htmlContent: string | null;  // Nullable for drafts
   status: 'draft' | 'sent';
   scheduledAt: Date | null;
   sentAt: Date | null;
@@ -27,8 +27,8 @@ export class EmailCampaign {
     public readonly id: string,
     public readonly templateId: string | null,
     public readonly trackId: string | null,
-    public readonly subject: string,
-    public readonly htmlContent: string,
+    public readonly subject: string | null,  // Nullable for drafts
+    public readonly htmlContent: string | null,  // Nullable for drafts
     public readonly status: 'draft' | 'sent',
     public readonly scheduledAt: Date | null,
     public readonly sentAt: Date | null,
@@ -41,20 +41,30 @@ export class EmailCampaign {
   /**
    * Validate campaign business rules
    * @throws Error if validation fails
+   *
+   * Business Rules:
+   * - Drafts are flexible - subject and htmlContent can be null/empty
+   * - Sent campaigns require subject and htmlContent
    */
   private validate(): void {
-    // Subject validation
-    if (!this.subject || this.subject.trim().length === 0) {
-      throw new Error('Campaign subject cannot be empty');
+    const isDraft = this.status === 'draft';
+
+    // For sent campaigns, enforce strict validation
+    if (!isDraft) {
+      // Subject validation for sent campaigns
+      if (!this.subject || this.subject.trim().length === 0) {
+        throw new Error('Sent campaign subject cannot be empty');
+      }
+
+      // HTML content validation for sent campaigns
+      if (!this.htmlContent || this.htmlContent.trim().length === 0) {
+        throw new Error('Sent campaign HTML content cannot be empty');
+      }
     }
 
-    if (this.subject.length > 500) {
+    // Validate subject length if present
+    if (this.subject && this.subject.length > 500) {
       throw new Error('Campaign subject cannot exceed 500 characters');
-    }
-
-    // HTML content validation
-    if (!this.htmlContent || this.htmlContent.trim().length === 0) {
-      throw new Error('Campaign HTML content cannot be empty');
     }
 
     // Status validation
@@ -126,7 +136,7 @@ export class EmailCampaign {
    */
   getSummary(): {
     id: string;
-    subject: string;
+    subject: string | null;
     status: 'draft' | 'sent';
     createdAt: Date;
     scheduledAt: Date | null;
@@ -147,8 +157,8 @@ export class EmailCampaign {
   static create(props: {
     templateId?: string | null;
     trackId?: string | null;
-    subject: string;
-    htmlContent: string;
+    subject?: string | null;  // Optional for drafts
+    htmlContent?: string | null;  // Optional for drafts
     status?: 'draft' | 'sent';
     scheduledAt?: Date | null;
   }): EmailCampaign {
@@ -159,8 +169,8 @@ export class EmailCampaign {
       id,
       props.templateId || null,
       props.trackId || null,
-      props.subject,
-      props.htmlContent,
+      props.subject || null,
+      props.htmlContent || null,
       props.status || 'draft',
       props.scheduledAt || null,
       props.status === 'sent' ? now : null,
@@ -198,8 +208,8 @@ export class EmailCampaign {
    * Returns new instance (immutability)
    */
   update(props: {
-    subject?: string;
-    htmlContent?: string;
+    subject?: string | null;
+    htmlContent?: string | null;
     scheduledAt?: Date | null;
   }): EmailCampaign {
     if (this.status === 'sent') {

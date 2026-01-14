@@ -36,6 +36,10 @@ export interface UserProps {
   // Platform Integrations
   spotifyId?: string;
   soundcloudId?: string;
+
+  // Custom Sender Configuration
+  senderEmail?: string; // Custom "From" email (e.g., "info@geebeat.com")
+  senderName?: string;  // Display name for sender (e.g., "Artist Name")
 }
 
 export interface CreateUserInput {
@@ -130,6 +134,43 @@ export class User {
     return this.props.soundcloudId;
   }
 
+  get senderEmail(): string | undefined {
+    return this.props.senderEmail;
+  }
+
+  get senderName(): string | undefined {
+    return this.props.senderName;
+  }
+
+  /**
+   * Get formatted "From" address for email sending.
+   * Returns custom sender if configured, otherwise default.
+   *
+   * Examples:
+   * - Custom: "Artist Name <info@geebeat.com>"
+   * - Default: "The Backstage <noreply@thebackstage.app>"
+   *
+   * @param defaultDomain - Default domain to use if custom sender not configured
+   * @returns Formatted email address for "From" header
+   */
+  getFormattedSenderEmail(defaultDomain: string = 'thebackstage.app'): string {
+    if (this.props.senderEmail) {
+      // User has configured custom sender
+      const name = this.props.senderName || this.props.name || 'Artist';
+      return `${name} <${this.props.senderEmail}>`;
+    }
+
+    // Use default sender
+    return `The Backstage <noreply@${defaultDomain}>`;
+  }
+
+  /**
+   * Check if user has configured custom sender email
+   */
+  hasCustomSender(): boolean {
+    return !!this.props.senderEmail;
+  }
+
   isAdmin(): boolean {
     return this.props.role === USER_ROLES.ADMIN;
   }
@@ -182,7 +223,9 @@ export class User {
     subscriptionStartedAt?: Date,
     subscriptionExpiresAt?: Date,
     spotifyId?: string,
-    soundcloudId?: string
+    soundcloudId?: string,
+    senderEmail?: string,
+    senderName?: string
   ): User {
     return new User({
       id,
@@ -201,6 +244,8 @@ export class User {
       quotaResetAt,
       spotifyId,
       soundcloudId,
+      senderEmail,
+      senderName,
     });
   }
 

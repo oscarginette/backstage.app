@@ -12,6 +12,8 @@ export class UserSettings {
     public readonly soundcloudPermalink: string | null,
     public readonly spotifyId: string | null,
     public readonly instagramUrl: string | null,
+    public readonly senderEmail: string | null,
+    public readonly senderName: string | null,
     public readonly updatedAt: Date
   ) {}
 
@@ -37,6 +39,13 @@ export class UserSettings {
   }
 
   /**
+   * Check if user has configured custom sender email
+   */
+  hasSenderEmail(): boolean {
+    return !!this.senderEmail && this.senderEmail.trim().length > 0;
+  }
+
+  /**
    * Create a copy with updated fields
    */
   update(updates: Partial<{
@@ -45,6 +54,8 @@ export class UserSettings {
     soundcloudPermalink: string | null;
     spotifyId: string | null;
     instagramUrl: string | null;
+    senderEmail: string | null;
+    senderName: string | null;
   }>): UserSettings {
     return new UserSettings(
       this.userId,
@@ -53,6 +64,8 @@ export class UserSettings {
       updates.soundcloudPermalink !== undefined ? updates.soundcloudPermalink : this.soundcloudPermalink,
       updates.spotifyId !== undefined ? updates.spotifyId : this.spotifyId,
       updates.instagramUrl !== undefined ? updates.instagramUrl : this.instagramUrl,
+      updates.senderEmail !== undefined ? updates.senderEmail : this.senderEmail,
+      updates.senderName !== undefined ? updates.senderName : this.senderName,
       new Date()
     );
   }
@@ -68,9 +81,12 @@ export class UserSettings {
       soundcloudPermalink: this.soundcloudPermalink,
       spotifyId: this.spotifyId,
       instagramUrl: this.instagramUrl,
+      senderEmail: this.senderEmail,
+      senderName: this.senderName,
       hasSoundCloudId: this.hasSoundCloudId(),
       hasSpotifyId: this.hasSpotifyId(),
       hasInstagramUrl: this.hasInstagramUrl(),
+      hasSenderEmail: this.hasSenderEmail(),
       updatedAt: this.updatedAt.toISOString()
     };
   }
