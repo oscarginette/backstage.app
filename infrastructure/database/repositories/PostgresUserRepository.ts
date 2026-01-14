@@ -111,6 +111,8 @@ export class PostgresUserRepository implements IUserRepository {
           monthly_quota,
           emails_sent_this_month,
           quota_reset_at,
+          spotify_id,
+          soundcloud_id,
           sender_email,
           sender_name
         FROM users
@@ -138,8 +140,8 @@ export class PostgresUserRepository implements IUserRepository {
         row.name,
         row.subscription_started_at ? new Date(row.subscription_started_at) : undefined,
         row.subscription_expires_at ? new Date(row.subscription_expires_at) : undefined,
-        undefined, // spotifyId
-        undefined, // soundcloudId
+        row.spotify_id,
+        row.soundcloud_id,
         row.sender_email,
         row.sender_name
       );
@@ -199,8 +201,8 @@ export class PostgresUserRepository implements IUserRepository {
         row.name,
         row.subscription_started_at ? new Date(row.subscription_started_at) : undefined,
         row.subscription_expires_at ? new Date(row.subscription_expires_at) : undefined,
-        undefined, // spotifyId
-        undefined, // soundcloudId
+        row.spotify_id,
+        row.soundcloud_id,
         row.sender_email,
         row.sender_name
       );
