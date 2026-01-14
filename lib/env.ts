@@ -34,8 +34,8 @@ const optionalString = () => z.preprocess(
 );
 
 // Detect if we're in build mode (Next.js compilation)
-const isBuildTime = process.env.NEXT_PHASE === 'phase-production-build' ||
-                    process.argv.includes('build');
+// Note: process.argv is not available in Edge Runtime, so we only check NEXT_PHASE
+const isBuildTime = process.env.NEXT_PHASE === 'phase-production-build';
 
 const envSchema = z.object({
   // Node Environment
@@ -139,6 +139,9 @@ const envSchema = z.object({
   ENABLE_EMAIL_VERIFICATION: z.string().transform(val => val === 'true').optional(),
   ENABLE_ANALYTICS: z.string().transform(val => val === 'true').optional(),
   ENABLE_EMAIL_TRACKING: z.string().transform(val => val === 'true').optional(),
+
+  // Email Testing (temporary filter for campaign testing)
+  TEST_EMAIL_ONLY: z.string().default('false').transform(val => val === 'true'),
 
   // Upstash Redis (Rate Limiting)
   UPSTASH_REDIS_REST_URL: z.preprocess((val) => (val === '' ? undefined : val), z.string().url('Invalid UPSTASH_REDIS_REST_URL - must be a valid URL').optional()),
