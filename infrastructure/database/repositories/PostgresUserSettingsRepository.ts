@@ -20,6 +20,8 @@ export class PostgresUserSettingsRepository implements IUserSettingsRepository {
         soundcloud_permalink,
         spotify_id,
         instagram_url,
+        sender_email,
+        sender_name,
         updated_at
       FROM users
       WHERE id = ${userId}
@@ -39,8 +41,8 @@ export class PostgresUserSettingsRepository implements IUserSettingsRepository {
       row.soundcloud_permalink,
       row.spotify_id,
       row.instagram_url,
-      null, // sender_email - not yet implemented
-      null, // sender_name - not yet implemented
+      row.sender_email,
+      row.sender_name,
       new Date(row.updated_at)
     );
   }
@@ -67,7 +69,7 @@ export class PostgresUserSettingsRepository implements IUserSettingsRepository {
         instagram_url = ${instagramUrl},
         updated_at = NOW()
       WHERE id = ${userId}
-      RETURNING id, name, soundcloud_id, soundcloud_permalink, spotify_id, instagram_url, updated_at
+      RETURNING id, name, soundcloud_id, soundcloud_permalink, spotify_id, instagram_url, sender_email, sender_name, updated_at
     `;
 
     if (result.rows.length === 0) {
@@ -83,8 +85,8 @@ export class PostgresUserSettingsRepository implements IUserSettingsRepository {
       row.soundcloud_permalink,
       row.spotify_id,
       row.instagram_url,
-      null, // sender_email - not yet implemented
-      null, // sender_name - not yet implemented
+      row.sender_email,
+      row.sender_name,
       new Date(row.updated_at)
     );
   }
