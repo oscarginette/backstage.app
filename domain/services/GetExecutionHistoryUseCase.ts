@@ -49,23 +49,24 @@ export class GetExecutionHistoryUseCase {
    */
   async execute(): Promise<GetExecutionHistoryResult> {
     try {
-      // Fetch tracks with their execution logs
-      // NOTE: This complex JOIN query should eventually be moved to repository
+      // Fetch execution history from two sources:
+      // 1. SoundCloud tracks (new_tracks = 1, has track_id)
+      // 2. Custom campaigns (new_tracks = 0, track_id IS NULL)
+      // NOTE: This complex query should eventually be moved to repository
       const result = await sql`
         SELECT
-          st.track_id,
-          st.title,
-          st.url,
-          st.published_at,
+          COALESCE(el.track_id, 'campaign-' || el.id) as track_id,
+          COALESCE(st.title, el.track_title, 'Untitled Campaign') as title,
+          COALESCE(st.url, '') as url,
+          COALESCE(st.published_at, el.executed_at) as published_at,
           st.cover_image,
           st.description,
-          st.created_at,
           el.emails_sent,
           el.duration_ms,
           el.executed_at
-        FROM soundcloud_tracks st
-        LEFT JOIN execution_logs el ON el.executed_at >= st.created_at
-        WHERE el.new_tracks = 1
+        FROM execution_logs el
+        LEFT JOIN soundcloud_tracks st ON st.track_id = el.track_id
+        WHERE el.emails_sent > 0
         ORDER BY el.executed_at DESC
         LIMIT 20
       `;
@@ -74,13 +75,13 @@ export class GetExecutionHistoryUseCase {
       const history: ExecutionHistoryItem[] = result.rows.map((row: any) => ({
         trackId: row.track_id,
         title: row.title,
-        url: row.url,
+        url: row.url || '',
         publishedAt: row.published_at,
         executedAt: row.executed_at,
         emailsSent: row.emails_sent || 0,
         durationMs: row.duration_ms || 0,
-        coverImage: row.cover_image,
-        description: row.description,
+        coverImage: row.cover_image || null,
+        description: row.description || null,
       }));
 
       return {

@@ -113,15 +113,21 @@ export default function ExecutionHistory({ history }: ExecutionHistoryProps) {
                             <span>Sent to {item.emailsSent} audience members</span>
                           </div>
                         </div>
-                        <a
-                          href={item.url}
-                          target="_blank"
-                          rel="noreferrer"
-                        >
-                          <Button variant="secondary" size="xs">
-                            Listen Track
-                          </Button>
-                        </a>
+                        {item.url ? (
+                          <a
+                            href={item.url}
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            <Button variant="secondary" size="xs">
+                              Listen Track
+                            </Button>
+                          </a>
+                        ) : (
+                          <div className="px-3 py-1 text-[10px] font-bold text-foreground/40 uppercase tracking-widest">
+                            Custom Campaign
+                          </div>
+                        )}
                       </div>
                     </div>
 
