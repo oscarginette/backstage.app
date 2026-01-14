@@ -8,15 +8,29 @@ import { EmailCampaign, EmailContent } from '../../types/dashboard';
 import { useEmailCampaigns } from '../../hooks/useEmailCampaigns';
 import DraftCard from './DraftCard';
 import EmailContentEditor from './EmailContentEditor';
+import SendingProgressModal from './SendingProgressModal';
+import { env } from '@/lib/env';
 
 interface DraftsListProps {
   onDraftSent?: () => void;
+}
+
+interface SendResult {
+  success: boolean;
+  emailsSent: number;
+  emailsFailed: number;
+  totalContacts: number;
+  duration: number;
+  failures?: Array<{ email: string; error: string }>;
+  error?: string;
 }
 
 export default function DraftsList({ onDraftSent }: DraftsListProps) {
   const { drafts, loading, loadDrafts, deleteDraft, sendDraft } = useEmailCampaigns();
   const [editingDraft, setEditingDraft] = useState<EmailCampaign | null>(null);
   const [sending, setSending] = useState(false);
+  const [sendResult, setSendResult] = useState<SendResult | null>(null);
+  const [totalContacts, setTotalContacts] = useState(0);
 
   useEffect(() => {
     loadDrafts();
@@ -31,18 +45,66 @@ export default function DraftsList({ onDraftSent }: DraftsListProps) {
   };
 
   const handleSend = async (draft: EmailCampaign) => {
+    // Show modal immediately with loading state
     setSending(true);
+    setSendResult(null);
+
+    // Estimate total contacts (will be updated with actual count from API)
+    // This is a rough estimate for the loading state
+    setTotalContacts(1000); // Placeholder, will be replaced by actual API response
+
     try {
       const result = await sendDraft(draft.id);
+
       if (result.success) {
+        // Show success result in modal
+        setSendResult({
+          success: true,
+          emailsSent: result.emailsSent || 0,
+          emailsFailed: result.emailsFailed || 0,
+          totalContacts: result.totalContacts || result.emailsSent || 0,
+          duration: result.duration || 0,
+          failures: result.failures
+        });
+
+        // Update total contacts with actual value
+        setTotalContacts(result.totalContacts || result.emailsSent || 0);
+
         setEditingDraft(null);
         if (onDraftSent) {
           onDraftSent();
         }
+      } else {
+        // Show error result in modal
+        setSendResult({
+          success: false,
+          emailsSent: 0,
+          emailsFailed: 0,
+          totalContacts: 0,
+          duration: 0,
+          error: result.error || 'Error desconocido'
+        });
       }
+    } catch (error: any) {
+      // Show error result in modal
+      setSendResult({
+        success: false,
+        emailsSent: 0,
+        emailsFailed: 0,
+        totalContacts: 0,
+        duration: 0,
+        error: error.message || 'Error al enviar la campaña'
+      });
     } finally {
-      setSending(false);
+      // Keep modal open to show results
+      // Modal will auto-close on success, or user can close on error
     }
+  };
+
+  const handleCloseProgressModal = () => {
+    setSending(false);
+    setSendResult(null);
+    setTotalContacts(0);
   };
 
   const handleUpdateDraft = async (content: EmailContent) => {
@@ -73,16 +135,11 @@ export default function DraftsList({ onDraftSent }: DraftsListProps) {
   const handleSendEditedDraft = async (content: EmailContent) => {
     if (!editingDraft) return;
 
-    setSending(true);
-    try {
-      // First update the draft
-      await handleUpdateDraft(content);
+    // First update the draft
+    await handleUpdateDraft(content);
 
-      // Then send it
-      await handleSend(editingDraft);
-    } finally {
-      setSending(false);
-    }
+    // Then send it (handleSend manages the sending state and modal)
+    await handleSend(editingDraft);
   };
 
   if (loading && drafts.length === 0) {
@@ -191,6 +248,15 @@ export default function DraftsList({ onDraftSent }: DraftsListProps) {
           />
         </Modal>
       )}
+
+      {/* Sending Progress Modal */}
+      <SendingProgressModal
+        isOpen={sending}
+        totalContacts={totalContacts}
+        isTestMode={env.TEST_EMAIL_ONLY}
+        result={sendResult}
+        onClose={handleCloseProgressModal}
+      />
     </>
   );
 }
