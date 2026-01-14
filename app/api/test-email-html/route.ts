@@ -5,7 +5,7 @@ import CustomEmail from '@/emails/custom-email';
 import { env, getAppUrl, getBaseUrl } from '@/lib/env';
 import { EmailSignature } from '@/domain/value-objects/EmailSignature';
 import { auth } from '@/lib/auth';
-import { getUserEmailSignatureUseCase } from '@/lib/di-container';
+import { UseCaseFactory } from '@/lib/di-container';
 
 export const dynamic = 'force-dynamic';
 
@@ -19,7 +19,7 @@ export async function POST(request: Request) {
     let emailSignature;
 
     if (session?.user?.id) {
-      const useCase = getUserEmailSignatureUseCase();
+      const useCase = UseCaseFactory.createGetUserEmailSignatureUseCase();
       const userSignature = await useCase.execute(parseInt(session.user.id));
       emailSignature = userSignature.toJSON();
     } else {
