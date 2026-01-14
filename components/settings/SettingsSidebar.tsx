@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { User, Palette, Bell, Globe, FileSignature, LayoutGrid, Plug, ArrowLeft, Mail } from 'lucide-react';
+import { User, Palette, Bell, FileSignature, LayoutGrid, Plug, ArrowLeft, Mail } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { PATHS } from '@/lib/paths';
 
@@ -33,7 +33,7 @@ const SIDEBAR_ITEMS = [
       {
         label: 'Senders & Domains',
         href: '/settings/sending-domains',
-        icon: Globe,
+        icon: Mail,
       },
       {
         label: 'Email Signature',
