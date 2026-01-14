@@ -91,6 +91,11 @@ export class MailgunEmailProvider implements IEmailProvider {
 
   async send(params: EmailParams): Promise<EmailResult> {
     try {
+      console.log('');
+      console.log('      ┌─────────────────────────────────────────────────┐');
+      console.log('      │ 📮 MAILGUN EMAIL PROVIDER - SEND                │');
+      console.log('      └─────────────────────────────────────────────────┘');
+
       // 1. Build message data
       const messageData: any = {
         from: params.from || `The Backstage <noreply@${this.domain}>`,
@@ -99,22 +104,24 @@ export class MailgunEmailProvider implements IEmailProvider {
         html: params.html,
       };
 
+      console.log('      Recipient:', params.to);
+      console.log('      Subject:', params.subject);
+      console.log('      From:', messageData.from);
+      console.log('      HTML Length:', params.html?.length || 0, 'chars');
+
       // 2. Extract sending domain from 'from' address
       // This enables multi-tenant domain support
       // Example: "Artist Name <info@geebeat.com>" → "geebeat.com"
       const fromDomain = this.extractDomainFromEmail(messageData.from);
 
-      console.log('[MailgunEmailProvider] Extracted domain:', {
-        from: messageData.from,
-        extractedDomain: fromDomain,
-        defaultDomain: this.domain,
-        usingDomain: fromDomain,
-      });
+      console.log('      Extracted Domain:', fromDomain);
+      console.log('      Default Domain:', this.domain);
 
       // 3. Add Reply-To if specified
       // Enables responses to go to a different address (e.g., user's email)
       if (params.replyTo) {
         messageData['h:Reply-To'] = params.replyTo;
+        console.log('      Reply-To:', params.replyTo);
       }
 
       // 4. Add List-Unsubscribe headers (CAN-SPAM compliance)
@@ -122,6 +129,7 @@ export class MailgunEmailProvider implements IEmailProvider {
       if (params.unsubscribeUrl) {
         messageData['h:List-Unsubscribe'] = `<${params.unsubscribeUrl}>`;
         messageData['h:List-Unsubscribe-Post'] = 'List-Unsubscribe=One-Click';
+        console.log('      Unsubscribe URL:', params.unsubscribeUrl);
       }
 
       // 5. Convert tags from Resend format to Mailgun format
@@ -131,6 +139,7 @@ export class MailgunEmailProvider implements IEmailProvider {
         messageData['o:tag'] = params.tags.map(
           tag => `${tag.name}:${tag.value}`
         );
+        console.log('      Tags:', messageData['o:tag'].join(', '));
       }
 
       // 6. Add custom headers
@@ -141,27 +150,21 @@ export class MailgunEmailProvider implements IEmailProvider {
             messageData[`h:${key}`] = value;
           }
         }
+        console.log('      Custom Headers:', Object.keys(params.headers).length);
       }
 
-      console.log('[MailgunEmailProvider] Sending email:', {
-        to: params.to,
-        subject: params.subject,
-        from: messageData.from,
-        domain: fromDomain,
-        replyTo: messageData['h:Reply-To'],
-        hasUnsubscribe: !!params.unsubscribeUrl,
-        tags: messageData['o:tag'],
-        htmlLength: params.html?.length || 0,
-      });
+      console.log('');
+      console.log('      🚀 Calling Mailgun API...');
+      console.log('      API Domain:', fromDomain);
 
       // 7. Send via Mailgun API using extracted domain
       // This allows emails to be sent FROM the artist's verified domain
       const response = await this.mg.messages.create(fromDomain, messageData);
 
-      console.log('[MailgunEmailProvider] Email sent successfully:', {
-        to: params.to,
-        messageId: response.id,
-      });
+      console.log('      ✅ Mailgun API Response:');
+      console.log('      Message ID:', response.id);
+      console.log('      Status:', response.message || 'Queued');
+      console.log('');
 
       return {
         success: true,
@@ -172,11 +175,13 @@ export class MailgunEmailProvider implements IEmailProvider {
         ? error.message
         : 'Failed to send email via Mailgun';
 
-      console.error('[MailgunEmailProvider] Error:', {
-        to: params.to,
-        error,
-        errorMessage,
-      });
+      console.log('      ❌ MAILGUN ERROR:');
+      console.log('      Recipient:', params.to);
+      console.log('      Error:', errorMessage);
+      if (error instanceof Error && error.stack) {
+        console.log('      Stack:', error.stack.split('\n').slice(0, 3).join('\n'));
+      }
+      console.log('');
 
       return {
         success: false,
