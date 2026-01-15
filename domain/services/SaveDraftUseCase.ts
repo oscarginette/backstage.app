@@ -14,6 +14,7 @@ import { GetUserEmailSignatureUseCase } from './GetUserEmailSignatureUseCase';
 import { render } from '@react-email/components';
 import CustomEmail from '@/emails/custom-email';
 import { env, getAppUrl, getBaseUrl } from '@/lib/env';
+import { RichTextContent } from '@/domain/value-objects/RichTextContent';
 
 export interface SaveDraftInput {
   userId: number; // Multi-tenant: User who owns this draft
@@ -48,41 +49,68 @@ export class SaveDraftUseCase {
   ) {}
 
   async execute(input: SaveDraftInput): Promise<SaveDraftResult> {
-    // 1. Validate input
-    this.validateInput(input);
+    // 1. Validate and sanitize input
+    const sanitized = this.validateAndSanitizeInput(input);
 
     // 2. Build HTML content
-    const htmlContent = await this.buildHtmlContent(input);
+    const htmlContent = await this.buildHtmlContent(sanitized);
 
     // 3. Check if updating existing draft or creating new
     if (input.id) {
-      return await this.updateExistingDraft(input.id, input, htmlContent);
+      return await this.updateExistingDraft(input.id, sanitized, htmlContent);
     } else {
-      return await this.createNewDraft(input, htmlContent);
+      return await this.createNewDraft(sanitized, htmlContent);
     }
   }
 
-  private validateInput(input: SaveDraftInput): void {
+  /**
+   * Validate and sanitize all rich text fields
+   *
+   * Uses RichTextContent value object to:
+   * - Validate HTML length constraints
+   * - Sanitize user-generated HTML (XSS prevention)
+   * - Ensure email client compatibility
+   *
+   * @returns Sanitized version of input with safe HTML
+   */
+  private validateAndSanitizeInput(input: SaveDraftInput): SaveDraftInput {
     // Subject is always required (even for drafts)
     if (!input.subject || input.subject.trim().length === 0) {
       throw new ValidationError('Subject is required');
     }
 
-    // Validate length limits (allow empty but set max lengths)
+    // Validate subject length (plain text, no HTML)
     if (input.subject.length > 500) {
       throw new ValidationError('Subject cannot exceed 500 characters');
     }
 
-    if (input.greeting && input.greeting.length > 200) {
-      throw new ValidationError('Greeting cannot exceed 200 characters');
-    }
+    try {
+      // Sanitize rich text fields (greeting, message, signature)
+      const greetingContent = input.greeting
+        ? RichTextContent.create(input.greeting)
+        : null;
 
-    if (input.message && input.message.length > 5000) {
-      throw new ValidationError('Message cannot exceed 5000 characters');
-    }
+      const messageContent = input.message
+        ? RichTextContent.create(input.message)
+        : null;
 
-    if (input.signature && input.signature.length > 500) {
-      throw new ValidationError('Signature cannot exceed 500 characters');
+      const signatureContent = input.signature
+        ? RichTextContent.create(input.signature)
+        : null;
+
+      // Return sanitized input
+      return {
+        ...input,
+        greeting: greetingContent?.sanitizedHtml || '',
+        message: messageContent?.sanitizedHtml || '',
+        signature: signatureContent?.sanitizedHtml || '',
+      };
+    } catch (error) {
+      // Re-throw RichTextValidationError as ValidationError
+      if (error instanceof Error) {
+        throw new ValidationError(error.message);
+      }
+      throw error;
     }
   }
 

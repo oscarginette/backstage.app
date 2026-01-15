@@ -14,9 +14,11 @@ import { IEmailProvider } from '@/domain/providers/IEmailProvider';
 import { IExecutionLogRepository } from '@/domain/repositories/IExecutionLogRepository';
 import { IEmailCampaignRepository } from '@/domain/repositories/IEmailCampaignRepository';
 import { IUserSettingsRepository } from '@/domain/repositories/IUserSettingsRepository';
+import { ISendingDomainRepository } from '@/domain/repositories/ISendingDomainRepository';
 import { CompileEmailHtmlUseCase } from '@/domain/services/CompileEmailHtmlUseCase';
 import { env, getAppUrl, getBaseUrl } from '@/lib/env';
 import { trackOperation, trackQuery, setUser, addBreadcrumb, captureError } from '@/lib/sentry-utils';
+import { extractDomainFromEmail } from '@/domain/utils/email-utils';
 
 export interface SendDraftInput {
   userId: number;
@@ -41,13 +43,16 @@ export class ValidationError extends Error {
 }
 
 export class SendDraftUseCase {
+  private readonly defaultDomain = 'thebackstage.app';
+
   constructor(
     private contactRepository: IContactRepository,
     private emailProvider: IEmailProvider,
     private executionLogRepository: IExecutionLogRepository,
     private campaignRepository: IEmailCampaignRepository,
     private compileEmailHtmlUseCase: CompileEmailHtmlUseCase,
-    private userSettingsRepository: IUserSettingsRepository
+    private userSettingsRepository: IUserSettingsRepository,
+    private sendingDomainRepository: ISendingDomainRepository
   ) {}
 
   async execute(input: SendDraftInput): Promise<SendDraftResult> {
@@ -300,6 +305,51 @@ export class SendDraftUseCase {
           console.log('   Error:', error instanceof Error ? error.message : 'Unknown error');
         }
 
+        // Validate sender email domain is verified (if custom sender is configured)
+        let effectiveSenderEmail = senderEmail;
+        let effectiveSenderName = senderName;
+
+        if (senderEmail) {
+          try {
+            // Extract domain from sender email
+            const domain = extractDomainFromEmail(senderEmail);
+
+            // Only validate if it's NOT the default domain
+            if (domain !== this.defaultDomain) {
+              console.log('   🔍 Validating custom domain:', domain);
+
+              const sendingDomain = await trackQuery(
+                'checkDomainVerification',
+                () => this.sendingDomainRepository.findByUserIdAndDomain(userId, domain),
+                { userId, domain }
+              );
+
+              if (!sendingDomain || sendingDomain.status !== 'verified') {
+                console.log('   ⚠️  Domain not verified, falling back to default domain');
+                console.log('   Original sender:', senderEmail);
+                console.log('   Default domain:', this.defaultDomain);
+
+                // Fallback to default domain
+                effectiveSenderEmail = `noreply@${this.defaultDomain}`;
+                effectiveSenderName = senderName || undefined;
+
+                console.log(`   ✅ Using fallback: ${effectiveSenderName ? `${effectiveSenderName} <${effectiveSenderEmail}>` : effectiveSenderEmail}`);
+              } else {
+                console.log('   ✅ Domain verified, using custom sender');
+              }
+            } else {
+              console.log('   ℹ️  Using default domain (no verification needed)');
+            }
+          } catch (error) {
+            console.log('   ⚠️  Error validating domain, falling back to default');
+            console.log('   Error:', error instanceof Error ? error.message : 'Unknown error');
+
+            // Fallback to default domain on any error
+            effectiveSenderEmail = `noreply@${this.defaultDomain}`;
+            effectiveSenderName = senderName || undefined;
+          }
+        }
+
         console.log('');
         console.log(`   Sending to ${contacts.length} recipient(s):`);
 
@@ -314,10 +364,10 @@ export class SendDraftUseCase {
               `unsubscribe?token=${contact.unsubscribeToken}`
             );
 
-            // Build sender string if custom sender is configured
+            // Build sender string using effective sender (validated and fallback-safe)
             // Format: "Sender Name <sender@example.com>" or "sender@example.com"
-            const fromAddress = senderEmail
-              ? (senderName ? `${senderName} <${senderEmail}>` : senderEmail)
+            const fromAddress = effectiveSenderEmail
+              ? (effectiveSenderName ? `${effectiveSenderName} <${effectiveSenderEmail}>` : effectiveSenderEmail)
               : undefined;
 
             const result = await trackOperation(
