@@ -149,11 +149,14 @@ export function useEmailCampaigns() {
         method: 'POST'
       });
 
-      const data = await res.json();
+      const response = await res.json();
 
-      if (data.error) {
-        throw new Error(data.error);
+      if (response.error) {
+        throw new Error(response.error);
       }
+
+      // Extract data from standard API response format: { success: true, data: {...} }
+      const result = response.data || response;
 
       // Reload campaigns and drafts
       await loadCampaigns();
@@ -161,11 +164,11 @@ export function useEmailCampaigns() {
 
       return {
         success: true,
-        emailsSent: data.emailsSent,
-        emailsFailed: data.emailsFailed || 0,
-        totalContacts: data.totalContacts,
-        duration: data.duration,
-        failures: data.failures
+        emailsSent: result.emailsSent,
+        emailsFailed: result.emailsFailed || 0,
+        totalContacts: result.totalContacts,
+        duration: result.duration,
+        failures: result.failures
       };
     } catch (err: any) {
       setError(err.message || 'Error sending draft');

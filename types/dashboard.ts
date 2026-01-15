@@ -1,4 +1,6 @@
 export interface ExecutionHistoryItem {
+  executionLogId: number;
+  campaignId: string | null;
   trackId: string;
   title: string;
   url: string;
@@ -56,6 +58,8 @@ export interface EmailContent {
   message: string;
   signature: string;
   coverImage?: string;
+  // NOTE: senderEmail removed - sender is configured globally in user settings
+  // Per-campaign sender selection is forbidden (see .claude/CLAUDE.md)
   listFilter?: {
     mode: string;
     listIds: string[];

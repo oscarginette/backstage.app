@@ -229,9 +229,10 @@ function DashboardContent() {
 
                 <StatCards stats={derivedStats} />
 
-                <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
+                <div className="flex flex-col gap-8">
 
-                    <div className="md:col-span-12 lg:col-span-12 flex flex-col gap-3">
+                    {/* Active Gates Section - Full Width */}
+                    <div className="flex flex-col gap-3">
                     <div className="flex items-center justify-between px-2">
                         <h3 className="text-lg font-serif text-foreground flex items-center gap-2.5">
                             <div className="w-7 h-7 rounded-lg bg-accent/10 flex items-center justify-center text-accent">
@@ -239,8 +240,8 @@ function DashboardContent() {
                             </div>
                             Active Gates
                         </h3>
-                        <Link href={PATHS.DASHBOARD.DOWNLOAD_GATES.NEW} className="group flex items-center gap-2 px-4 py-2 rounded-lg bg-foreground text-background text-sm font-bold hover:bg-foreground/90 transition-all active:scale-95 shadow-sm">
-                        <Plus className="w-4 h-4" /> Create New
+                        <Link href={PATHS.DASHBOARD.DOWNLOAD_GATES.NEW} className="flex items-center gap-2 px-4 py-2 rounded-lg bg-accent text-white hover:bg-accent/90 transition-all shadow-lg shadow-accent/10 font-bold active:scale-95 text-sm">
+                        <Plus className="w-4 h-4" /> New Download Gate
                         </Link>
                     </div>
                     <Card padding="compact" className="rounded-2xl">
@@ -248,8 +249,30 @@ function DashboardContent() {
                     </Card>
                     </div>
 
-                    <div className="md:col-span-12 lg:col-span-6 flex flex-col gap-3">
-                    <div className="h-full">
+                    {/* Campaign History Section - Full Width */}
+                    <div className="flex flex-col gap-3">
+                    <div className="flex items-center justify-between px-2">
+                        <h3 className="text-lg font-serif text-foreground flex items-center gap-2.5">
+                            <div className="w-7 h-7 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-600">
+                                <Mail className="w-3.5 h-3.5" />
+                            </div>
+                            Campaign History
+                        </h3>
+                        <button
+                            onClick={() => handleProtectedAction(() => setShowEmailEditor(true))}
+                            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all shadow-lg font-bold active:scale-95 text-sm ${
+                            !hasAccess
+                                ? 'bg-foreground/20 text-foreground/40 cursor-not-allowed shadow-black/5'
+                                : 'bg-blue-600 text-white hover:bg-blue-700 shadow-blue-500/10'
+                            }`}
+                            disabled={!hasAccess}
+                            title={!hasAccess ? 'Upgrade your plan to send emails' : ''}
+                        >
+                            <Mail className="w-4 h-4" />
+                            {!hasAccess ? 'Upgrade to Send Emails' : 'Send Custom Email'}
+                        </button>
+                    </div>
+                    <div>
                         <ExecutionHistory history={history.slice(0, 5)} />
                         {history.length > 5 && (
                         <div className="mt-2 px-2">
@@ -261,8 +284,9 @@ function DashboardContent() {
                     </div>
                     </div>
 
-                    <div className="md:col-span-12 lg:col-span-6 flex flex-col gap-3">
-                    <div className="h-full">
+                    {/* Drafts Section - Full Width */}
+                    <div className="flex flex-col gap-3">
+                    <div>
                         <DraftsList onDraftSent={() => {
                             setMessage({ type: 'success', text: 'Borrador enviado correctamente' });
                         }} />
