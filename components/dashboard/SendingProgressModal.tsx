@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import Modal from '@/components/ui/Modal';
-import { env } from '@/lib/env';
 
 /**
  * SendingProgressModal
@@ -62,19 +61,28 @@ export default function SendingProgressModal({
       return;
     }
 
-    // Calculate estimated time based on contact count
-    // Estimate: ~50 contacts per second (conservative)
-    const estimatedSeconds = Math.max(2, Math.min(20, totalContacts / 50));
+    // Wait until we have actual contact count (skip "Preparing..." state)
+    if (totalContacts === 0) {
+      setProgress(0);
+      setEstimatedTime(0);
+      return;
+    }
+
+    // Calculate estimated time based on actual contact count
+    // Real-world estimate: ~50-100 contacts per second (conservative: 50)
+    // Add 1-2 second baseline for campaign setup
+    const estimatedSeconds = Math.max(2, Math.ceil(totalContacts / 50) + 1);
     setEstimatedTime(estimatedSeconds);
 
     // Progress animation: smooth increment every 100ms
+    // Calculate increment to reach 95% by estimated completion time
+    const totalIncrements = estimatedSeconds * 10; // 10 increments per second (every 100ms)
+    const incrementPerStep = 95 / totalIncrements; // Reach 95% max
+
     const interval = setInterval(() => {
       setProgress((prev) => {
-        // Slow down as we approach 90% to avoid completing before actual send
-        if (prev >= 90) return Math.min(95, prev + 0.5);
-        if (prev >= 70) return prev + 1;
-        if (prev >= 50) return prev + 2;
-        return prev + 3;
+        // Never exceed 95% to avoid completing before actual send
+        return Math.min(95, prev + incrementPerStep);
       });
     }, 100);
 
@@ -147,12 +155,27 @@ export default function SendingProgressModal({
 
             {/* Status text */}
             <div className="text-center">
-              <p className="text-lg font-medium text-foreground">
-                Enviando correos...
-              </p>
-              <p className="text-sm text-foreground/50 mt-1">
-                {totalContacts.toLocaleString()} contacto{totalContacts !== 1 ? 's' : ''} • {Math.round(progress)}% completado
-              </p>
+              {totalContacts === 0 ? (
+                // Preparing state (before actual count is known)
+                <>
+                  <p className="text-lg font-medium text-foreground">
+                    Preparando campaña...
+                  </p>
+                  <p className="text-sm text-foreground/50 mt-1">
+                    Cargando contactos suscritos
+                  </p>
+                </>
+              ) : (
+                // Sending state (with actual count)
+                <>
+                  <p className="text-lg font-medium text-foreground">
+                    Enviando correos...
+                  </p>
+                  <p className="text-sm text-foreground/50 mt-1">
+                    {totalContacts.toLocaleString()} contacto{totalContacts !== 1 ? 's' : ''} • {Math.round(progress)}% completado
+                  </p>
+                </>
+              )}
               {isTestMode && (
                 <div className="mt-3 inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-amber-100 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-800">
                   <svg className="w-4 h-4 text-amber-600 dark:text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -165,23 +188,25 @@ export default function SendingProgressModal({
               )}
             </div>
 
-            {/* Progress bar */}
-            <div className="w-full max-w-md space-y-2">
-              <div className="relative w-full h-3 bg-border rounded-full overflow-hidden">
-                {/* Animated gradient background */}
-                <div
-                  className="absolute inset-0 bg-gradient-to-r from-accent via-[#FF6B2C] to-accent bg-[length:200%_100%] animate-shimmer transition-all duration-300 ease-out"
-                  style={{ width: `${progress}%` }}
-                />
-              </div>
+            {/* Progress bar - only show when we have contact count */}
+            {totalContacts > 0 && (
+              <div className="w-full max-w-md space-y-2">
+                <div className="relative w-full h-3 bg-border rounded-full overflow-hidden">
+                  {/* Animated gradient background */}
+                  <div
+                    className="absolute inset-0 bg-gradient-to-r from-accent via-[#FF6B2C] to-accent bg-[length:200%_100%] animate-shimmer transition-all duration-300 ease-out"
+                    style={{ width: `${progress}%` }}
+                  />
+                </div>
 
-              {/* Time estimate */}
-              <p className="text-xs text-foreground/40 text-center">
-                {progress < 95
-                  ? `Tiempo estimado: ${Math.max(1, Math.round(estimatedTime * (1 - progress / 100)))}s restantes`
-                  : 'Finalizando...'}
-              </p>
-            </div>
+                {/* Time estimate */}
+                <p className="text-xs text-foreground/40 text-center">
+                  {progress < 95
+                    ? `Tiempo estimado: ${Math.max(1, Math.round(estimatedTime * (1 - progress / 100)))}s restantes`
+                    : 'Finalizando...'}
+                </p>
+              </div>
+            )}
           </div>
         )}
 

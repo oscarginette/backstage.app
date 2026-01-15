@@ -59,30 +59,28 @@ export default function DraftsList({ onDraftSent }: DraftsListProps) {
   };
 
   const handleSend = async (draft: EmailCampaign) => {
-    // Show modal immediately with loading state
+    // Show modal immediately with "Preparing..." state
     setSending(true);
     setSendResult(null);
-
-    // Estimate total contacts (will be updated with actual count from API)
-    // This is a rough estimate for the loading state
-    setTotalContacts(1000); // Placeholder, will be replaced by actual API response
+    setTotalContacts(0); // Start with 0 to trigger "Preparing..." state
 
     try {
       const result = await sendDraft(draft.id);
 
       if (result.success) {
+        // Update total contacts with actual value from API
+        const actualContactCount = result.totalContacts || result.emailsSent || 0;
+        setTotalContacts(actualContactCount);
+
         // Show success result in modal
         setSendResult({
           success: true,
           emailsSent: result.emailsSent || 0,
           emailsFailed: result.emailsFailed || 0,
-          totalContacts: result.totalContacts || result.emailsSent || 0,
+          totalContacts: actualContactCount,
           duration: result.duration || 0,
           failures: result.failures
         });
-
-        // Update total contacts with actual value
-        setTotalContacts(result.totalContacts || result.emailsSent || 0);
 
         setEditingDraft(null);
         if (onDraftSent) {
@@ -223,6 +221,7 @@ export default function DraftsList({ onDraftSent }: DraftsListProps) {
           isOpen={true}
           onClose={() => setEditingDraft(null)}
           size="6xl"
+          closeOnBackdropClick={false}
           customHeader={
             <div className="p-6 border-b border-border">
               <div className="flex items-start justify-between">
@@ -255,6 +254,7 @@ export default function DraftsList({ onDraftSent }: DraftsListProps) {
               signature: editingDraft.signature || 'Much love,\nGee Beat',
               coverImage: editingDraft.coverImageUrl || ''
             }}
+            campaignId={editingDraft.id}
             onSave={handleSendEditedDraft}
             onSaveDraft={handleUpdateDraft}
             onClose={() => setEditingDraft(null)}

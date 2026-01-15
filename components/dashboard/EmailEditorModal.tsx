@@ -65,7 +65,8 @@ export default function EmailEditorModal({
     <Modal
       isOpen={true}
       onClose={onClose}
-      size="6xl"
+      size="7xl"
+      closeOnBackdropClick={false}
       customHeader={
         <div className="px-6 py-4 border-b border-border">
           <div className="flex items-center justify-between">

@@ -8,6 +8,7 @@ import { LIST_FILTER_MODES } from '@/domain/value-objects/ListFilterCriteria';
 import RichTextEditor from '@/components/ui/RichTextEditor';
 import EmailPreview from '@/components/ui/EmailPreview';
 import { useAutoSaveCampaign } from '@/hooks/useAutoSaveCampaign';
+import { useEmailPreview } from '@/hooks/useEmailPreview';
 import { formatTimeAgo } from '@/lib/date-utils';
 // TODO: Re-enable when email content validation feature is committed
 // import { useEmailContentValidation } from '@/hooks/useEmailContentValidation';
@@ -19,6 +20,7 @@ interface EmailContentEditorProps {
   onSaveDraft: (content: EmailContent) => Promise<void>;
   onClose: () => void;
   saving?: boolean;
+  campaignId?: string | null; // Existing campaign ID (for editing drafts)
 }
 
 /**
@@ -257,7 +259,8 @@ export default function EmailContentEditor({
   onSave,
   onSaveDraft,
   onClose,
-  saving = false
+  saving = false,
+  campaignId = null
 }: EmailContentEditorProps) {
   const t = useTranslations('dashboard.emails.editor');
   const [subject, setSubject] = useState(initialContent.subject);
@@ -265,13 +268,23 @@ export default function EmailContentEditor({
   const [message, setMessage] = useState(initialContent.message);
   const [signature, setSignature] = useState(initialContent.signature);
   const [coverImage, setCoverImage] = useState(initialContent.coverImage || '');
-  const [previewHtml, setPreviewHtml] = useState<string>('');
-  const [loadingPreview, setLoadingPreview] = useState(false);
   const [senderInfo, setSenderInfo] = useState<{ email: string; name?: string } | null>(null);
   const [loadingSender, setLoadingSender] = useState(true);
 
-  // Auto-save hook
-  const { saveStatus, lastSavedAt, autoSave } = useAutoSaveCampaign();
+  // Auto-save hook (with existing campaign ID if editing draft)
+  const { saveStatus, lastSavedAt, autoSave } = useAutoSaveCampaign({
+    initialCampaignId: campaignId
+  });
+
+  // Debounced email preview hook (prevents flicker on every keystroke)
+  const { previewHtml, isLoadingPreview } = useEmailPreview(
+    'Preview',
+    '#',
+    coverImage || '',
+    greeting,
+    message,
+    signature
+  );
 
   // Real-time validation
   // TODO: Re-enable when email content validation feature is committed
@@ -300,10 +313,6 @@ export default function EmailContentEditor({
   );
 
   useEffect(() => {
-    fetchPreview();
-  }, [subject, greeting, message, signature, coverImage]);
-
-  useEffect(() => {
     fetchSenderInfo();
   }, []);
 
@@ -327,33 +336,6 @@ export default function EmailContentEditor({
       listFilter
     });
   }, [subject, greeting, message, signature, coverImage, listFilterMode, selectedListIds, autoSave]);
-
-  const fetchPreview = async () => {
-    setLoadingPreview(true);
-    try {
-      const res = await fetch('/api/test-email-html', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          trackName: 'Preview',
-          trackUrl: '#',
-          coverImage: coverImage || '',
-          customContent: {
-            greeting,
-            message,
-            signature
-          }
-        })
-      });
-
-      const data = await res.json();
-      setPreviewHtml(data.html || '');
-    } catch (error) {
-      console.error('Error fetching preview:', error);
-    } finally {
-      setLoadingPreview(false);
-    }
-  };
 
   const fetchSenderInfo = async () => {
     setLoadingSender(true);
@@ -416,11 +398,11 @@ export default function EmailContentEditor({
 
   return (
     <div className="flex-1 overflow-hidden flex flex-col">
-      {/* Editor Panel and Preview */}
+      {/* Main Content Area - Two independent scrollable panels */}
       <div className="flex-1 overflow-hidden flex">
-        {/* Editor Panel */}
-        <div className="w-1/2 border-r border-border overflow-y-auto p-6 bg-muted">
-          <h3 className="text-xl font-serif text-foreground mb-4">{t('title')}</h3>
+        {/* Left Panel: Editor - Fixed Width */}
+        <div className="w-[480px] shrink-0 border-r border-border overflow-y-auto p-8 bg-muted/30">
+          <h3 className="text-xl font-serif text-foreground mb-6">{t('title')}</h3>
 
           <div className="space-y-4">
             {/* Subject */}
@@ -541,40 +523,37 @@ export default function EmailContentEditor({
           </div>
         </div>
 
-        {/* Preview Panel */}
-        <div className="w-1/2 flex flex-col bg-muted">
-          <div className="p-6 pb-2">
-            <h3 className="text-xl font-serif text-foreground mb-4">{t('preview')}</h3>
+        {/* Right Panel: Preview - Flexible Space */}
+        <div className="flex-1 overflow-y-auto p-8 bg-muted">
+          <h3 className="text-xl font-serif text-foreground mb-6">{t('preview')}</h3>
 
-            {/* Sender Info Display */}
-            <div className="mb-4 text-sm text-muted-foreground">
-              {loadingSender ? (
-                <span>{t('loadingSender')}</span>
-              ) : senderInfo ? (
-                <span>
-                  <span className="font-medium">{t('fromLabel')}</span>{' '}
-                  {senderInfo.name ? (
-                    <>{senderInfo.name} &lt;{senderInfo.email}&gt;</>
-                  ) : (
-                    <>{senderInfo.email}</>
-                  )}
-                </span>
-              ) : null}
-            </div>
+          {/* Sender Info Display */}
+          <div className="mb-4 text-sm text-muted-foreground">
+            {loadingSender ? (
+              <span>{t('loadingSender')}</span>
+            ) : senderInfo ? (
+              <span>
+                <span className="font-medium">{t('fromLabel')}</span>{' '}
+                {senderInfo.name ? (
+                  <>{senderInfo.name} &lt;{senderInfo.email}&gt;</>
+                ) : (
+                  <>{senderInfo.email}</>
+                )}
+              </span>
+            ) : null}
           </div>
 
-          <div className="flex-1 overflow-y-auto px-6 pb-6">
-            <EmailPreview
-              htmlContent={previewHtml}
-              loading={loadingPreview}
-              height="h-full"
-            />
-          </div>
+          {/* Email Preview - Sin scroll interno */}
+          <EmailPreview
+            htmlContent={previewHtml}
+            loading={isLoadingPreview}
+            height="auto"
+          />
         </div>
       </div>
 
-      {/* Footer Actions */}
-      <div className="p-6 border-t border-border bg-card">
+      {/* Footer fijo */}
+      <div className="px-6 py-4 border-t border-border bg-card">
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-6">
             <div className="text-sm text-muted-foreground">
