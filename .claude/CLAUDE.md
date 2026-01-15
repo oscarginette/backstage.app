@@ -350,6 +350,270 @@ describe('UnsubscribeUseCase', () => {
 
 ---
 
+## 📧 Sender Email Architecture (MANDATORY)
+
+### Core Principle: Single Configured Sender
+
+**CRITICAL RULE: Users cannot choose sender email per campaign. They use their ONE configured sender email for ALL campaigns.**
+
+This is a fundamental architectural decision that affects the entire email sending system.
+
+### Why This Design?
+
+1. **Domain Verification Simplicity**: One domain to verify, not many
+2. **Email Reputation**: Consistent sender builds trust with ISPs
+3. **Legal Compliance**: Clear sender identity (CAN-SPAM, GDPR)
+4. **User Experience**: No confusion about "which email to send from"
+5. **Technical Simplicity**: No per-campaign sender validation
+
+### Implementation Rules
+
+#### ❌ FORBIDDEN: Per-Campaign Sender Selection
+
+**NEVER implement**:
+- Sender email selector in email editor/composer
+- "Choose sender email" dropdown in campaign creation
+- Per-draft sender email storage
+- UI that lets users pick sender email when composing
+
+**Example of FORBIDDEN UI**:
+```tsx
+// ❌ WRONG: Sender selector in email editor
+<SenderEmailSelector
+  selectedEmail={senderEmail}
+  onChange={setSenderEmail}
+/>
+```
+
+#### ✅ REQUIRED: Global Sender Configuration
+
+**Users configure sender email ONCE in Settings**:
+```
+/settings/sending-domains
+  → Add domain (e.g., "geebeat.com")
+  → Verify DNS records (SPF, DKIM, DMARC)
+  → Set sender email (e.g., "info@geebeat.com")
+  → Set sender name (e.g., "Artist Name")
+```
+
+**This becomes the sender for ALL campaigns.**
+
+#### Data Flow
+
+```
+┌─ USER CONFIGURATION (ONE TIME) ────────────────────┐
+│                                                     │
+│  1. User goes to /settings/sending-domains         │
+│  2. Adds domain: "geebeat.com"                     │
+│  3. Verifies DNS (Mailgun integration)             │
+│  4. Sets sender email: "info@geebeat.com"          │
+│  5. Sets sender name: "Artist Name"                │
+│                                                     │
+│  → Stored in: users.sender_email, users.sender_name│
+│                                                     │
+└─────────────────────────────────────────────────────┘
+                        ↓
+┌─ CAMPAIGN CREATION (EVERY TIME) ───────────────────┐
+│                                                     │
+│  1. User creates campaign                          │
+│  2. Writes subject, message, etc.                  │
+│  3. NO sender selection (uses configured sender)   │
+│  4. Clicks "Send"                                  │
+│                                                     │
+│  → SendDraftUseCase retrieves users.sender_email   │
+│  → Validates domain is verified                    │
+│  → Sends from "Artist Name <info@geebeat.com>"     │
+│                                                     │
+└─────────────────────────────────────────────────────┘
+```
+
+### Database Schema
+
+**User table** (stores global sender configuration):
+```sql
+CREATE TABLE users (
+  id SERIAL PRIMARY KEY,
+  email VARCHAR(255) NOT NULL,
+
+  -- Global sender configuration (ONE per user)
+  sender_email VARCHAR(255),      -- e.g., "info@geebeat.com"
+  sender_name VARCHAR(255),       -- e.g., "Artist Name"
+
+  ...
+);
+```
+
+**Campaigns table** (NO sender_email field):
+```sql
+CREATE TABLE email_campaigns (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER REFERENCES users(id),
+  subject VARCHAR(255) NOT NULL,
+  greeting TEXT,
+  message TEXT,
+  signature TEXT,
+
+  -- ❌ NO sender_email field here!
+  -- Sender is retrieved from users table at send time
+
+  ...
+);
+```
+
+### Use Case Layer
+
+**SendDraftUseCase** retrieves sender from user settings:
+```typescript
+async execute(input: SendDraftInput): Promise<SendDraftResult> {
+  // 1. Get user settings (includes sender_email, sender_name)
+  const userSettings = await this.userSettingsRepository.getByUserId(userId);
+
+  // 2. Use configured sender (or fallback to default)
+  let effectiveSenderEmail = 'noreply@thebackstage.app';
+  let effectiveSenderName = 'Backstage';
+
+  if (userSettings.hasSenderEmail()) {
+    // User has configured custom sender
+    const domain = extractDomainFromEmail(userSettings.senderEmail);
+
+    // 3. Validate domain is verified
+    const sendingDomain = await this.sendingDomainRepository
+      .findByUserIdAndDomain(userId, domain);
+
+    if (sendingDomain?.isVerified()) {
+      effectiveSenderEmail = userSettings.senderEmail;
+      effectiveSenderName = userSettings.senderName || 'Backstage';
+    }
+  }
+
+  // 4. Send with effective sender
+  const fromAddress = effectiveSenderName
+    ? `${effectiveSenderName} <${effectiveSenderEmail}>`
+    : effectiveSenderEmail;
+
+  await this.emailProvider.send({
+    from: fromAddress,  // Same for ALL campaigns from this user
+    to: contact.email,
+    subject: campaign.subject,
+    html: personalizedHtml,
+    ...
+  });
+}
+```
+
+### Presentation Layer
+
+**Email Editor** (`/components/dashboard/EmailContentEditor.tsx`):
+```tsx
+// ✅ CORRECT: Shows configured sender (read-only display)
+<div className="text-sm text-muted-foreground">
+  {loadingSender ? (
+    <span>Loading sender...</span>
+  ) : senderInfo ? (
+    <span>
+      <span className="font-medium">From:</span>{' '}
+      {senderInfo.name ? (
+        <>{senderInfo.name} &lt;{senderInfo.email}&gt;</>
+      ) : (
+        <>{senderInfo.email}</>
+      )}
+    </span>
+  ) : null}
+</div>
+
+// ❌ FORBIDDEN: Sender selector
+// <SenderEmailSelector selectedEmail={senderEmail} onChange={setSenderEmail} />
+```
+
+**Settings Page** (`/app/settings/sending-domains/`):
+```tsx
+// ✅ ONLY place to configure sender email
+<SendingDomainsClient
+  currentSenderEmail={user.senderEmail}
+  currentSenderName={user.senderName}
+  onUpdate={async (email, name) => {
+    // PATCH /api/user/sender-email
+    // Updates users.sender_email, users.sender_name
+  }}
+/>
+```
+
+### API Layer
+
+**Email sending** (`POST /api/campaigns/send`):
+```typescript
+// ✅ CORRECT: No sender email in request body
+const validationSchema = z.object({
+  subject: z.string().min(1),
+  greeting: z.string(),
+  message: z.string(),
+  signature: z.string(),
+  // ❌ NO senderEmail field here!
+});
+```
+
+**Sender configuration** (`PATCH /api/user/sender-email`):
+```typescript
+// ✅ ONLY endpoint that modifies sender email
+const validationSchema = z.object({
+  senderEmail: z.string().email().nullable(),
+  senderName: z.string().min(1).max(255).nullable(),
+});
+
+// Updates users.sender_email, users.sender_name
+```
+
+### Validation & Fallback
+
+**Triple-layer validation**:
+1. **Settings Update**: Domain must be verified before setting sender email
+2. **Send Time**: Re-validate domain is still verified
+3. **Email Provider**: Fallback to default if domain not found in Mailgun
+
+**Graceful degradation**:
+```typescript
+// If custom domain not verified → Falls back to noreply@thebackstage.app
+// If Mailgun domain not found → Retries with default Mailgun domain
+// No silent failures - all fallbacks logged
+```
+
+### Migration Guide
+
+If you encounter legacy code with per-campaign sender selection:
+
+1. **Remove** sender email from campaign creation UI
+2. **Remove** sender email from `EmailContent` type (or make it ignored)
+3. **Remove** sender email from API request validation
+4. **Update** use cases to retrieve sender from user settings
+5. **Add** read-only sender display in email editor preview
+
+### Testing Checklist
+
+- [ ] Email editor does NOT have sender selector
+- [ ] Campaign creation does NOT include sender email
+- [ ] Settings page allows sender email configuration
+- [ ] SendDraftUseCase retrieves sender from user settings
+- [ ] Domain verification happens before sender email update
+- [ ] Fallback to default sender if domain not verified
+- [ ] Preview shows configured sender (read-only)
+
+### Related Files
+
+**Settings**:
+- `/app/settings/sending-domains/` - Sender configuration UI
+- `/app/api/user/sender-email/route.ts` - Update sender endpoint
+
+**Domain Layer**:
+- `/domain/entities/UserSettings.ts` - Sender email storage
+- `/domain/services/UpdateUserSenderEmailUseCase.ts` - Sender email validation
+- `/domain/services/SendDraftUseCase.ts` - Sender email retrieval
+
+**UI Components**:
+- `/components/dashboard/EmailContentEditor.tsx` - Email editor (NO selector)
+- `/components/dashboard/SenderEmailSelector.tsx` - ❌ DEPRECATED (do not use in email editor)
+
+---
+
 ## GDPR & Legal Compliance
 
 ### Audit Trail (Mandatory)
