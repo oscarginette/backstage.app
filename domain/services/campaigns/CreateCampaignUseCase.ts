@@ -53,6 +53,10 @@ export class CreateCampaignUseCase {
       templateId: input.templateId || null,
       trackId: input.trackId || null,
       subject: input.subject,
+      greeting: input.greeting,
+      message: input.message,
+      signature: input.signature,
+      coverImageUrl: input.coverImageUrl,
       htmlContent: input.htmlContent,
       status: input.status || 'draft',
       scheduledAt: input.scheduledAt || null

@@ -123,6 +123,7 @@ export const POST = withErrorHandler(async (request: Request) => {
     greeting: validatedData.greeting,
     message: validatedData.message,
     signature: validatedData.signature,
+    coverImageUrl: validatedData.coverImageUrl || undefined,
     htmlContent: validatedData.htmlContent,
     status: validatedData.status,
     scheduledAt: validatedData.scheduledAt ? new Date(validatedData.scheduledAt) : null

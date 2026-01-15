@@ -213,6 +213,7 @@ export const CreateCampaignSchema = z.object({
   greeting: z.string().max(200, 'Greeting too long').optional(),
   message: z.string().optional(),
   signature: z.string().max(500, 'Signature too long').optional(),
+  coverImageUrl: z.string().url('Invalid cover image URL').optional().nullable(),
   htmlContent: z.string().optional(),
   status: z.enum(['draft', 'sent']).default('draft'),
   scheduledAt: z.string().datetime('Invalid datetime format').optional(),
