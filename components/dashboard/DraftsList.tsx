@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Modal from '@/components/ui/Modal';
 import { Card } from '@/components/ui/Card';
 import { CARD_STYLES, cn } from '@/domain/types/design-tokens';
@@ -9,7 +10,6 @@ import { useEmailCampaigns } from '../../hooks/useEmailCampaigns';
 import DraftCard from './DraftCard';
 import EmailContentEditor from './EmailContentEditor';
 import SendingProgressModal from './SendingProgressModal';
-import { env } from '@/lib/env';
 
 interface DraftsListProps {
   onDraftSent?: () => void;
@@ -31,10 +31,24 @@ export default function DraftsList({ onDraftSent }: DraftsListProps) {
   const [sending, setSending] = useState(false);
   const [sendResult, setSendResult] = useState<SendResult | null>(null);
   const [totalContacts, setTotalContacts] = useState(0);
+  const searchParams = useSearchParams();
 
   useEffect(() => {
     loadDrafts();
   }, []);
+
+  // Auto-open draft when URL param 'editDraft' is present (from resend)
+  useEffect(() => {
+    const editDraftId = searchParams.get('editDraft');
+    if (editDraftId && drafts.length > 0) {
+      const draftToEdit = drafts.find(d => d.id === editDraftId);
+      if (draftToEdit) {
+        setEditingDraft(draftToEdit);
+        // Clear URL param after opening
+        window.history.replaceState({}, '', '/dashboard?tab=engagement');
+      }
+    }
+  }, [searchParams, drafts]);
 
   const handleEdit = (draft: EmailCampaign) => {
     setEditingDraft(draft);
@@ -253,7 +267,7 @@ export default function DraftsList({ onDraftSent }: DraftsListProps) {
       <SendingProgressModal
         isOpen={sending}
         totalContacts={totalContacts}
-        isTestMode={env.TEST_EMAIL_ONLY}
+        isTestMode={process.env.NEXT_PUBLIC_TEST_EMAIL_ONLY === 'true'}
         result={sendResult}
         onClose={handleCloseProgressModal}
       />
