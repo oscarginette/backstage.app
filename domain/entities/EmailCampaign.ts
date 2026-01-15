@@ -251,14 +251,19 @@ export class EmailCampaign {
   /**
    * Create from database row
    * Note: Returns EmailCampaign entity with additional fields attached
+   *
+   * Database types:
+   * - id: Int (PostgreSQL) -> string (entity)
+   * - template_id: Int | null -> string | null
+   * - track_id: String | null -> string | null
    */
   static fromDatabase(row: any): any {
     const campaign = new EmailCampaign(
-      row.id,
-      row.template_id,
-      row.track_id,
-      row.subject,
-      row.html_content,
+      row.id.toString(), // Convert Int to string
+      row.template_id ? row.template_id.toString() : null, // Convert Int to string
+      row.track_id || null, // Already a string
+      row.subject || null,
+      row.html_content || null,
       row.status,
       row.scheduled_at ? new Date(row.scheduled_at) : null,
       row.sent_at ? new Date(row.sent_at) : null,
@@ -267,12 +272,13 @@ export class EmailCampaign {
     );
 
     // Attach additional fields for draft editing (not part of core entity)
+    // Note: These fields may not exist in the database yet
     return {
       ...campaign,
-      greeting: row.greeting || null,
-      message: row.message || null,
-      signature: row.signature || null,
-      coverImageUrl: row.cover_image_url || null,
+      greeting: row.greeting !== undefined ? row.greeting : null,
+      message: row.message !== undefined ? row.message : null,
+      signature: row.signature !== undefined ? row.signature : null,
+      coverImageUrl: row.cover_image_url !== undefined ? row.cover_image_url : null,
     };
   }
 }

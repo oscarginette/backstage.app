@@ -91,11 +91,6 @@ export class MailgunEmailProvider implements IEmailProvider {
 
   async send(params: EmailParams): Promise<EmailResult> {
     try {
-      console.log('');
-      console.log('      ┌─────────────────────────────────────────────────┐');
-      console.log('      │ 📮 MAILGUN EMAIL PROVIDER - SEND                │');
-      console.log('      └─────────────────────────────────────────────────┘');
-
       // 1. Build message data
       const messageData: any = {
         from: params.from || `The Backstage <noreply@${this.domain}>`,
@@ -104,24 +99,15 @@ export class MailgunEmailProvider implements IEmailProvider {
         html: params.html,
       };
 
-      console.log('      Recipient:', params.to);
-      console.log('      Subject:', params.subject);
-      console.log('      From:', messageData.from);
-      console.log('      HTML Length:', params.html?.length || 0, 'chars');
-
       // 2. Extract sending domain from 'from' address
       // This enables multi-tenant domain support
       // Example: "Artist Name <info@geebeat.com>" → "geebeat.com"
       const fromDomain = this.extractDomainFromEmail(messageData.from);
 
-      console.log('      Extracted Domain:', fromDomain);
-      console.log('      Default Domain:', this.domain);
-
       // 3. Add Reply-To if specified
       // Enables responses to go to a different address (e.g., user's email)
       if (params.replyTo) {
         messageData['h:Reply-To'] = params.replyTo;
-        console.log('      Reply-To:', params.replyTo);
       }
 
       // 4. Add List-Unsubscribe headers (CAN-SPAM compliance)
@@ -129,7 +115,6 @@ export class MailgunEmailProvider implements IEmailProvider {
       if (params.unsubscribeUrl) {
         messageData['h:List-Unsubscribe'] = `<${params.unsubscribeUrl}>`;
         messageData['h:List-Unsubscribe-Post'] = 'List-Unsubscribe=One-Click';
-        console.log('      Unsubscribe URL:', params.unsubscribeUrl);
       }
 
       // 5. Convert tags from Resend format to Mailgun format
@@ -139,7 +124,6 @@ export class MailgunEmailProvider implements IEmailProvider {
         messageData['o:tag'] = params.tags.map(
           tag => `${tag.name}:${tag.value}`
         );
-        console.log('      Tags:', messageData['o:tag'].join(', '));
       }
 
       // 6. Add custom headers
@@ -150,38 +134,52 @@ export class MailgunEmailProvider implements IEmailProvider {
             messageData[`h:${key}`] = value;
           }
         }
-        console.log('      Custom Headers:', Object.keys(params.headers).length);
       }
-
-      console.log('');
-      console.log('      🚀 Calling Mailgun API...');
-      console.log('      API Domain:', fromDomain);
 
       // 7. Send via Mailgun API using extracted domain
       // This allows emails to be sent FROM the artist's verified domain
-      const response = await this.mg.messages.create(fromDomain, messageData);
+      try {
+        const response = await this.mg.messages.create(fromDomain, messageData);
+        console.log(`✅ Email sent to ${params.to} (${response.id})`);
+        return {
+          success: true,
+          id: response.id,
+        };
+      } catch (error: any) {
+        // If domain not found in Mailgun, retry with default domain
+        if (
+          error.status === 404 ||
+          error.message?.includes('domain not found') ||
+          error.message?.includes('Domain not found')
+        ) {
+          console.warn(
+            `[MailgunEmailProvider] Domain ${fromDomain} not registered in Mailgun, using default: ${this.domain}`
+          );
 
-      console.log('      ✅ Mailgun API Response:');
-      console.log('      Message ID:', response.id);
-      console.log('      Status:', response.message || 'Queued');
-      console.log('');
+          // Retry with default domain
+          const fallbackMessageData = {
+            ...messageData,
+            from: messageData.from.replace(fromDomain, this.domain),
+          };
 
-      return {
-        success: true,
-        id: response.id,
-      };
+          const response = await this.mg.messages.create(this.domain, fallbackMessageData);
+          console.log(`✅ Email sent to ${params.to} via fallback domain (${response.id})`);
+
+          return {
+            success: true,
+            id: response.id,
+          };
+        }
+
+        // Re-throw other errors
+        throw error;
+      }
     } catch (error: unknown) {
       const errorMessage = error instanceof Error
         ? error.message
         : 'Failed to send email via Mailgun';
 
-      console.log('      ❌ MAILGUN ERROR:');
-      console.log('      Recipient:', params.to);
-      console.log('      Error:', errorMessage);
-      if (error instanceof Error && error.stack) {
-        console.log('      Stack:', error.stack.split('\n').slice(0, 3).join('\n'));
-      }
-      console.log('');
+      console.log(`❌ Email failed to ${params.to}: ${errorMessage}`);
 
       return {
         success: false,
