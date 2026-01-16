@@ -1254,4 +1254,57 @@ export class UseCaseFactory {
       RepositoryFactory.createSendingDomainRepository()
     );
   }
+
+  // ============================================================================
+  // Warm-up Use Cases
+  // ============================================================================
+
+  static createStartWarmupCampaignUseCase() {
+    const { StartWarmupCampaignUseCase } = require('@/domain/services/warmup/StartWarmupCampaignUseCase');
+    return new StartWarmupCampaignUseCase(
+      RepositoryFactory.createEmailCampaignRepository(),
+      RepositoryFactory.createContactRepository()
+    );
+  }
+
+  static createSendWarmupBatchUseCase() {
+    const { SendWarmupBatchUseCase } = require('@/domain/services/warmup/SendWarmupBatchUseCase');
+    return new SendWarmupBatchUseCase(
+      RepositoryFactory.createEmailCampaignRepository(),
+      RepositoryFactory.createContactRepository(),
+      ProviderFactory.createMailgunEmailProvider(),
+      RepositoryFactory.createExecutionLogRepository()
+    );
+  }
+
+  static createCheckWarmupHealthUseCase() {
+    const { CheckWarmupHealthUseCase } = require('@/domain/services/warmup/CheckWarmupHealthUseCase');
+    return new CheckWarmupHealthUseCase(
+      RepositoryFactory.createEmailCampaignRepository(),
+      RepositoryFactory.createEmailEventRepository()
+    );
+  }
+
+  static createGetWarmupStatusUseCase() {
+    const { GetWarmupStatusUseCase } = require('@/domain/services/warmup/GetWarmupStatusUseCase');
+    return new GetWarmupStatusUseCase(
+      RepositoryFactory.createEmailCampaignRepository(),
+      RepositoryFactory.createContactRepository(),
+      UseCaseFactory.createCheckWarmupHealthUseCase()
+    );
+  }
+
+  static createPauseWarmupCampaignUseCase() {
+    const { PauseWarmupCampaignUseCase } = require('@/domain/services/warmup/PauseWarmupCampaignUseCase');
+    return new PauseWarmupCampaignUseCase(
+      RepositoryFactory.createEmailCampaignRepository()
+    );
+  }
+
+  static createResumeWarmupCampaignUseCase() {
+    const { ResumeWarmupCampaignUseCase } = require('@/domain/services/warmup/ResumeWarmupCampaignUseCase');
+    return new ResumeWarmupCampaignUseCase(
+      RepositoryFactory.createEmailCampaignRepository()
+    );
+  }
 }
