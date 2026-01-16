@@ -40,23 +40,27 @@ export default function CreateGateForm() {
   const [useManualUrl, setUseManualUrl] = useState(false);
   const [formData, setFormData] = useState<CreateGateFormData>({
     title: '',
-    description: '',
-    artistName: '',
-    genre: '',
+    description: undefined,
+    artistName: undefined,
+    genre: undefined,
     soundcloudTrackUrl: '',
-    soundcloudTrackId: '',
-    artworkUrl: '',
+    soundcloudTrackId: undefined,
+    artworkUrl: undefined,
     fileUrl: '',
     fileSizeMb: undefined,
-    fileType: 'audio/wav',
+    fileType: 'audio', // ✅ Use backend enum, not MIME type
+    collectEmail: true,
+    collectName: false,
     requireSoundcloudRepost: true,
     requireSoundcloudFollow: true,
     requireInstagramFollow: true,
-    instagramProfileUrl: '',
+    instagramProfileUrl: undefined,
     requireSpotifyConnect: true,
+    customMessage: undefined,
     maxDownloads: undefined,
-    expiresAt: '',
-    slug: ''
+    expiresAt: undefined,
+    slug: undefined,
+    isActive: true,
   });
 
   // Load SoundCloud tracks and user Instagram URL on mount
@@ -154,13 +158,31 @@ export default function CreateGateForm() {
       console.log('[CreateGateForm] Submitting formData:', formData);
       console.log('[CreateGateForm] soundcloudTrackId:', formData.soundcloudTrackId);
 
+      // ✅ Clean empty strings to undefined (backend expects .url() or undefined)
+      const cleanedData = {
+        ...formData,
+        artworkUrl: formData.artworkUrl ? formData.artworkUrl.trim() || undefined : undefined,
+        instagramProfileUrl: formData.instagramProfileUrl ? formData.instagramProfileUrl.trim() || undefined : undefined,
+        description: formData.description ? formData.description.trim() || undefined : undefined,
+        artistName: formData.artistName ? formData.artistName.trim() || undefined : undefined,
+        soundcloudTrackId: formData.soundcloudTrackId ? formData.soundcloudTrackId.trim() || undefined : undefined,
+        customMessage: formData.customMessage ? formData.customMessage.trim() || undefined : undefined,
+        slug: formData.slug ? formData.slug.trim() || undefined : undefined,
+      };
+
+      console.log('[CreateGateForm] Cleaned data:', cleanedData);
+
       const response = await fetch('/api/download-gates', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(cleanedData)
       });
 
-      if (!response.ok) throw new Error('Failed to create gate');
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('[CreateGateForm] Server error:', errorData);
+        throw new Error(errorData.error || 'Failed to create gate');
+      }
 
       const data = await response.json();
       router.push(`/dashboard/download-gates/${data.gate.id}`);
@@ -378,7 +400,7 @@ export default function CreateGateForm() {
                           label={t('details.trackTitle')}
                           type="text"
                           name="title"
-                          value={formData.title}
+                          value={formData.title || ''}
                           onChange={handleChange}
                           placeholder={t('details.trackTitlePlaceholder')}
                         />
@@ -386,7 +408,7 @@ export default function CreateGateForm() {
                           label={t('details.artistName')}
                           type="text"
                           name="artistName"
-                          value={formData.artistName}
+                          value={formData.artistName || ''}
                           onChange={handleChange}
                           placeholder={t('details.artistNamePlaceholder')}
                         />
@@ -395,7 +417,7 @@ export default function CreateGateForm() {
                         label={t('details.artworkUrl')}
                         type="url"
                         name="artworkUrl"
-                        value={formData.artworkUrl}
+                        value={formData.artworkUrl || ''}
                         onChange={handleChange}
                         placeholder={t('details.artworkUrlPlaceholder')}
                       />
@@ -450,7 +472,7 @@ export default function CreateGateForm() {
                           label={t('settings.customSlug')}
                           type="text"
                           name="slug"
-                          value={formData.slug}
+                          value={formData.slug || ''}
                           onChange={handleChange}
                           placeholder={t('settings.customSlugPlaceholder')}
                         />
@@ -524,7 +546,7 @@ export default function CreateGateForm() {
                                   <Input
                                     type="url"
                                     name="instagramProfileUrl"
-                                    value={formData.instagramProfileUrl}
+                                    value={formData.instagramProfileUrl || ''}
                                     onChange={async (e) => {
                                       handleChange(e);
                                       // Save to user settings
