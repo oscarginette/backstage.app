@@ -19,6 +19,7 @@ export default function DownloadGatePage({ params }: { params: Promise<{ slug: s
   const [loading, setLoading] = useState(true);
   const [oauthLoading, setOauthLoading] = useState(false);
   const [oauthError, setOauthError] = useState<string | null>(null);
+  const [buyLinkSuccess, setBuyLinkSuccess] = useState(false);
   const [spotifyAutoSaveOptIn, setSpotifyAutoSaveOptIn] = useState(false);
   const [instagramLoading, setInstagramLoading] = useState(false);
 
@@ -58,6 +59,7 @@ export default function DownloadGatePage({ params }: { params: Promise<{ slug: s
     const urlParams = new URLSearchParams(window.location.search);
     const oauthStatus = urlParams.get('oauth');
     const oauthProvider = urlParams.get('provider');
+    const buyLinkParam = urlParams.get('buyLink');
 
     if (oauthStatus === 'success' && oauthProvider) {
       // OAuth successful - refresh submission from localStorage or API
@@ -75,6 +77,13 @@ export default function DownloadGatePage({ params }: { params: Promise<{ slug: s
 
         setSubmission(parsed);
         localStorage.setItem(`gate_submission_${slug}`, JSON.stringify(parsed));
+      }
+
+      // Check if buy link was added
+      if (buyLinkParam === 'success') {
+        setBuyLinkSuccess(true);
+        // Hide message after 8 seconds
+        setTimeout(() => setBuyLinkSuccess(false), 8000);
       }
 
       // Clear URL parameters
@@ -159,13 +168,13 @@ export default function DownloadGatePage({ params }: { params: Promise<{ slug: s
   };
 
   const handleSoundcloudActions = async (commentText?: string) => {
-    if (!submission?.id || !gate?.id) return;
+    if (!submission?.submissionId || !gate?.id) return;
 
     setOauthLoading(true);
     // Redirect to SoundCloud OAuth flow (OAuth 2.1 with PKCE)
     // The OAuth callback will handle verification and redirect back to this page
     const params = new URLSearchParams({
-      submissionId: submission.id,
+      submissionId: submission.submissionId,
       gateId: gate.id,
     });
 
@@ -178,24 +187,24 @@ export default function DownloadGatePage({ params }: { params: Promise<{ slug: s
   };
 
   const handleSpotify = async () => {
-    if (!submission?.id || !gate?.id) return;
+    if (!submission?.submissionId || !gate?.id) return;
 
     setOauthLoading(true);
 
     // Redirect to Spotify OAuth flow with auto-save opt-in preference
-    const redirectUrl = `/api/auth/spotify?submissionId=${submission.id}&gateId=${gate.id}&autoSaveOptIn=${spotifyAutoSaveOptIn}`;
+    const redirectUrl = `/api/auth/spotify?submissionId=${submission.submissionId}&gateId=${gate.id}&autoSaveOptIn=${spotifyAutoSaveOptIn}`;
     window.location.href = redirectUrl;
   };
 
   const handleInstagramClick = async () => {
-    if (!submission?.id || !gate?.id) return;
+    if (!submission?.submissionId || !gate?.id) return;
 
     setInstagramLoading(true);
 
     try {
       // Track click via API
       const res = await fetch(
-        `/api/instagram/track?submissionId=${submission.id}&gateId=${gate.id}`
+        `/api/instagram/track?submissionId=${submission.submissionId}&gateId=${gate.id}`
       );
 
       const data = await res.json();
@@ -223,14 +232,14 @@ export default function DownloadGatePage({ params }: { params: Promise<{ slug: s
   };
 
   const handleDownload = async () => {
-    if (!submission?.id) return;
+    if (!submission?.submissionId) return;
 
     try {
       // Generate download token
       const tokenResponse = await fetch(`/api/gate/${slug}/download-token`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ submissionId: submission.id }),
+        body: JSON.stringify({ submissionId: submission.submissionId }),
       });
 
       if (tokenResponse.ok) {
@@ -330,6 +339,20 @@ export default function DownloadGatePage({ params }: { params: Promise<{ slug: s
                 </div>
               )}
 
+              {buyLinkSuccess && (
+                <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg text-green-800 text-sm flex items-start gap-2">
+                  <svg className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                  <div>
+                    <p className="font-semibold">Shopping cart link added!</p>
+                    <p className="text-xs mt-1 text-green-700">
+                      A shopping cart icon now appears on your SoundCloud track. When clicked, it will redirect users to this Download Gate.
+                    </p>
+                  </div>
+                </div>
+              )}
+
               <div className="overflow-y-auto no-scrollbar flex-1">
                 <AnimatePresence mode="wait">
                   {currentStep === 'email' && (
@@ -339,9 +362,9 @@ export default function DownloadGatePage({ params }: { params: Promise<{ slug: s
                   {currentStep === 'soundcloud' && (
                   <SocialActionStep
                     key="soundcloud"
-                    title="Comment & Support"
-                    description="Drop a comment on the track to unlock. This will also Follow, Like and Repost to support the artist."
-                    buttonText="Comment & Unlock"
+                    title="Please support the artist to unlock your download"
+                    description={`Connect with SoundCloud to post a comment, like and repost ${gate.title} and follow ${gate.artistName}.`}
+                    buttonText="Connect"
                     icon="soundcloud"
                     onAction={handleSoundcloudActions}
                     isCompleted={submission?.soundcloudRepostVerified}
