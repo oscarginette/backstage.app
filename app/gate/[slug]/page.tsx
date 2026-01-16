@@ -128,34 +128,34 @@ export default function DownloadGatePage({ params }: { params: Promise<{ slug: s
   });
 
   const handleEmailSubmit = async (data: any) => {
-    try {
-      // Call the real API to submit email
-      const response = await fetch(`/api/gate/${slug}/submit`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: data.email,
-          firstName: data.firstName,
-          consentMarketing: data.consentMarketing,
-        }),
-      });
+    // Call the real API to submit email
+    const response = await fetch(`/api/gate/${slug}/submit`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: data.email,
+        firstName: data.firstName,
+        consentMarketing: data.consentMarketing,
+      }),
+    });
 
-      if (response.ok) {
-        const result = await response.json();
-        const newSubmission = {
-          ...result.submission,
-          soundcloudRepostVerified: false,
-          spotifyConnected: false,
-          downloadCompleted: false,
-        };
-        setSubmission(newSubmission);
-        localStorage.setItem(`gate_submission_${slug}`, JSON.stringify(newSubmission));
-      } else {
-        console.error('Failed to submit email');
-      }
-    } catch (error) {
-      console.error('Error submitting email:', error);
+    if (!response.ok) {
+      // Parse error response
+      const errorData = await response.json().catch(() => ({ error: 'Internal server error' }));
+      throw new Error(errorData.error || 'Failed to submit email. Please try again.');
     }
+
+    const result = await response.json();
+    const newSubmission = {
+      submissionId: result.submissionId,
+      email: data.email,
+      soundcloudRepostVerified: false,
+      spotifyConnected: false,
+      instagramClickTracked: false,
+      downloadCompleted: false,
+    };
+    setSubmission(newSubmission);
+    localStorage.setItem(`gate_submission_${slug}`, JSON.stringify(newSubmission));
   };
 
   const handleSoundcloudActions = async () => {

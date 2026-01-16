@@ -4,6 +4,7 @@
 import { useState, FormEvent } from 'react';
 import { motion } from 'framer-motion';
 import { Loader2 } from 'lucide-react';
+import Toast, { ToastType } from '@/components/ui/Toast';
 
 interface EmailCaptureFormProps {
   onSubmit: (data: { email: string; firstName: string; consentMarketing: boolean }) => Promise<void>;
@@ -15,13 +16,30 @@ export function EmailCaptureForm({ onSubmit }: EmailCaptureFormProps) {
   const [consentMarketing, setConsentMarketing] = useState(true);
   const [loading, setLoading] = useState(false);
 
+  // Toast state
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastType, setToastType] = useState<ToastType>('error');
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!email || !firstName) return;
-    
+
     setLoading(true);
+    setShowToast(false); // Hide previous toast
+
     try {
       await onSubmit({ email, firstName, consentMarketing });
+      // Success handled by parent component (shows success state)
+    } catch (error) {
+      // Show error toast
+      const errorMessage = error instanceof Error
+        ? error.message
+        : 'Failed to submit. Please try again.';
+
+      setToastMessage(errorMessage);
+      setToastType('error');
+      setShowToast(true);
     } finally {
       setLoading(false);
     }
@@ -82,6 +100,15 @@ export function EmailCaptureForm({ onSubmit }: EmailCaptureFormProps) {
           Don't have an email address? <a href="#" className="underline font-bold">Skip to next step</a>.
         </p>
       </form>
+
+      {/* Toast notification */}
+      <Toast
+        message={toastMessage}
+        type={toastType}
+        isVisible={showToast}
+        onClose={() => setShowToast(false)}
+        duration={5000}
+      />
     </motion.div>
   );
 }
