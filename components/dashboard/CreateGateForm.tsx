@@ -19,7 +19,8 @@ import {
   Tags,
   CheckCircle2,
   ExternalLink,
-  Plus
+  Plus,
+  ShoppingCart
 } from 'lucide-react';
 import GatePreview from './GatePreview';
 import GenreSelector from './GenreSelector';
@@ -57,6 +58,7 @@ export default function CreateGateForm() {
     requireInstagramFollow: true,
     instagramProfileUrl: '' as string | undefined,
     requireSpotifyConnect: true,
+    enableSoundcloudBuyLink: false,
     customMessage: '' as string | undefined,
     maxDownloads: undefined,
     expiresAt: undefined,
@@ -505,6 +507,7 @@ export default function CreateGateForm() {
                         {[
                           { id: 'requireSoundcloudRepost' as const, label: t('gateSteps.soundcloudRepost'), icon: RefreshCw, hasInput: false },
                           { id: 'requireSoundcloudFollow' as const, label: t('gateSteps.soundcloudFollow'), icon: Plus, hasInput: false },
+                          { id: 'enableSoundcloudBuyLink' as const, label: 'SoundCloud Buy Link', icon: ShoppingCart, hasInput: false, description: 'Add shopping cart icon to your SoundCloud track' },
                           { id: 'requireSpotifyConnect' as const, label: t('gateSteps.spotifyConnect'), icon: Music, hasInput: false },
                           { id: 'requireInstagramFollow' as const, label: 'Instagram Follow', icon: ExternalLink, hasInput: true },
                         ].map((req) => {
