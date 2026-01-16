@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { auth } from '@/lib/auth';
 import { UseCaseFactory } from '@/lib/di-container';
 
 /**
@@ -10,11 +9,11 @@ import { UseCaseFactory } from '@/lib/di-container';
  */
 export async function POST(
   request: Request,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     // 1. Authenticate user
-    const session = await getServerSession(authOptions);
+    const session = await auth();
 
     if (!session?.user?.id) {
       return NextResponse.json(
@@ -24,6 +23,7 @@ export async function POST(
     }
 
     const userId = parseInt(session.user.id);
+    const { id: campaignId } = await context.params;
 
     // 2. Parse request body
     const body = await request.json();
@@ -41,7 +41,7 @@ export async function POST(
 
     const result = await useCase.execute({
       userId,
-      campaignId: params.id,
+      campaignId,
       reason
     });
 

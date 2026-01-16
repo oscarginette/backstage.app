@@ -9,21 +9,31 @@
  * Supports both drafts and sent campaigns management.
  */
 
-export interface EmailCampaign {
+import { EmailCampaign } from '@/domain/entities/EmailCampaign';
+
+// Deprecated: Use EmailCampaign entity class instead
+// This interface is kept for backward compatibility but will be removed
+// All repository methods now return the actual EmailCampaign entity class
+export interface IEmailCampaign {
   id: string;
   templateId: string | null;
   trackId: string | null;
-  subject: string | null;  // Can be null for drafts
-  greeting?: string | null;  // Optional email greeting
-  message?: string | null;   // Optional email message
-  signature?: string | null; // Optional email signature
-  coverImageUrl?: string | null;  // Optional cover image URL (Cloudinary)
-  htmlContent: string | null;  // Can be null for drafts
+  subject: string | null;
+  greeting?: string | null;
+  message?: string | null;
+  signature?: string | null;
+  coverImageUrl?: string | null;
+  htmlContent: string | null;
   status: 'draft' | 'sent';
   scheduledAt: Date | null;
   sentAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
+  warmupEnabled?: boolean;
+  warmupCurrentDay?: number;
+  warmupStartedAt?: Date | null;
+  warmupPausedAt?: Date | null;
+  warmupPauseReason?: string | null;
 }
 
 export interface CreateCampaignInput {

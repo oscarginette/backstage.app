@@ -8,10 +8,8 @@
  * - Dependency Inversion: Depends on IEmailCampaignRepository interface
  */
 
-import {
-  IEmailCampaignRepository,
-  EmailCampaign
-} from '@/domain/repositories/IEmailCampaignRepository';
+import { IEmailCampaignRepository } from '@/domain/repositories/IEmailCampaignRepository';
+import { EmailCampaign } from '@/domain/entities/EmailCampaign';
 import { NotFoundError } from '@/lib/errors';
 
 /**

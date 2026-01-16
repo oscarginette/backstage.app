@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { auth } from '@/lib/auth';
 import { UseCaseFactory } from '@/lib/di-container';
 
 /**
@@ -10,11 +9,11 @@ import { UseCaseFactory } from '@/lib/di-container';
  */
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     // 1. Authenticate user
-    const session = await getServerSession(authOptions);
+    const session = await auth();
 
     if (!session?.user?.id) {
       return NextResponse.json(
@@ -24,13 +23,14 @@ export async function GET(
     }
 
     const userId = parseInt(session.user.id);
+    const { id: campaignId } = await context.params;
 
     // 2. Execute use case
     const useCase = UseCaseFactory.createGetWarmupStatusUseCase();
 
     const result = await useCase.execute({
       userId,
-      campaignId: params.id
+      campaignId
     });
 
     // 3. Return result

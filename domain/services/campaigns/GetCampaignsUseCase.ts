@@ -12,9 +12,9 @@
 
 import {
   IEmailCampaignRepository,
-  EmailCampaign,
   FindCampaignsOptions
 } from '@/domain/repositories/IEmailCampaignRepository';
+import { EmailCampaign } from '@/domain/entities/EmailCampaign';
 
 export interface GetCampaignsInput {
   userId: number;

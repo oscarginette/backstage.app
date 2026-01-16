@@ -11,9 +11,9 @@
 
 import {
   IEmailCampaignRepository,
-  EmailCampaign,
   CreateCampaignInput
 } from '@/domain/repositories/IEmailCampaignRepository';
+import { EmailCampaign } from '@/domain/entities/EmailCampaign';
 import { ValidationError } from '@/lib/errors';
 
 export interface CreateCampaignResult {

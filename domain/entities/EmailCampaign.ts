@@ -475,7 +475,7 @@ export class EmailCampaign {
    * - template_id: Int | null -> string | null
    * - track_id: String | null -> string | null
    */
-  static fromDatabase(row: any): any {
+  static fromDatabase(row: any): EmailCampaign {
     const campaign = new EmailCampaign(
       row.id.toString(), // Convert Int to string
       row.template_id ? row.template_id.toString() : null, // Convert Int to string
@@ -496,12 +496,12 @@ export class EmailCampaign {
 
     // Attach additional fields for draft editing (not part of core entity)
     // Note: These fields may not exist in the database yet
-    return {
-      ...campaign,
+    // Use Object.assign to preserve the EmailCampaign instance (keeps methods)
+    return Object.assign(campaign, {
       greeting: row.greeting !== undefined ? row.greeting : null,
       message: row.message !== undefined ? row.message : null,
       signature: row.signature !== undefined ? row.signature : null,
       coverImageUrl: row.cover_image_url !== undefined ? row.cover_image_url : null,
-    };
+    });
   }
 }
