@@ -191,12 +191,39 @@ export async function GET(request: Request) {
         }
       }
 
-      // 8. Mark state token as used
+      // 8. Update track buy link (if enabled - best-effort, non-blocking)
+      let buyLinkUpdated = false;
+      if (gate.enableSoundcloudBuyLink && gate.soundcloudTrackId) {
+        const updateBuyLinkUseCase = UseCaseFactory.createUpdateSoundCloudTrackBuyLinkUseCase();
+
+        const buyLinkResult = await updateBuyLinkUseCase.execute({
+          gateId: gate.id,
+          accessToken: tokenResponse.access_token,
+          soundcloudTrackId: gate.soundcloudTrackId,
+        });
+
+        if (!buyLinkResult.success) {
+          console.error(
+            '[SoundCloud Callback] Buy link update failed (non-critical):',
+            buyLinkResult.error
+          );
+        } else {
+          console.log('[SoundCloud Callback] Buy link updated successfully');
+          buyLinkUpdated = true;
+        }
+      }
+
+      // 9. Mark state token as used
       await oauthStateRepository.markAsUsed(oauthState.id);
 
-      // 9. Redirect back to gate page with success
-      const gateUrl = `${getAppUrl()}/gate/${gate.slug}?oauth=success&provider=soundcloud`;
-      return NextResponse.redirect(gateUrl);
+      // 10. Redirect back to gate page with success
+      const gateUrl = new URL(`${getAppUrl()}/gate/${gate.slug}`);
+      gateUrl.searchParams.set('oauth', 'success');
+      gateUrl.searchParams.set('provider', 'soundcloud');
+      if (buyLinkUpdated) {
+        gateUrl.searchParams.set('buyLink', 'success');
+      }
+      return NextResponse.redirect(gateUrl.toString());
     } catch (error) {
       console.error('SoundCloud callback processing error:', error);
 
