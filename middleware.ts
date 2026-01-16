@@ -3,21 +3,24 @@
  *
  * Handles:
  * 1. Alias redirect: its.thebackstage.app → in.thebackstage.app
- * 2. Root landing page auto-redirect for authenticated users
- * 3. Escape hatch with ?public=true query parameter
- * 4. Subdomain detection and routing
+ * 2. Marketing domain (thebackstage.app) root auto-redirect
+ * 3. Product domain (in.thebackstage.app) root auto-redirect
+ * 4. Escape hatch with ?public=true query parameter
  * 5. Protected route authentication
+ *
+ * Routing Logic:
+ * - thebackstage.app/ (marketing)
+ *   - Unauthenticated: Show landing page
+ *   - Authenticated: Redirect to in.thebackstage.app/dashboard
+ *   - Authenticated + ?public=true: Show landing page (escape hatch)
+ *
+ * - in.thebackstage.app/ (product)
+ *   - Unauthenticated: Redirect to thebackstage.app/login
+ *   - Authenticated: Redirect to /dashboard
  *
  * Protected routes (in.thebackstage.app):
  * - /dashboard/*
  * - /settings/*
- *
- * Public routes:
- * - thebackstage.app/ (landing page - or /dashboard if authenticated)
- * - /login
- * - /register
- * - /unsubscribe
- * - /api/* (API routes handle their own auth)
  *
  * IMPORTANT: This middleware runs in Edge Runtime (not Node.js).
  * We import from auth.config.ts which is Edge-compatible (no DB, no crypto).
@@ -62,6 +65,17 @@ export default auth(async function middleware(req) {
   // 3. SUBDOMAIN ROUTING: in.*
   // ========================================
   if (hostname === 'in.thebackstage.app') {
+    // Handle root path of product subdomain
+    if (pathname === '/') {
+      if (session) {
+        // Authenticated user → redirect to dashboard
+        return NextResponse.redirect(new URL('/dashboard', req.url));
+      } else {
+        // Unauthenticated user → redirect to login on main domain
+        return NextResponse.redirect(new URL('/login', 'https://thebackstage.app'));
+      }
+    }
+
     // Dashboard/Settings already protected by NextAuth middleware (see config.matcher below)
     // Only allow authenticated access
     return NextResponse.next();
