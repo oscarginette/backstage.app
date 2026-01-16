@@ -50,6 +50,12 @@ export interface EmailCampaign {
   sentAt: string | null;
   createdAt: string;
   updatedAt: string;
+  // Warmup fields (for gradual sender reputation building)
+  warmupEnabled?: boolean;
+  warmupCurrentDay?: number;
+  warmupStartedAt?: string | null;
+  warmupPausedAt?: string | null;
+  warmupPauseReason?: string | null;
 }
 
 export interface EmailContent {
