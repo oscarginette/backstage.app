@@ -258,6 +258,10 @@ model email_campaigns {
   template_id          Int?
   track_id             String?          @db.VarChar(500)
   subject              String?          @db.VarChar(500)
+  greeting             String?
+  message              String?
+  signature            String?
+  cover_image_url      String?          @db.VarChar(1000)
   html_content         String?
   status               String?          @default("draft") @db.VarChar(20)
   scheduled_at         DateTime?        @db.Timestamp(6)
