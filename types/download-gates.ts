@@ -88,13 +88,17 @@ export interface CreateGateFormData {
   artworkUrl?: string;
   fileUrl: string;
   fileSizeMb?: number;
-  fileType: string;
+  fileType: 'audio' | 'video' | 'image' | 'document' | 'other'; // ✅ Match backend enum
+  collectEmail?: boolean;
+  collectName?: boolean;
   requireSoundcloudRepost: boolean;
   requireSoundcloudFollow: boolean;
   requireInstagramFollow: boolean;
-  instagramProfileUrl: string;
+  instagramProfileUrl?: string;
   requireSpotifyConnect: boolean;
+  customMessage?: string;
   maxDownloads?: number;
   expiresAt?: string;
   slug?: string;
+  isActive?: boolean;
 }
