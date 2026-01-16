@@ -43,9 +43,15 @@ export interface ProcessDownloadGateInput {
   gateSlug: string; // Public gate identifier
   email: string;
   firstName?: string;
-  consentBackstage: boolean; // GDPR: explicit consent for The Backstage
-  consentGeeBeat: boolean; // GDPR: explicit consent for Gee Beat
-  source: 'the_backstage' | 'gee_beat'; // Which platform is submitting
+
+  // Simple format (legacy - EmailCaptureForm)
+  consentMarketing?: boolean; // Implies consent for all brands (Backstage + Gee Beat)
+
+  // Multi-brand format (new - DownloadGateForm)
+  consentBackstage?: boolean; // GDPR: explicit consent for The Backstage
+  consentGeeBeat?: boolean; // GDPR: explicit consent for Gee Beat
+  source?: 'the_backstage' | 'gee_beat'; // Which platform is submitting (defaults to 'the_backstage')
+
   ipAddress: string | null;
   userAgent: string | null;
 }
@@ -147,8 +153,8 @@ export class ProcessDownloadGateUseCase {
   }
 
   /**
-   * Validate input data
-   * @param input - Form submission data
+   * Validate input data and normalize simple format to multi-brand format
+   * @param input - Form submission data (mutates input to normalize format)
    * @throws ValidationError if invalid
    */
   private validateInput(input: ProcessDownloadGateInput): void {
@@ -160,13 +166,26 @@ export class ProcessDownloadGateUseCase {
       throw new ValidationError('Valid email is required');
     }
 
-    // GDPR: consent must be explicit boolean (not undefined)
+    // Normalize simple format (consentMarketing) to multi-brand format
+    if (input.consentMarketing !== undefined) {
+      // Legacy format: consentMarketing implies consent for all brands
+      input.consentBackstage = input.consentMarketing;
+      input.consentGeeBeat = input.consentMarketing;
+      input.source = input.source || 'the_backstage'; // Default source
+    }
+
+    // GDPR: consent must be explicit boolean (not undefined) after normalization
     if (typeof input.consentBackstage !== 'boolean') {
       throw new ValidationError('Backstage consent must be explicitly provided');
     }
 
     if (typeof input.consentGeeBeat !== 'boolean') {
       throw new ValidationError('Gee Beat consent must be explicitly provided');
+    }
+
+    // Default source if not provided
+    if (!input.source) {
+      input.source = 'the_backstage';
     }
 
     // At least one brand consent required
@@ -225,9 +244,14 @@ export class ProcessDownloadGateUseCase {
     let contact = await this.contactRepository.findByEmail(input.email, userId);
 
     if (!contact) {
+      // After validateInput, these are guaranteed to be booleans
+      const consentBackstage = input.consentBackstage!;
+      const consentGeeBeat = input.consentGeeBeat!;
+      const source = input.source!;
+
       // Create new contact
       const sourceValue =
-        input.source === 'the_backstage'
+        source === 'the_backstage'
           ? DOWNLOAD_SOURCES.THE_BACKSTAGE
           : DOWNLOAD_SOURCES.GEE_BEAT;
 
@@ -236,14 +260,14 @@ export class ProcessDownloadGateUseCase {
           userId,
           email: input.email,
           name: input.firstName || null,
-          subscribed: input.consentBackstage || input.consentGeeBeat, // Subscribed if any consent
+          subscribed: consentBackstage || consentGeeBeat, // Subscribed if any consent
           source: sourceValue,
           metadata: {
             downloadGate: true,
             firstName: input.firstName,
-            consentBackstage: input.consentBackstage,
-            consentGeeBeat: input.consentGeeBeat,
-            platform: input.source,
+            consentBackstage,
+            consentGeeBeat,
+            platform: source,
           },
         },
       ]);
@@ -256,7 +280,7 @@ export class ProcessDownloadGateUseCase {
       }
     } else {
       // Update existing contact subscription status if needed
-      const shouldBeSubscribed = input.consentBackstage || input.consentGeeBeat;
+      const shouldBeSubscribed = input.consentBackstage! || input.consentGeeBeat!;
       if (contact.subscribed !== shouldBeSubscribed) {
         await this.contactRepository.updateSubscriptionStatus(
           contact.id,
@@ -278,11 +302,15 @@ export class ProcessDownloadGateUseCase {
    * @returns Created submission
    */
   private async createSubmission(input: ProcessDownloadGateInput, gateId: string) {
+    // After validateInput, these are guaranteed to be booleans
+    const consentBackstage = input.consentBackstage!;
+    const consentGeeBeat = input.consentGeeBeat!;
+
     return await this.submissionRepository.create({
       gateId,
       email: input.email,
       firstName: input.firstName,
-      consentMarketing: input.consentBackstage || input.consentGeeBeat, // True if any consent
+      consentMarketing: consentBackstage || consentGeeBeat, // True if any consent
       ipAddress: input.ipAddress || undefined,
       userAgent: input.userAgent || undefined,
     });
@@ -299,13 +327,18 @@ export class ProcessDownloadGateUseCase {
     input: ProcessDownloadGateInput,
     gate: any
   ): Promise<void> {
+    // After validateInput, these are guaranteed to be booleans
+    const consentBackstage = input.consentBackstage!;
+    const consentGeeBeat = input.consentGeeBeat!;
+    const source = input.source!;
+
     // Construct metadata compatible with ConsentHistoryMetadata
     const downloadMetadata = {
-      acceptedBackstage: input.consentBackstage,
-      acceptedGeeBeat: input.consentGeeBeat,
+      acceptedBackstage: consentBackstage,
+      acceptedGeeBeat: consentGeeBeat,
       acceptedArtist: true,
       downloadSource:
-        input.source === 'the_backstage'
+        source === 'the_backstage'
           ? DOWNLOAD_SOURCES.THE_BACKSTAGE
           : DOWNLOAD_SOURCES.GEE_BEAT,
       gateSlug: input.gateSlug,
