@@ -195,7 +195,7 @@ export async function GET(request: Request) {
       await oauthStateRepository.markAsUsed(oauthState.id);
 
       // 9. Redirect back to gate page with success
-      const gateUrl = `${getAppUrl()}/gate/${gate.slug}?soundcloud=success`;
+      const gateUrl = `${getAppUrl()}/gate/${gate.slug}?oauth=success&provider=soundcloud`;
       return NextResponse.redirect(gateUrl);
     } catch (error) {
       console.error('SoundCloud callback processing error:', error);
