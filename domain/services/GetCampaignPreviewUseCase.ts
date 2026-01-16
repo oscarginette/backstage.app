@@ -126,17 +126,18 @@ export class GetCampaignPreviewUseCase {
           id: campaign.id,
           templateId: campaign.templateId || null,
           trackId: campaign.trackId || null,
-          subject: campaign.subject,
-          htmlContent: campaign.htmlContent,
+          subject: campaign.subject || '', // Fallback to empty string for sent campaigns
+          htmlContent: campaign.htmlContent || '', // Fallback to empty string for sent campaigns
           sentAt: campaign.sentAt ? new Date(campaign.sentAt) : new Date(),
           emailsSent: executionLog.emailsSent || 0,
           senderEmail: user?.senderEmail || null,
           senderName: user?.senderName || null,
           metadata: {
-            greeting: campaign.greeting || undefined,
-            message: campaign.message || undefined,
-            signature: campaign.signature || undefined,
-            coverImageUrl: campaign.coverImageUrl || undefined,
+            // Access optional properties that are attached by repository
+            greeting: (campaign as any).greeting || undefined,
+            message: (campaign as any).message || undefined,
+            signature: (campaign as any).signature || undefined,
+            coverImageUrl: (campaign as any).coverImageUrl || undefined,
             trackTitle: executionLog.trackTitle || undefined,
             trackUrl: undefined // Track URL not stored in execution log
           }
