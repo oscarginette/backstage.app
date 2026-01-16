@@ -4,10 +4,17 @@
  * Represents an email campaign or draft that can be sent independently
  * of tracks. Supports both custom emails and template-based emails.
  *
+ * Warm-up Support:
+ * - Campaigns can opt-in to gradual warm-up (7-day schedule)
+ * - Tracks progress via warmupCurrentDay (0=not started, 1-7=active, 8+=complete)
+ * - Can be paused/resumed if issues detected
+ *
  * SOLID Principles:
  * - Single Responsibility: Only manages campaign business logic and validation
  * - Open/Closed: Can be extended without modification
  */
+
+import { WarmupSchedule } from '@/domain/value-objects/WarmupSchedule';
 
 export interface EmailCampaignProps {
   id: string;
@@ -20,6 +27,11 @@ export interface EmailCampaignProps {
   sentAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
+  warmupEnabled: boolean;
+  warmupCurrentDay: number;
+  warmupStartedAt: Date | null;
+  warmupPausedAt: Date | null;
+  warmupPauseReason: string | null;
 }
 
 export class EmailCampaign {
@@ -33,7 +45,12 @@ export class EmailCampaign {
     public readonly scheduledAt: Date | null,
     public readonly sentAt: Date | null,
     public readonly createdAt: Date,
-    public readonly updatedAt: Date
+    public readonly updatedAt: Date,
+    public readonly warmupEnabled: boolean = false,
+    public readonly warmupCurrentDay: number = 0,
+    public readonly warmupStartedAt: Date | null = null,
+    public readonly warmupPausedAt: Date | null = null,
+    public readonly warmupPauseReason: string | null = null
   ) {
     this.validate();
   }
@@ -175,7 +192,12 @@ export class EmailCampaign {
       props.scheduledAt || null,
       props.status === 'sent' ? now : null,
       now,
-      now
+      now,
+      false, // warmupEnabled
+      0, // warmupCurrentDay
+      null, // warmupStartedAt
+      null, // warmupPausedAt
+      null // warmupPauseReason
     );
   }
 
@@ -199,7 +221,12 @@ export class EmailCampaign {
       this.scheduledAt,
       now,
       this.createdAt,
-      now
+      now,
+      this.warmupEnabled,
+      this.warmupCurrentDay,
+      this.warmupStartedAt,
+      this.warmupPausedAt,
+      this.warmupPauseReason
     );
   }
 
@@ -226,7 +253,12 @@ export class EmailCampaign {
       props.scheduledAt !== undefined ? props.scheduledAt : this.scheduledAt,
       this.sentAt,
       this.createdAt,
-      new Date() // Update timestamp
+      new Date(), // Update timestamp
+      this.warmupEnabled,
+      this.warmupCurrentDay,
+      this.warmupStartedAt,
+      this.warmupPausedAt,
+      this.warmupPauseReason
     );
   }
 
@@ -244,8 +276,194 @@ export class EmailCampaign {
       scheduledAt: this.scheduledAt,
       sentAt: this.sentAt,
       createdAt: this.createdAt,
-      updatedAt: this.updatedAt
+      updatedAt: this.updatedAt,
+      warmupEnabled: this.warmupEnabled,
+      warmupCurrentDay: this.warmupCurrentDay,
+      warmupStartedAt: this.warmupStartedAt,
+      warmupPausedAt: this.warmupPausedAt,
+      warmupPauseReason: this.warmupPauseReason
     };
+  }
+
+  /**
+   * WARM-UP METHODS
+   */
+
+  /**
+   * Enable warm-up for this campaign
+   * Returns new instance (immutability)
+   */
+  enableWarmup(): EmailCampaign {
+    if (this.warmupEnabled) {
+      throw new Error('Warm-up is already enabled for this campaign');
+    }
+
+    if (this.status !== 'draft') {
+      throw new Error('Can only enable warm-up on draft campaigns');
+    }
+
+    const now = new Date();
+    return new EmailCampaign(
+      this.id,
+      this.templateId,
+      this.trackId,
+      this.subject,
+      this.htmlContent,
+      this.status,
+      this.scheduledAt,
+      this.sentAt,
+      this.createdAt,
+      now, // updatedAt
+      true, // warmupEnabled
+      1, // warmupCurrentDay (start at day 1)
+      now, // warmupStartedAt
+      null, // warmupPausedAt
+      null // warmupPauseReason
+    );
+  }
+
+  /**
+   * Get warm-up schedule for this campaign
+   * @param totalContacts - Total contacts for this campaign
+   * @returns WarmupSchedule or null if warm-up not enabled
+   */
+  getWarmupSchedule(totalContacts: number): WarmupSchedule | null {
+    if (!this.warmupEnabled) {
+      return null;
+    }
+
+    return new WarmupSchedule(
+      totalContacts,
+      this.warmupCurrentDay,
+      this.warmupStartedAt
+    );
+  }
+
+  /**
+   * Check if warm-up is active (started but not paused or complete)
+   */
+  isWarmupActive(): boolean {
+    if (!this.warmupEnabled) return false;
+    if (this.warmupPausedAt !== null) return false;
+
+    const schedule = this.getWarmupSchedule(1000); // Dummy total for status check
+    return schedule ? schedule.isActive() : false;
+  }
+
+  /**
+   * Check if warm-up is complete
+   */
+  isWarmupComplete(): boolean {
+    if (!this.warmupEnabled) return false;
+
+    const schedule = this.getWarmupSchedule(1000); // Dummy total for status check
+    return schedule ? schedule.isComplete() : false;
+  }
+
+  /**
+   * Check if warm-up is paused
+   */
+  isWarmupPaused(): boolean {
+    return this.warmupEnabled && this.warmupPausedAt !== null;
+  }
+
+  /**
+   * Pause warm-up (auto or manual)
+   * Returns new instance (immutability)
+   */
+  pauseWarmup(reason: string): EmailCampaign {
+    if (!this.warmupEnabled) {
+      throw new Error('Cannot pause warm-up: not enabled');
+    }
+
+    if (this.warmupPausedAt !== null) {
+      throw new Error('Warm-up is already paused');
+    }
+
+    const now = new Date();
+    return new EmailCampaign(
+      this.id,
+      this.templateId,
+      this.trackId,
+      this.subject,
+      this.htmlContent,
+      this.status,
+      this.scheduledAt,
+      this.sentAt,
+      this.createdAt,
+      now, // updatedAt
+      this.warmupEnabled,
+      this.warmupCurrentDay,
+      this.warmupStartedAt,
+      now, // warmupPausedAt
+      reason // warmupPauseReason
+    );
+  }
+
+  /**
+   * Resume paused warm-up
+   * Returns new instance (immutability)
+   */
+  resumeWarmup(): EmailCampaign {
+    if (!this.warmupEnabled) {
+      throw new Error('Cannot resume warm-up: not enabled');
+    }
+
+    if (this.warmupPausedAt === null) {
+      throw new Error('Warm-up is not paused');
+    }
+
+    const now = new Date();
+    return new EmailCampaign(
+      this.id,
+      this.templateId,
+      this.trackId,
+      this.subject,
+      this.htmlContent,
+      this.status,
+      this.scheduledAt,
+      this.sentAt,
+      this.createdAt,
+      now, // updatedAt
+      this.warmupEnabled,
+      this.warmupCurrentDay,
+      this.warmupStartedAt,
+      null, // warmupPausedAt (clear)
+      null // warmupPauseReason (clear)
+    );
+  }
+
+  /**
+   * Advance warm-up to next day
+   * Returns new instance (immutability)
+   */
+  advanceWarmupDay(): EmailCampaign {
+    if (!this.warmupEnabled) {
+      throw new Error('Cannot advance warm-up day: not enabled');
+    }
+
+    if (this.warmupPausedAt !== null) {
+      throw new Error('Cannot advance paused warm-up');
+    }
+
+    const now = new Date();
+    return new EmailCampaign(
+      this.id,
+      this.templateId,
+      this.trackId,
+      this.subject,
+      this.htmlContent,
+      this.status,
+      this.scheduledAt,
+      this.sentAt,
+      this.createdAt,
+      now, // updatedAt
+      this.warmupEnabled,
+      this.warmupCurrentDay + 1, // Advance day
+      this.warmupStartedAt,
+      this.warmupPausedAt,
+      this.warmupPauseReason
+    );
   }
 
   /**
@@ -268,7 +486,12 @@ export class EmailCampaign {
       row.scheduled_at ? new Date(row.scheduled_at) : null,
       row.sent_at ? new Date(row.sent_at) : null,
       new Date(row.created_at),
-      new Date(row.updated_at)
+      new Date(row.updated_at),
+      row.warmup_enabled ?? false,
+      row.warmup_current_day ?? 0,
+      row.warmup_started_at ? new Date(row.warmup_started_at) : null,
+      row.warmup_paused_at ? new Date(row.warmup_paused_at) : null,
+      row.warmup_pause_reason || null
     );
 
     // Attach additional fields for draft editing (not part of core entity)
