@@ -1,7 +1,7 @@
 import crypto from 'crypto';
 import { ImportedContact, ValidationError } from '@/domain/entities/ImportedContact';
 import { CONSENT_ACTIONS, CONSENT_SOURCES } from '@/domain/entities/ConsentHistory';
-import type { IContactRepository } from '@/domain/repositories/IContactRepository';
+import type { IContactRepository, BulkImportContactInput } from '@/domain/repositories/IContactRepository';
 import type { IConsentHistoryRepository } from '@/domain/repositories/IConsentHistoryRepository';
 import type { ContactMetadata } from '@/domain/types/metadata';
 import type { Contact } from '@/domain/repositories/IContactRepository';
@@ -161,13 +161,14 @@ export class CreateContactUseCase {
     const unsubscribeToken = this.generateUnsubscribeToken();
 
     // Prepare contact for bulk import (reuses existing repository method)
-    const contactData = {
+    const contactData: BulkImportContactInput = {
       userId: input.userId,
       email: validatedContact.email,
       name: validatedContact.name,
       subscribed: validatedContact.subscribed,
       source: 'manual_add',
-      metadata: validatedContact.metadata
+      metadata: validatedContact.metadata,
+      createdAt: new Date()
     };
 
     // Insert contact via bulkImport (single contact = batch of 1)
