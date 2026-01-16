@@ -97,25 +97,24 @@ export function SocialActionStep({
           <label className="block text-xs font-bold mb-2 uppercase tracking-tight text-left">
             Share a comment <span className="text-[#ff5500]">*</span>
           </label>
-          <textarea
+          <input
+            type="text"
             value={commentText}
             onChange={(e) => {
               setCommentText(e.target.value);
               setCommentError(null);
             }}
             disabled={loading}
-            placeholder="Write your comment here... (max 300 characters)"
+            placeholder="Write your comment here..."
             maxLength={300}
-            rows={3}
             aria-label="Comment on SoundCloud track"
-            className="w-full px-4 py-3 bg-background/50 border border-foreground/10 rounded-lg text-foreground placeholder:text-foreground/40 focus:outline-none focus:border-[#ff5500] focus:ring-1 focus:ring-[#ff5500] disabled:opacity-50 disabled:cursor-not-allowed transition-all resize-none"
+            className="w-full px-4 py-3 bg-background/50 border border-foreground/10 rounded-lg text-foreground placeholder:text-foreground/40 focus:outline-none focus:border-[#ff5500] focus:ring-1 focus:ring-[#ff5500] disabled:opacity-50 disabled:cursor-not-allowed transition-all text-sm h-12"
           />
           {/* Character counter and error */}
-          <div className="flex justify-between items-center mt-2">
-            <span className="text-xs text-red-600 h-4">
+          <div className="flex justify-between items-center mt-2 h-4">
+             <span className="text-xs text-red-600">
               {commentError || ''}
             </span>
-            <span className="text-xs text-foreground/40">{commentText.length}/300</span>
           </div>
         </div>
       )}

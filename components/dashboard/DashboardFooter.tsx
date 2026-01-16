@@ -9,8 +9,8 @@ export function DashboardFooter() {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="border-t border-border bg-background mt-auto">
-      <div className="container mx-auto px-4 py-6">
+    <footer className="border-t border-border bg-background">
+      <div className="max-w-[1240px] mx-auto px-6 lg:px-8 py-6">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
           <p className="text-center sm:text-left">
             &copy; {currentYear} TheBackstage. All rights reserved.

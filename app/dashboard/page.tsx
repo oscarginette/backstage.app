@@ -175,15 +175,15 @@ function DashboardContent() {
       </div>
 
       {/* Main Content Area */}
-      <main className="flex-1 min-w-0 relative overflow-x-hidden">
-        
+      <main className="flex-1 min-w-0 relative overflow-x-hidden flex flex-col">
+
         {/* Dynamic Background (Scoped to main area) */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
             <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-accent/5 blur-[120px] rounded-full animate-pulse" />
             <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-500/5 blur-[120px] rounded-full animate-pulse delay-700" />
         </div>
 
-        <div className="max-w-[1240px] mx-auto px-6 lg:px-8 pt-8 pb-16 relative z-10">
+        <div className="flex-1 max-w-[1240px] mx-auto w-full px-6 lg:px-8 pt-8 pb-16 relative z-10">
           
             {/* Mobile Header (Simple fallback for now) */}
             <div className={cn("lg:hidden mb-6", LAYOUT_STYLES.spacing.section)}>
@@ -491,10 +491,10 @@ function DashboardContent() {
             </div>
             )}
         </div>
-      </main>
 
-      {/* Footer */}
-      <DashboardFooter />
+        {/* Footer */}
+        <DashboardFooter />
+      </main>
     </div>
   );
 }
