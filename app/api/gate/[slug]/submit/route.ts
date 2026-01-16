@@ -102,8 +102,17 @@ export async function POST(
     }
 
     // Unexpected errors
+    console.error('[FATAL] Unexpected error in submit endpoint:', error);
+    console.error('[FATAL] Error stack:', error instanceof Error ? error.stack : 'No stack trace');
+
     return NextResponse.json(
-      { error: 'Internal server error' },
+      {
+        error: 'Internal server error',
+        // Include error message in development for debugging
+        ...(process.env.NODE_ENV === 'development' && {
+          details: error instanceof Error ? error.message : String(error),
+        }),
+      },
       { status: 500 }
     );
   }
