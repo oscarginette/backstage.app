@@ -125,7 +125,27 @@ export async function GET(request: Request) {
       const ipAddress = request.headers.get('x-forwarded-for') || undefined;
       const userAgent = request.headers.get('user-agent') || undefined;
 
-      // 5. Verify repost (if required)
+      // 5. Post comment (if provided - best-effort, non-blocking)
+      if (oauthState.commentText && oauthState.commentText.trim().length > 0) {
+        const postCommentUseCase = UseCaseFactory.createPostSoundCloudCommentUseCase();
+
+        const commentResult = await postCommentUseCase.execute({
+          submissionId: oauthState.submissionId,
+          accessToken: tokenResponse.access_token,
+          soundcloudUserId: userProfile.id,
+          commentText: oauthState.commentText,
+          ipAddress,
+          userAgent,
+        });
+
+        if (!commentResult.success) {
+          console.error('[SoundCloud Callback] Comment POST failed (non-critical):', commentResult.error);
+        } else if (commentResult.posted) {
+          console.log('[SoundCloud Callback] Comment posted successfully');
+        }
+      }
+
+      // 6. Verify repost (if required)
       if (gate.requireSoundcloudRepost) {
         const verifyRepostUseCase = UseCaseFactory.createVerifySoundCloudRepostUseCase();
 
@@ -148,7 +168,7 @@ export async function GET(request: Request) {
         }
       }
 
-      // 6. Verify follow (if required)
+      // 7. Verify follow (if required)
       if (gate.requireSoundcloudFollow) {
         const verifyFollowUseCase = UseCaseFactory.createVerifySoundCloudFollowUseCase();
 
@@ -171,10 +191,10 @@ export async function GET(request: Request) {
         }
       }
 
-      // 7. Mark state token as used
+      // 8. Mark state token as used
       await oauthStateRepository.markAsUsed(oauthState.id);
 
-      // 8. Redirect back to gate page with success
+      // 9. Redirect back to gate page with success
       const gateUrl = `${getAppUrl()}/gate/${gate.slug}?soundcloud=success`;
       return NextResponse.redirect(gateUrl);
     } catch (error) {

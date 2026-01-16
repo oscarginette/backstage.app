@@ -24,6 +24,7 @@ export class PostgresOAuthStateRepository implements IOAuthStateRepository {
           gate_id,
           code_verifier,
           auto_save_opt_in,
+          comment_text,
           used,
           expires_at
         ) VALUES (
@@ -33,6 +34,7 @@ export class PostgresOAuthStateRepository implements IOAuthStateRepository {
           ${input.gateId},
           ${input.codeVerifier ?? null},
           ${input.autoSaveOptIn ?? false},
+          ${input.commentText ?? null},
           false,
           ${input.expiresAt.toISOString()}
         )
@@ -45,7 +47,7 @@ export class PostgresOAuthStateRepository implements IOAuthStateRepository {
 
       return this.mapToEntity(result.rows[0]);
     } catch (error) {
-      console.error('PostgresOAuthStateRepository.create error:', error);
+      console.error('[PostgresOAuthStateRepository] create error:', error);
       throw new Error(`Failed to create OAuth state: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
@@ -62,7 +64,7 @@ export class PostgresOAuthStateRepository implements IOAuthStateRepository {
         ? this.mapToEntity(result.rows[0])
         : null;
     } catch (error) {
-      console.error('PostgresOAuthStateRepository.findByStateToken error:', error);
+      console.error('[PostgresOAuthStateRepository] findByStateToken error:', error);
       throw new Error(`Failed to find OAuth state: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
@@ -80,7 +82,7 @@ export class PostgresOAuthStateRepository implements IOAuthStateRepository {
         throw new Error('OAuth state not found');
       }
     } catch (error) {
-      console.error('PostgresOAuthStateRepository.markAsUsed error:', error);
+      console.error('[PostgresOAuthStateRepository] markAsUsed error:', error);
       throw new Error(`Failed to mark OAuth state as used: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
@@ -95,7 +97,7 @@ export class PostgresOAuthStateRepository implements IOAuthStateRepository {
 
       return result.rowCount || 0;
     } catch (error) {
-      console.error('PostgresOAuthStateRepository.deleteExpired error:', error);
+      console.error('[PostgresOAuthStateRepository] deleteExpired error:', error);
       throw new Error(`Failed to delete expired OAuth states: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
@@ -112,7 +114,7 @@ export class PostgresOAuthStateRepository implements IOAuthStateRepository {
 
       return result.rows.length > 0;
     } catch (error) {
-      console.error('PostgresOAuthStateRepository.isValid error:', error);
+      console.error('[PostgresOAuthStateRepository] isValid error:', error);
       throw new Error(`Failed to validate OAuth state: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
@@ -130,6 +132,7 @@ export class PostgresOAuthStateRepository implements IOAuthStateRepository {
       gateId: row.gate_id,
       codeVerifier: row.code_verifier,
       autoSaveOptIn: row.auto_save_opt_in,
+      commentText: row.comment_text,
       used: row.used,
       expiresAt: new Date(row.expires_at),
       createdAt: new Date(row.created_at),

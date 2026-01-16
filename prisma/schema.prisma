@@ -447,6 +447,10 @@ model oauth_states {
   gate_id              String               @db.Uuid
   code_verifier        String?              @db.VarChar(255)
   auto_save_opt_in     Boolean?             @default(false)
+  /// Pre-written comment text for SoundCloud OAuth flow (Hypeddit-style)
+  /// Stores user's comment BEFORE OAuth, posted AFTER successful authentication
+  /// Auto-cleaned with state expiration (15 minutes)
+  comment_text         String?              @db.Text
   expires_at           DateTime             @db.Timestamp(6)
   used                 Boolean?             @default(false)
   created_at           DateTime?            @default(now()) @db.Timestamp(6)

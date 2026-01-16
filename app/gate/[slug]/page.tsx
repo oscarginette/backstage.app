@@ -158,13 +158,22 @@ export default function DownloadGatePage({ params }: { params: Promise<{ slug: s
     localStorage.setItem(`gate_submission_${slug}`, JSON.stringify(newSubmission));
   };
 
-  const handleSoundcloudActions = async () => {
+  const handleSoundcloudActions = async (commentText?: string) => {
     if (!submission?.id || !gate?.id) return;
 
     setOauthLoading(true);
     // Redirect to SoundCloud OAuth flow (OAuth 2.1 with PKCE)
     // The OAuth callback will handle verification and redirect back to this page
-    const redirectUrl = `/api/auth/soundcloud?submissionId=${submission.id}&gateId=${gate.id}`;
+    const params = new URLSearchParams({
+      submissionId: submission.id,
+      gateId: gate.id,
+    });
+
+    if (commentText && commentText.trim().length > 0) {
+      params.append('comment', encodeURIComponent(commentText.trim()));
+    }
+
+    const redirectUrl = `/api/auth/soundcloud?${params.toString()}`;
     window.location.href = redirectUrl;
   };
 
@@ -337,6 +346,7 @@ export default function DownloadGatePage({ params }: { params: Promise<{ slug: s
                     onAction={handleSoundcloudActions}
                     isCompleted={submission?.soundcloudRepostVerified}
                     isLoading={oauthLoading}
+                    enableCommentInput={true}
                   />
                 )}
 

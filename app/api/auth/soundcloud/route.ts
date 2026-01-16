@@ -40,6 +40,7 @@ export async function GET(request: Request) {
     const url = new URL(request.url);
     const submissionId = url.searchParams.get('submissionId');
     const gateId = url.searchParams.get('gateId');
+    const comment = url.searchParams.get('comment');
 
     // Validate required parameters
     if (!submissionId || !gateId) {
@@ -85,6 +86,7 @@ export async function GET(request: Request) {
       submissionId,
       gateId,
       codeVerifier, // Store for callback verification
+      commentText: comment ? decodeURIComponent(comment) : undefined, // Store comment for callback
       expiresAt,
     });
 

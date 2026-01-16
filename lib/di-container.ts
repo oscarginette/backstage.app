@@ -145,6 +145,7 @@ import { ValidateDownloadTokenUseCase } from '@/domain/services/ValidateDownload
 import { TrackGateAnalyticsUseCase } from '@/domain/services/TrackGateAnalyticsUseCase';
 import { VerifySoundCloudRepostUseCase } from '@/domain/services/VerifySoundCloudRepostUseCase';
 import { VerifySoundCloudFollowUseCase } from '@/domain/services/VerifySoundCloudFollowUseCase';
+import { PostSoundCloudCommentUseCase } from '@/domain/services/PostSoundCloudCommentUseCase';
 import { CheckAllMusicPlatformsUseCase } from '@/domain/services/CheckAllMusicPlatformsUseCase';
 import { GetSoundCloudTracksUseCase } from '@/domain/services/GetSoundCloudTracksUseCase';
 import { CheckNewTracksUseCase } from '@/domain/services/CheckNewTracksUseCase';
@@ -702,6 +703,15 @@ export class UseCaseFactory {
 
   static createVerifySoundCloudFollowUseCase(): VerifySoundCloudFollowUseCase {
     return new VerifySoundCloudFollowUseCase(
+      RepositoryFactory.createDownloadSubmissionRepository(),
+      RepositoryFactory.createDownloadGateRepository(),
+      RepositoryFactory.createDownloadAnalyticsRepository(),
+      ProviderFactory.createSoundCloudClient()
+    );
+  }
+
+  static createPostSoundCloudCommentUseCase(): PostSoundCloudCommentUseCase {
+    return new PostSoundCloudCommentUseCase(
       RepositoryFactory.createDownloadSubmissionRepository(),
       RepositoryFactory.createDownloadGateRepository(),
       RepositoryFactory.createDownloadAnalyticsRepository(),

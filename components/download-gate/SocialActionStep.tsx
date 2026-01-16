@@ -10,9 +10,10 @@ interface SocialActionStepProps {
   description: string;
   buttonText: string;
   icon: 'soundcloud' | 'spotify' | 'instagram';
-  onAction: () => Promise<void>;
+  onAction: (commentText?: string) => Promise<void>;
   isCompleted?: boolean;
   isLoading?: boolean;
+  enableCommentInput?: boolean;
   children?: React.ReactNode; // Allow additional content (e.g., opt-in checkbox)
 }
 
@@ -24,14 +25,30 @@ export function SocialActionStep({
   onAction,
   isCompleted = false,
   isLoading = false,
+  enableCommentInput = false,
   children
 }: SocialActionStepProps) {
   const [internalLoading, setInternalLoading] = useState(false);
+  const [commentText, setCommentText] = useState('');
+  const [commentError, setCommentError] = useState<string | null>(null);
 
   const handleAction = async () => {
+    // Validate comment if enabled
+    if (enableCommentInput) {
+      if (commentText.trim().length === 0) {
+        setCommentError('Please write a comment before connecting');
+        return;
+      }
+      if (commentText.length > 300) {
+        setCommentError('Comment must be less than 300 characters');
+        return;
+      }
+      setCommentError(null);
+    }
+
     setInternalLoading(true);
     try {
-      await onAction();
+      await onAction(enableCommentInput ? commentText : undefined);
     } finally {
       // Don't reset loading state here since OAuth redirect will happen
       // setInternalLoading(false);
@@ -73,6 +90,35 @@ export function SocialActionStep({
 
       <h2 className="text-xl font-black uppercase mb-2 tracking-tight">{title}</h2>
       <p className="text-sm text-foreground/60 mb-8">{description}</p>
+
+      {/* Comment textarea */}
+      {enableCommentInput && !isCompleted && (
+        <div className="mb-6">
+          <label className="block text-xs font-bold mb-2 uppercase tracking-tight text-left">
+            Share a comment <span className="text-[#ff5500]">*</span>
+          </label>
+          <textarea
+            value={commentText}
+            onChange={(e) => {
+              setCommentText(e.target.value);
+              setCommentError(null);
+            }}
+            disabled={loading}
+            placeholder="Write your comment here... (max 300 characters)"
+            maxLength={300}
+            rows={3}
+            aria-label="Comment on SoundCloud track"
+            className="w-full px-4 py-3 bg-background/50 border border-foreground/10 rounded-lg text-foreground placeholder:text-foreground/40 focus:outline-none focus:border-[#ff5500] focus:ring-1 focus:ring-[#ff5500] disabled:opacity-50 disabled:cursor-not-allowed transition-all resize-none"
+          />
+          {/* Character counter and error */}
+          <div className="flex justify-between items-center mt-2">
+            <span className="text-xs text-red-600 h-4">
+              {commentError || ''}
+            </span>
+            <span className="text-xs text-foreground/40">{commentText.length}/300</span>
+          </div>
+        </div>
+      )}
 
       {/* Additional content (e.g., opt-in checkbox) */}
       {children && (

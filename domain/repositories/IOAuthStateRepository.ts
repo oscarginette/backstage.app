@@ -10,6 +10,11 @@
  * SoundCloud and Spotify OAuth flows. They link the OAuth
  * callback back to the original download submission.
  *
+ * Stores additional metadata:
+ * - codeVerifier: PKCE code verifier for Spotify OAuth 2.1
+ * - autoSaveOptIn: User preference for Spotify auto-save
+ * - commentText: Pre-written comment for SoundCloud posting
+ *
  * Security: State tokens must be:
  * - Random (crypto-secure)
  * - Single-use (marked as used after callback)

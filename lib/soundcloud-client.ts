@@ -174,7 +174,7 @@ export class SoundCloudClient {
 
       return await response.json();
     } catch (error) {
-      console.error('SoundCloud token exchange error:', error);
+      console.error('[SoundCloudClient] exchangeCodeForToken error:', error);
       throw new Error(
         `Failed to exchange code for token: ${error instanceof Error ? error.message : 'Unknown error'}`
       );
@@ -201,7 +201,7 @@ export class SoundCloudClient {
 
       return await response.json();
     } catch (error) {
-      console.error('SoundCloud getUserProfile error:', error);
+      console.error('[SoundCloudClient] getUserProfile error:', error);
       throw new Error(
         `Failed to get user profile: ${error instanceof Error ? error.message : 'Unknown error'}`
       );
@@ -248,7 +248,7 @@ export class SoundCloudClient {
 
       return hasReposted;
     } catch (error) {
-      console.error('SoundCloud checkRepost error:', error);
+      console.error('[SoundCloudClient] checkRepost error:', error);
       throw new Error(
         `Failed to check repost: ${error instanceof Error ? error.message : 'Unknown error'}`
       );
@@ -295,6 +295,82 @@ export class SoundCloudClient {
       console.error('SoundCloud checkFollow error:', error);
       throw new Error(
         `Failed to check follow: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
+    }
+  }
+
+  /**
+   * Post a comment on a SoundCloud track
+   *
+   * IMPORTANT: SoundCloud does not document comment scope explicitly.
+   * The 'non-expiring' scope may or may not include comment permissions.
+   * This method fails gracefully if scope insufficient.
+   *
+   * @param accessToken - OAuth access token
+   * @param trackId - SoundCloud track ID
+   * @param commentText - Comment text (max 500 chars)
+   * @returns Comment ID if successful
+   * @throws Error if API call fails (403 Forbidden, 400 Bad Request, etc.)
+   */
+  async postComment(
+    accessToken: string,
+    trackId: string,
+    commentText: string
+  ): Promise<string> {
+    try {
+      // Validate comment text length
+      if (!commentText || commentText.trim().length === 0) {
+        throw new Error('Comment text cannot be empty');
+      }
+
+      if (commentText.length > 500) {
+        throw new Error('Comment text exceeds maximum length (500 characters)');
+      }
+
+      // POST to SoundCloud API with client_id for non-expiring scope
+      const response = await fetch(
+        `${SOUNDCLOUD_API_BASE}/tracks/${trackId}/comments?oauth_token=${accessToken}&client_id=${this.clientId}`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            Accept: 'application/json',
+          },
+          body: new URLSearchParams({
+            'comment[body]': commentText,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        const errorText = await response.text();
+
+        // Handle specific error cases
+        if (response.status === 403) {
+          throw new Error(
+            `Insufficient permissions to comment (403 Forbidden). The 'non-expiring' scope may not include comment permissions.`
+          );
+        }
+
+        if (response.status === 400) {
+          throw new Error(`Invalid comment data (400 Bad Request): ${errorText}`);
+        }
+
+        throw new Error(`Failed to post comment: ${response.status} ${errorText}`);
+      }
+
+      const data = await response.json();
+
+      // Return comment ID from response
+      if (!data.id && !data.comment_id) {
+        throw new Error('Comment posted but no ID returned from API');
+      }
+
+      return (data.id || data.comment_id).toString();
+    } catch (error) {
+      console.error('[SoundCloudClient] postComment error:', error);
+      throw new Error(
+        `Failed to post comment: ${error instanceof Error ? error.message : 'Unknown error'}`
       );
     }
   }
