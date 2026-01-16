@@ -34,8 +34,11 @@ import { authConfig } from './auth.config';
 const { auth } = NextAuth(authConfig);
 
 export default auth(async function middleware(req) {
-  const { pathname, searchParams, hostname } = req.nextUrl;
+  const { pathname, searchParams } = req.nextUrl;
   const session = req.auth;
+
+  // Get hostname from headers (Vercel passes it via x-forwarded-host or host)
+  const hostname = req.headers.get('x-forwarded-host') || req.headers.get('host') || req.nextUrl.hostname;
 
   // ========================================
   // 1. ALIAS REDIRECT: its.* → in.*
