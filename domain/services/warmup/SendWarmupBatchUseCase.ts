@@ -20,7 +20,7 @@
 import { IEmailCampaignRepository } from '@/domain/repositories/IEmailCampaignRepository';
 import { IContactRepository } from '@/domain/repositories/IContactRepository';
 import { IEmailProvider } from '@/domain/providers/IEmailProvider';
-import { IExecutionLogRepository } from '@/domain/repositories/IExecutionLogRepository';
+import { IEmailLogRepository } from '@/domain/repositories/IEmailLogRepository';
 import { EmailCampaign } from '@/domain/entities/EmailCampaign';
 
 export interface SendWarmupBatchInput {
@@ -44,7 +44,7 @@ export class SendWarmupBatchUseCase {
     private campaignRepository: IEmailCampaignRepository,
     private contactRepository: IContactRepository,
     private emailProvider: IEmailProvider,
-    private executionLogRepository: IExecutionLogRepository
+    private emailLogRepository: IEmailLogRepository
   ) {}
 
   async execute(input: SendWarmupBatchInput): Promise<SendWarmupBatchResult> {
@@ -124,7 +124,10 @@ export class SendWarmupBatchUseCase {
       if (dailyQuota === 0) {
         // No more contacts to send, advance day
         const updatedCampaign = campaign.advanceWarmupDay();
-        await this.campaignRepository.update(updatedCampaign);
+        await this.campaignRepository.update({
+          id: updatedCampaign.id,
+          warmupCurrentDay: updatedCampaign.warmupCurrentDay
+        });
 
         const nextSchedule = updatedCampaign.getWarmupSchedule(totalContacts);
         const nextQuota = nextSchedule && !updatedCampaign.isWarmupComplete()
@@ -151,7 +154,10 @@ export class SendWarmupBatchUseCase {
       if (unsentContacts.length === 0) {
         // No unsent contacts, advance day
         const updatedCampaign = campaign.advanceWarmupDay();
-        await this.campaignRepository.update(updatedCampaign);
+        await this.campaignRepository.update({
+          id: updatedCampaign.id,
+          warmupCurrentDay: updatedCampaign.warmupCurrentDay
+        });
 
         const nextSchedule = updatedCampaign.getWarmupSchedule(totalContacts);
         const nextQuota = nextSchedule && !updatedCampaign.isWarmupComplete()
@@ -178,17 +184,19 @@ export class SendWarmupBatchUseCase {
       for (const contact of unsentContacts) {
         try {
           // Send email via provider
+          const unsubscribeUrl = `${process.env.NEXT_PUBLIC_APP_URL}/unsubscribe?token=${contact.unsubscribeToken}`;
+
           await this.emailProvider.send({
             to: contact.email,
             subject: campaign.subject || '',
             html: campaign.htmlContent || '',
-            unsubscribeToken: contact.unsubscribeToken
+            unsubscribeUrl
           });
 
-          // Record send in execution logs
-          await this.executionLogRepository.create({
+          // Record send in email logs
+          await this.emailLogRepository.create({
             userId: input.userId,
-            campaignId: parseInt(input.campaignId),
+            campaignId: input.campaignId,
             contactId: contact.id,
             status: 'sent',
             sentAt: new Date()
@@ -211,7 +219,10 @@ export class SendWarmupBatchUseCase {
 
       if (sentCount >= dailyQuota || unsentContacts.length < dailyQuota) {
         updatedCampaign = campaign.advanceWarmupDay();
-        await this.campaignRepository.update(updatedCampaign);
+        await this.campaignRepository.update({
+          id: updatedCampaign.id,
+          warmupCurrentDay: updatedCampaign.warmupCurrentDay
+        });
         console.log(`[SendWarmupBatch] Advancing to day ${updatedCampaign.warmupCurrentDay}`);
       }
 

@@ -1,7 +1,6 @@
 import { sql } from '@/lib/db';
 import {
   IEmailCampaignRepository,
-  EmailCampaign as IEmailCampaign,
   CreateCampaignInput,
   UpdateCampaignInput,
   FindCampaignsOptions
@@ -22,7 +21,7 @@ export class PostgresEmailCampaignRepository implements IEmailCampaignRepository
    * Multi-tenant: Always associates campaign with user_id
    * Note: Drafts allow null/empty fields for flexibility
    */
-  async create(input: CreateCampaignInput): Promise<IEmailCampaign> {
+  async create(input: CreateCampaignInput): Promise<EmailCampaign> {
     const result = await sql`
       INSERT INTO email_campaigns (
         user_id,
@@ -63,7 +62,7 @@ export class PostgresEmailCampaignRepository implements IEmailCampaignRepository
   /**
    * Find campaign by ID
    */
-  async findById(id: string): Promise<IEmailCampaign | null> {
+  async findById(id: string): Promise<EmailCampaign | null> {
     const result = await sql`
       SELECT * FROM email_campaigns
       WHERE id = ${id}
@@ -80,7 +79,7 @@ export class PostgresEmailCampaignRepository implements IEmailCampaignRepository
    * Find all campaigns with optional filtering
    * Multi-tenant: Always filters by user_id if provided
    */
-  async findAll(options?: FindCampaignsOptions): Promise<IEmailCampaign[]> {
+  async findAll(options?: FindCampaignsOptions): Promise<EmailCampaign[]> {
     // Build WHERE conditions dynamically
     const conditions: string[] = ['1=1'];
 
@@ -359,7 +358,7 @@ export class PostgresEmailCampaignRepository implements IEmailCampaignRepository
   /**
    * Get all draft campaigns
    */
-  async getDrafts(): Promise<IEmailCampaign[]> {
+  async getDrafts(): Promise<EmailCampaign[]> {
     const result = await sql`
       SELECT * FROM email_campaigns
       WHERE status = 'draft'
@@ -372,7 +371,7 @@ export class PostgresEmailCampaignRepository implements IEmailCampaignRepository
   /**
    * Get all sent campaigns
    */
-  async getSent(): Promise<IEmailCampaign[]> {
+  async getSent(): Promise<EmailCampaign[]> {
     const result = await sql`
       SELECT * FROM email_campaigns
       WHERE status = 'sent'
@@ -385,7 +384,7 @@ export class PostgresEmailCampaignRepository implements IEmailCampaignRepository
   /**
    * Get scheduled campaigns (future scheduled_at)
    */
-  async getScheduled(): Promise<IEmailCampaign[]> {
+  async getScheduled(): Promise<EmailCampaign[]> {
     const result = await sql`
       SELECT * FROM email_campaigns
       WHERE scheduled_at IS NOT NULL
@@ -402,7 +401,7 @@ export class PostgresEmailCampaignRepository implements IEmailCampaignRepository
    * Uses Vercel Postgres template literal syntax
    * Only updates fields that are explicitly provided
    */
-  async update(input: UpdateCampaignInput): Promise<IEmailCampaign> {
+  async update(input: UpdateCampaignInput): Promise<EmailCampaign> {
     // Fetch existing campaign first
     const existing = await this.findById(input.id);
     if (!existing) {
@@ -463,7 +462,7 @@ export class PostgresEmailCampaignRepository implements IEmailCampaignRepository
   /**
    * Mark campaign as sent
    */
-  async markAsSent(id: string): Promise<IEmailCampaign> {
+  async markAsSent(id: string): Promise<EmailCampaign> {
     const result = await sql`
       UPDATE email_campaigns
       SET status = 'sent',
@@ -483,7 +482,7 @@ export class PostgresEmailCampaignRepository implements IEmailCampaignRepository
   /**
    * Find campaigns by track ID
    */
-  async findByTrackId(trackId: string): Promise<IEmailCampaign[]> {
+  async findByTrackId(trackId: string): Promise<EmailCampaign[]> {
     const result = await sql`
       SELECT * FROM email_campaigns
       WHERE track_id = ${trackId}
@@ -496,7 +495,7 @@ export class PostgresEmailCampaignRepository implements IEmailCampaignRepository
   /**
    * Find campaigns by template ID
    */
-  async findByTemplateId(templateId: string): Promise<IEmailCampaign[]> {
+  async findByTemplateId(templateId: string): Promise<EmailCampaign[]> {
     const result = await sql`
       SELECT * FROM email_campaigns
       WHERE template_id = ${templateId}

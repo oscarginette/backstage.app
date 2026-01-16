@@ -1272,8 +1272,8 @@ export class UseCaseFactory {
     return new SendWarmupBatchUseCase(
       RepositoryFactory.createEmailCampaignRepository(),
       RepositoryFactory.createContactRepository(),
-      ProviderFactory.createMailgunEmailProvider(),
-      RepositoryFactory.createExecutionLogRepository()
+      ProviderFactory.createEmailProvider(),
+      RepositoryFactory.createEmailLogRepository()
     );
   }
 

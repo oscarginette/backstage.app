@@ -35,6 +35,12 @@ export interface EmailCampaignProps {
 }
 
 export class EmailCampaign {
+  // Optional draft editing fields (attached via fromDatabase)
+  public greeting?: string | null;
+  public message?: string | null;
+  public signature?: string | null;
+  public coverImageUrl?: string | null;
+
   constructor(
     public readonly id: string,
     public readonly templateId: string | null,

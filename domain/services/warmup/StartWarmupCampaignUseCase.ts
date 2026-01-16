@@ -87,7 +87,12 @@ export class StartWarmupCampaignUseCase {
       const updatedCampaign = campaign.enableWarmup();
 
       // 6. Persist changes
-      await this.campaignRepository.update(updatedCampaign);
+      await this.campaignRepository.update({
+        id: updatedCampaign.id,
+        warmupEnabled: updatedCampaign.warmupEnabled,
+        warmupCurrentDay: updatedCampaign.warmupCurrentDay,
+        warmupStartedAt: updatedCampaign.warmupStartedAt
+      });
 
       // 7. Get warm-up schedule preview
       const warmupSchedule = updatedCampaign.getWarmupSchedule(totalContacts);

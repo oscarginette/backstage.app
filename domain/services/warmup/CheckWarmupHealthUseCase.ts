@@ -72,7 +72,11 @@ export class CheckWarmupHealthUseCase {
 
       if (campaign && campaign.warmupEnabled && !campaign.isWarmupPaused()) {
         const pausedCampaign = campaign.pauseWarmup(pauseReason);
-        await this.campaignRepository.update(pausedCampaign);
+        await this.campaignRepository.update({
+          id: pausedCampaign.id,
+          warmupPausedAt: pausedCampaign.warmupPausedAt,
+          warmupPauseReason: pausedCampaign.warmupPauseReason
+        });
         console.log(`[CheckWarmupHealth] Auto-paused campaign ${input.campaignId}: ${pauseReason}`);
       }
     }

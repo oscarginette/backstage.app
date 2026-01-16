@@ -61,6 +61,12 @@ export interface UpdateCampaignInput {
   status?: 'draft' | 'sent';
   scheduledAt?: Date | null;
   sentAt?: Date | null;
+  // Warmup fields
+  warmupEnabled?: boolean;
+  warmupCurrentDay?: number;
+  warmupStartedAt?: Date | null;
+  warmupPausedAt?: Date | null;
+  warmupPauseReason?: string | null;
 }
 
 export interface FindCampaignsOptions {

@@ -54,7 +54,11 @@ export class ResumeWarmupCampaignUseCase {
       const resumedCampaign = campaign.resumeWarmup();
 
       // 4. Persist changes
-      await this.campaignRepository.update(resumedCampaign);
+      await this.campaignRepository.update({
+        id: resumedCampaign.id,
+        warmupPausedAt: resumedCampaign.warmupPausedAt,
+        warmupPauseReason: resumedCampaign.warmupPauseReason
+      });
 
       return {
         success: true,

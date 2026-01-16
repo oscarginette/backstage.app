@@ -55,7 +55,11 @@ export class PauseWarmupCampaignUseCase {
       const pausedCampaign = campaign.pauseWarmup(input.reason);
 
       // 4. Persist changes
-      await this.campaignRepository.update(pausedCampaign);
+      await this.campaignRepository.update({
+        id: pausedCampaign.id,
+        warmupPausedAt: pausedCampaign.warmupPausedAt,
+        warmupPauseReason: pausedCampaign.warmupPauseReason
+      });
 
       return {
         success: true,
