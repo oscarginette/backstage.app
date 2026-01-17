@@ -207,9 +207,9 @@ export class SoundCloudClient implements ISoundCloudClient {
     userId: number
   ): Promise<boolean> {
     try {
-      // Get user's reposts (API v2) - OAuth 2.1 requires Authorization header
+      // Get user's reposts (API v2) - OAuth 2.1 requires Authorization header only
       const response = await fetch(
-        `${SOUNDCLOUD_API_V2_BASE}/users/${userId}/track_reposts?client_id=${this.clientId}&limit=50`,
+        `${SOUNDCLOUD_API_V2_BASE}/users/${userId}/track_reposts?limit=50`,
         {
           headers: {
             Authorization: `OAuth ${accessToken}`,
@@ -254,9 +254,9 @@ export class SoundCloudClient implements ISoundCloudClient {
     userId: number
   ): Promise<boolean> {
     try {
-      // Get user's followings - OAuth 2.1 requires Authorization header
+      // Get user's followings - OAuth 2.1 requires Authorization header only
       const response = await fetch(
-        `${SOUNDCLOUD_API_BASE}/users/${userId}/followings?client_id=${this.clientId}`,
+        `${SOUNDCLOUD_API_BASE}/users/${userId}/followings`,
         {
           headers: {
             Authorization: `OAuth ${accessToken}`,
@@ -555,9 +555,9 @@ export class SoundCloudClient implements ISoundCloudClient {
         console.log('[SoundCloudClient] Comment will be posted at timestamp:', timestamp);
       }
 
-      // POST to SoundCloud API - OAuth 2.1 requires Authorization header
+      // POST to SoundCloud API - OAuth 2.1 requires Authorization header only
       const response = await fetch(
-        `${SOUNDCLOUD_API_BASE}/tracks/${trackId}/comments?client_id=${this.clientId}`,
+        `${SOUNDCLOUD_API_BASE}/tracks/${trackId}/comments`,
         {
           method: 'POST',
           headers: {
@@ -655,9 +655,9 @@ export class SoundCloudClient implements ISoundCloudClient {
         trackData.track.purchase_title = purchaseTitle;
       }
 
-      // PUT to SoundCloud API - OAuth 2.1 requires Authorization header
+      // PUT to SoundCloud API - OAuth 2.1 requires Authorization header only
       const response = await fetch(
-        `${SOUNDCLOUD_API_BASE}/tracks/${trackId}?client_id=${this.clientId}`,
+        `${SOUNDCLOUD_API_BASE}/tracks/${trackId}`,
         {
           method: 'PUT',
           headers: {
