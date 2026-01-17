@@ -358,18 +358,22 @@ export class SoundCloudClient implements ISoundCloudClient {
    * Favorites (likes) a track as the authenticated user
    *
    * @param accessToken - OAuth access token
+   * @param userId - SoundCloud user ID (authenticated user)
    * @param trackId - SoundCloud track ID to favorite
    * @returns Success status
    */
   async createFavorite(
     accessToken: string,
+    userId: number,
     trackId: string
   ): Promise<SoundCloudOperationResult> {
     try {
-      console.log('[SoundCloudClient] Attempting to favorite track:', trackId);
+      console.log('[SoundCloudClient] Attempting to favorite track:', { userId, trackId });
 
+      // SoundCloud API v2 endpoint for liking tracks
+      // PUT /users/{userId}/track_likes/tracks/{trackId}
       const response = await fetch(
-        `${SOUNDCLOUD_API_BASE}/me/favorites/${trackId}`,
+        `${SOUNDCLOUD_API_V2_BASE}/users/${userId}/track_likes/tracks/${trackId}`,
         {
           method: 'PUT',
           headers: {
@@ -747,8 +751,11 @@ export class SoundCloudClient implements ISoundCloudClient {
     trackId: string
   ): Promise<{ duration: number; title: string }> {
     try {
+      console.log('[SoundCloudClient] Fetching track info:', trackId);
+
+      // OAuth 2.1 requires Authorization header only (no client_id in query)
       const response = await fetch(
-        `${SOUNDCLOUD_API_BASE}/tracks/${trackId}?client_id=${this.clientId}`,
+        `${SOUNDCLOUD_API_BASE}/tracks/${trackId}`,
         {
           headers: {
             Authorization: `OAuth ${accessToken}`,
@@ -757,12 +764,25 @@ export class SoundCloudClient implements ISoundCloudClient {
         }
       );
 
+      console.log('[SoundCloudClient] Track info response status:', response.status);
+
       if (!response.ok) {
         const errorText = await response.text();
+        console.error('[SoundCloudClient] Failed to get track info:', {
+          status: response.status,
+          error: errorText,
+          trackId,
+        });
         throw new Error(`Failed to get track info: ${response.status} ${errorText}`);
       }
 
       const track = await response.json();
+      console.log('[SoundCloudClient] Track info retrieved:', {
+        trackId,
+        duration: track.duration,
+        title: track.title,
+      });
+
       return {
         duration: track.duration || 0, // Duration in milliseconds
         title: track.title || '',

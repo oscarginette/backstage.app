@@ -178,11 +178,13 @@ export interface ISoundCloudClient {
    * Favorites (likes) a track as the authenticated user
    *
    * @param accessToken - OAuth access token
+   * @param userId - SoundCloud user ID (authenticated user)
    * @param trackId - SoundCloud track ID to favorite
    * @returns Operation result with success status
    */
   createFavorite(
     accessToken: string,
+    userId: number,
     trackId: string
   ): Promise<SoundCloudOperationResult>;
 

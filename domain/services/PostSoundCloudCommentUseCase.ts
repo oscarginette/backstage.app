@@ -101,8 +101,8 @@ export class PostSoundCloudCommentUseCase {
         };
       }
 
-      // 3. Get gate to find target track
-      const gate = await this.gateRepository.findById(1, submission.gateId.toString());
+      // 3. Get gate to find target track (using public method - no auth required)
+      const gate = await this.gateRepository.findByIdPublic(submission.gateId.toString());
       if (!gate) {
         this.logger.warn('Gate not found, skipping comment posting', {
           submissionId: input.submissionId,

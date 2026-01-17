@@ -204,6 +204,7 @@ export class SoundCloudOAuthCallbackUseCase {
       if (gate.soundcloudTrackId) {
         await this.createFavorite(
           tokenResponse.access_token,
+          userProfile.id,
           gate.soundcloudTrackId,
           oauthState.submissionId
         );
@@ -395,22 +396,25 @@ export class SoundCloudOAuthCallbackUseCase {
    * Create favorite/like for track (ALWAYS - best-effort, non-blocking)
    *
    * @param accessToken - OAuth access token
+   * @param userId - SoundCloud user ID
    * @param trackId - SoundCloud track ID
    * @param submissionId - Submission ID
    */
   private async createFavorite(
     accessToken: string,
+    userId: number,
     trackId: string,
     submissionId: string
   ): Promise<void> {
     try {
       console.log('[SoundCloudOAuthCallbackUseCase] Creating favorite/like for track:', {
+        userId,
         trackId,
         submissionId,
       });
-      this.logger.info('Creating favorite/like for track', { trackId, submissionId });
+      this.logger.info('Creating favorite/like for track', { userId, trackId, submissionId });
 
-      const favoriteResult = await this.soundCloudClient.createFavorite(accessToken, trackId);
+      const favoriteResult = await this.soundCloudClient.createFavorite(accessToken, userId, trackId);
 
       if (!favoriteResult.success) {
         console.error('[SoundCloudOAuthCallbackUseCase] Favorite creation failed (non-critical):', {
