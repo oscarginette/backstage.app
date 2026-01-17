@@ -28,30 +28,30 @@ export default function DownloadGatePage({ params }: { params: Promise<{ slug: s
   const currentStep = useGateStepNavigation(gate, submission);
 
   // OAuth callback handling
-  const handleOAuthSuccess = (provider: string) => {
-    console.log('[DownloadGatePage] handleOAuthSuccess called:', { provider, submission });
+  const handleOAuthSuccess = async (data: { provider: string; buyLinkSuccess?: boolean }) => {
+    console.log('[DownloadGatePage] handleOAuthSuccess called:', { data, submission });
 
     if (!submission) {
-      console.warn('[DownloadGatePage] No submission - cannot update');
+      console.warn('[DownloadGatePage] No submission - waiting for load');
       return;
     }
 
-    if (provider === OAUTH_PROVIDERS.SOUNDCLOUD) {
-      console.log('[DownloadGatePage] Updating submission: soundcloudRepostVerified = true');
-      updateSubmission({
+    // Update submission via database-backed hook (async)
+    if (data.provider === OAUTH_PROVIDERS.SOUNDCLOUD) {
+      console.log('[DownloadGatePage] Updating submission: soundcloud verified');
+      await updateSubmission({
         soundcloudRepostVerified: true,
         soundcloudFollowVerified: true,
       });
-    } else if (provider === OAUTH_PROVIDERS.SPOTIFY) {
-      console.log('[DownloadGatePage] Updating submission: spotifyConnected = true');
-      updateSubmission({
+    } else if (data.provider === OAUTH_PROVIDERS.SPOTIFY) {
+      console.log('[DownloadGatePage] Updating submission: spotify connected');
+      await updateSubmission({
         spotifyConnected: true,
       });
     }
   };
 
   const { oauthError, buyLinkSuccess } = useOAuthCallback({
-    slug,
     onSuccess: handleOAuthSuccess,
   });
 

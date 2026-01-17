@@ -1,14 +1,23 @@
 /**
- * useOAuthCallback Hook
+ * useOAuthCallback Hook (Simplified)
  *
  * Handles OAuth redirect callback from SoundCloud/Spotify.
  * Parses URL parameters and triggers success/error handlers.
  *
- * Single Responsibility: OAuth callback handling
+ * Architecture Change:
+ * - OLD: Directly manipulated localStorage (caused race conditions)
+ * - NEW: Only parses URL params, parent component handles state updates
+ *
+ * Single Responsibility: OAuth callback detection and URL cleanup
  */
 
 import { useEffect, useState } from 'react';
-import { OAUTH_STATUS, GATE_TIMEOUTS, GATE_STORAGE_PREFIX, OAUTH_PROVIDERS } from '@/domain/types/download-gate-steps';
+import { OAUTH_STATUS, GATE_TIMEOUTS } from '@/domain/types/download-gate-steps';
+
+export interface OAuthCallbackData {
+  provider: string;
+  buyLinkSuccess?: boolean;
+}
 
 interface UseOAuthCallbackResult {
   oauthError: string | null;
@@ -16,18 +25,16 @@ interface UseOAuthCallbackResult {
 }
 
 interface UseOAuthCallbackProps {
-  slug: string;
-  onSuccess: (provider: string) => void;
+  onSuccess: (data: OAuthCallbackData) => void;
 }
 
 /**
  * Handle OAuth callback from URL parameters
  *
- * @param slug - Gate slug for localStorage key
- * @param onSuccess - Callback when OAuth succeeds (receives provider name)
+ * @param onSuccess - Callback when OAuth succeeds (receives provider and buy link status)
  * @returns OAuth error message and buy link success flag
  */
-export function useOAuthCallback({ slug, onSuccess }: UseOAuthCallbackProps): UseOAuthCallbackResult {
+export function useOAuthCallback({ onSuccess }: UseOAuthCallbackProps): UseOAuthCallbackResult {
   const [oauthError, setOauthError] = useState<string | null>(null);
   const [buyLinkSuccess, setBuyLinkSuccess] = useState(false);
 
@@ -41,37 +48,12 @@ export function useOAuthCallback({ slug, onSuccess }: UseOAuthCallbackProps): Us
     if (status === OAUTH_STATUS.SUCCESS && provider) {
       console.log('[useOAuthCallback] OAuth success detected:', provider);
 
-      // Update localStorage DIRECTLY to ensure submission is updated immediately
-      const storageKey = `${GATE_STORAGE_PREFIX}${slug}`;
-      const savedSubmission = localStorage.getItem(storageKey);
-
-      if (savedSubmission) {
-        try {
-          const submission = JSON.parse(savedSubmission);
-          console.log('[useOAuthCallback] Current submission:', submission);
-
-          // Update submission based on provider
-          if (provider === OAUTH_PROVIDERS.SOUNDCLOUD) {
-            submission.soundcloudRepostVerified = true;
-            submission.soundcloudFollowVerified = true;
-            console.log('[useOAuthCallback] Updated submission with SoundCloud verification');
-          } else if (provider === OAUTH_PROVIDERS.SPOTIFY) {
-            submission.spotifyConnected = true;
-            console.log('[useOAuthCallback] Updated submission with Spotify connection');
-          }
-
-          // Save back to localStorage
-          localStorage.setItem(storageKey, JSON.stringify(submission));
-          console.log('[useOAuthCallback] Submission saved to localStorage');
-
-          // Trigger callback to force re-render
-          onSuccess(provider);
-        } catch (error) {
-          console.error('[useOAuthCallback] Failed to parse/update submission:', error);
-        }
-      } else {
-        console.warn('[useOAuthCallback] No submission found in localStorage');
-      }
+      // SIMPLIFIED: Only notify parent component
+      // Parent component will call updateSubmission via useGateSubmission
+      onSuccess({
+        provider,
+        buyLinkSuccess: buyLink === OAUTH_STATUS.SUCCESS,
+      });
 
       // Show buy link success message if applicable
       if (buyLink === OAUTH_STATUS.SUCCESS) {
@@ -79,7 +61,7 @@ export function useOAuthCallback({ slug, onSuccess }: UseOAuthCallbackProps): Us
         setTimeout(() => setBuyLinkSuccess(false), GATE_TIMEOUTS.BUY_LINK_SUCCESS_MS);
       }
 
-      // Clean up URL
+      // Clean up URL (remove OAuth params)
       window.history.replaceState({}, '', window.location.pathname);
     } else if (status === OAUTH_STATUS.ERROR) {
       // Error: show message
@@ -91,7 +73,7 @@ export function useOAuthCallback({ slug, onSuccess }: UseOAuthCallbackProps): Us
       // Clean up URL
       window.history.replaceState({}, '', window.location.pathname);
     }
-  }, [slug, onSuccess]);
+  }, [onSuccess]);
 
   return { oauthError, buyLinkSuccess };
 }

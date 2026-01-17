@@ -6,6 +6,7 @@
  */
 
 import { NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
 import { UseCaseFactory } from '@/lib/di-container';
 import { SubmitDownloadGateSchema } from '@/lib/validation-schemas';
 import {
@@ -59,6 +60,19 @@ export async function POST(
       ipAddress,
       userAgent,
     });
+
+    // Set HttpOnly cookie with submissionId for database-first state management
+    // This enables cross-device/multi-tab support
+    if (result.success && result.submissionId) {
+      const cookieStore = await cookies();
+      cookieStore.set('backstage_submission_id', result.submissionId, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 60 * 60 * 24 * 7, // 7 days
+        path: '/',
+      });
+    }
 
     return NextResponse.json(
       {

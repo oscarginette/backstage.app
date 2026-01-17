@@ -1,10 +1,14 @@
 /**
- * useGateSubmission Hook
+ * useGateSubmission Hook (Database-First)
  *
- * Manages submission state with localStorage persistence.
- * Provides methods to set and update submission.
+ * Fetches submission state from database via API.
+ * Eliminates localStorage race conditions and enables multi-tab/device support.
  *
- * Single Responsibility: Submission state management + persistence
+ * Architecture Change:
+ * - OLD: localStorage as source of truth (async race conditions)
+ * - NEW: Database as source of truth (via cookie + API)
+ *
+ * Single Responsibility: Submission state management + API synchronization
  */
 
 import { useState, useEffect, useCallback } from 'react';
@@ -14,56 +18,115 @@ import { GATE_STORAGE_PREFIX } from '@/domain/types/download-gate-steps';
 interface UseGateSubmissionResult {
   submission: DownloadSubmission | null;
   setSubmission: (submission: DownloadSubmission | null) => void;
-  updateSubmission: (updates: Partial<DownloadSubmission>) => void;
+  updateSubmission: (updates: Partial<DownloadSubmission>) => Promise<void>;
+  loading: boolean;
+  error: string | null;
 }
 
 /**
- * Manage gate submission with localStorage sync
+ * Manage gate submission with database-backed state
  *
- * @param slug - Gate slug for storage key
+ * @param slug - Gate slug for API endpoint
  * @returns Submission state and updater functions
  */
 export function useGateSubmission(slug: string): UseGateSubmissionResult {
   const [submission, setSubmissionState] = useState<DownloadSubmission | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const storageKey = `${GATE_STORAGE_PREFIX}${slug}`;
-
-  // Load from localStorage on mount
+  // Migration: Clean up old localStorage data (one-time)
   useEffect(() => {
-    const saved = localStorage.getItem(storageKey);
-    if (saved) {
+    const oldKey = `${GATE_STORAGE_PREFIX}${slug}`;
+    if (localStorage.getItem(oldKey)) {
+      console.log('[useGateSubmission] Migrating from localStorage to database-backed state');
+      localStorage.removeItem(oldKey);
+    }
+  }, [slug]);
+
+  // Fetch submission from API (database-backed)
+  useEffect(() => {
+    let mounted = true;
+
+    async function fetchSubmission() {
       try {
-        const parsed = JSON.parse(saved);
-        setSubmissionState(parsed);
-      } catch (e) {
-        console.error('Failed to parse submission from localStorage', e);
+        const response = await fetch(`/api/gate/${slug}/submission`, {
+          credentials: 'include', // Include cookies
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch submission');
+        }
+
+        const data = await response.json();
+
+        if (mounted) {
+          setSubmissionState(data.submission);
+          setLoading(false);
+        }
+      } catch (err) {
+        console.error('[useGateSubmission] Error fetching submission:', err);
+        if (mounted) {
+          setError(err instanceof Error ? err.message : 'Unknown error');
+          setLoading(false);
+        }
       }
     }
-  }, [storageKey]);
 
-  // Persist to localStorage when updated
+    fetchSubmission();
+
+    return () => {
+      mounted = false;
+    };
+  }, [slug]);
+
+  // Set submission (full replacement)
   const setSubmission = useCallback(
     (newSubmission: DownloadSubmission | null) => {
       setSubmissionState(newSubmission);
-      if (newSubmission) {
-        localStorage.setItem(storageKey, JSON.stringify(newSubmission));
-      } else {
-        localStorage.removeItem(storageKey);
+    },
+    []
+  );
+
+  // Update submission (optimistic + API call)
+  const updateSubmission = useCallback(
+    async (updates: Partial<DownloadSubmission>) => {
+      if (!submission) {
+        console.warn('[useGateSubmission] Cannot update - no submission');
+        return;
+      }
+
+      // Optimistic update for immediate UI feedback
+      const updatedSubmission = { ...submission, ...updates };
+      setSubmissionState(updatedSubmission);
+
+      try {
+        // Persist to database via API
+        const response = await fetch(`/api/gate/${slug}/submission`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(updates),
+          credentials: 'include', // Include cookies
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to update submission');
+        }
+
+        const data = await response.json();
+
+        // Update with fresh data from server
+        setSubmissionState(data.submission);
+        setError(null);
+      } catch (err) {
+        console.error('[useGateSubmission] Error updating submission:', err);
+
+        // Rollback optimistic update on error
+        setSubmissionState(submission);
+        setError(err instanceof Error ? err.message : 'Update failed');
       }
     },
-    [storageKey]
+    [slug, submission]
   );
 
-  // Partial update helper
-  const updateSubmission = useCallback(
-    (updates: Partial<DownloadSubmission>) => {
-      if (!submission) return;
-
-      const updated = { ...submission, ...updates };
-      setSubmission(updated);
-    },
-    [submission, setSubmission]
-  );
-
-  return { submission, setSubmission, updateSubmission };
+  return { submission, setSubmission, updateSubmission, loading, error };
 }
