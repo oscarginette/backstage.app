@@ -150,6 +150,7 @@ import { VerifySoundCloudRepostUseCase } from '@/domain/services/VerifySoundClou
 import { VerifySoundCloudFollowUseCase } from '@/domain/services/VerifySoundCloudFollowUseCase';
 import { PostSoundCloudCommentUseCase } from '@/domain/services/PostSoundCloudCommentUseCase';
 import { UpdateSoundCloudTrackBuyLinkUseCase } from '@/domain/services/UpdateSoundCloudTrackBuyLinkUseCase';
+import { SoundCloudOAuthCallbackUseCase } from '@/domain/services/SoundCloudOAuthCallbackUseCase';
 import { CheckAllMusicPlatformsUseCase } from '@/domain/services/CheckAllMusicPlatformsUseCase';
 import { GetSoundCloudTracksUseCase } from '@/domain/services/GetSoundCloudTracksUseCase';
 import { CheckNewTracksUseCase } from '@/domain/services/CheckNewTracksUseCase';
@@ -716,7 +717,8 @@ export class UseCaseFactory {
       RepositoryFactory.createDownloadSubmissionRepository(),
       RepositoryFactory.createDownloadGateRepository(),
       RepositoryFactory.createDownloadAnalyticsRepository(),
-      ProviderFactory.createSoundCloudClient()
+      ProviderFactory.createSoundCloudClient(),
+      createLogger('VerifySoundCloudFollowUseCase')
     );
   }
 
@@ -725,14 +727,28 @@ export class UseCaseFactory {
       RepositoryFactory.createDownloadSubmissionRepository(),
       RepositoryFactory.createDownloadGateRepository(),
       RepositoryFactory.createDownloadAnalyticsRepository(),
-      ProviderFactory.createSoundCloudClient()
+      ProviderFactory.createSoundCloudClient(),
+      createLogger('PostSoundCloudCommentUseCase')
     );
   }
 
   static createUpdateSoundCloudTrackBuyLinkUseCase(): UpdateSoundCloudTrackBuyLinkUseCase {
     return new UpdateSoundCloudTrackBuyLinkUseCase(
       RepositoryFactory.createDownloadGateRepository(),
-      ProviderFactory.createSoundCloudClient()
+      ProviderFactory.createSoundCloudClient(),
+      createLogger('UpdateSoundCloudTrackBuyLinkUseCase')
+    );
+  }
+
+  static createSoundCloudOAuthCallbackUseCase(): SoundCloudOAuthCallbackUseCase {
+    return new SoundCloudOAuthCallbackUseCase(
+      RepositoryFactory.createDownloadSubmissionRepository(),
+      RepositoryFactory.createDownloadGateRepository(),
+      RepositoryFactory.createOAuthStateRepository(),
+      ProviderFactory.createSoundCloudClient(),
+      createLogger('SoundCloudOAuthCallbackUseCase'),
+      UseCaseFactory.createPostSoundCloudCommentUseCase(),
+      UseCaseFactory.createUpdateSoundCloudTrackBuyLinkUseCase()
     );
   }
 
