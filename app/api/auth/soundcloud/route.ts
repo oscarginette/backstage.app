@@ -102,6 +102,15 @@ export async function GET(request: Request) {
       codeChallenge // OAuth 2.1 PKCE challenge
     );
 
+    // DEBUG: Log OAuth parameters (remove in production)
+    console.log('[SoundCloud OAuth] Generated auth URL:', {
+      redirectUri,
+      codeChallenge: codeChallenge.substring(0, 10) + '...',
+      state: stateToken.substring(0, 10) + '...',
+      clientId: env.SOUNDCLOUD_CLIENT_ID?.substring(0, 10) + '...',
+      fullUrl: authUrl
+    });
+
     // Redirect to SoundCloud
     return NextResponse.redirect(authUrl);
   } catch (error) {
