@@ -368,26 +368,27 @@ export class SoundCloudClient implements ISoundCloudClient {
     trackId: string
   ): Promise<SoundCloudOperationResult> {
     try {
-      console.log('[SoundCloudClient] Attempting to favorite track:', { userId, trackId });
+      console.log('[SoundCloudClient] Attempting to like track:', { userId, trackId });
 
-      // SoundCloud API endpoint for favoriting tracks
-      // PUT /me/favorites/{trackId} (authenticated user context)
+      // SoundCloud API endpoint for liking tracks (official documentation)
+      // POST /likes/tracks/{trackId}
+      // https://developers.soundcloud.com/docs/api/guide
       const response = await fetch(
-        `${SOUNDCLOUD_API_BASE}/me/favorites/${trackId}`,
+        `${SOUNDCLOUD_API_BASE}/likes/tracks/${trackId}`,
         {
-          method: 'PUT',
+          method: 'POST',
           headers: {
             Authorization: `OAuth ${accessToken}`,
-            Accept: 'application/json',
+            Accept: 'application/json; charset=utf-8',
           },
         }
       );
 
-      console.log('[SoundCloudClient] Favorite response status:', response.status);
+      console.log('[SoundCloudClient] Like response status:', response.status);
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('[SoundCloudClient] Favorite failed:', {
+        console.error('[SoundCloudClient] Like failed:', {
           status: response.status,
           error: errorText,
           trackId,
@@ -411,17 +412,17 @@ export class SoundCloudClient implements ISoundCloudClient {
         if (response.status === 403) {
           return {
             success: false,
-            error: `Insufficient permissions to favorite (403 Forbidden).`,
+            error: `Insufficient permissions to like track (403 Forbidden).`,
           };
         }
 
         return {
           success: false,
-          error: `Failed to create favorite: ${response.status} ${errorText}`,
+          error: `Failed to like track: ${response.status} ${errorText}`,
         };
       }
 
-      console.log('[SoundCloudClient] Successfully favorited track:', trackId);
+      console.log('[SoundCloudClient] Successfully liked track:', trackId);
       return { success: true };
     } catch (error) {
       console.error('[SoundCloudClient] createFavorite error:', error);
