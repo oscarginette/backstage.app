@@ -7,6 +7,7 @@ export interface IDownloadGateRepository {
   findById(userId: number, gateId: string): Promise<DownloadGate | null>;
   findAllByUser(userId: number): Promise<DownloadGate[]>;
   update(userId: number, gateId: string, input: Partial<CreateGateInput>): Promise<DownloadGate>;
+  updateSoundCloudUserId(gateId: string, soundcloudUserId: string): Promise<void>;
   delete(userId: number, gateId: string): Promise<void>;
   findBySlug(slug: string): Promise<DownloadGate | null>;
   incrementDownloadCount(gateId: string): Promise<void>;

@@ -190,6 +190,30 @@ export class PostgresDownloadGateRepository implements IDownloadGateRepository {
     }
   }
 
+  async updateSoundCloudUserId(gateId: string, soundcloudUserId: string): Promise<void> {
+    try {
+      console.log('[PostgresDownloadGateRepository] Updating soundcloud_user_id:', { gateId, soundcloudUserId });
+
+      const result = await sql`
+        UPDATE download_gates
+        SET
+          soundcloud_user_id = ${soundcloudUserId},
+          updated_at = CURRENT_TIMESTAMP
+        WHERE id = ${gateId}
+        RETURNING id
+      `;
+
+      if (result.rowCount === 0) {
+        throw new Error('Download gate not found');
+      }
+
+      console.log('[PostgresDownloadGateRepository] soundcloud_user_id updated successfully');
+    } catch (error) {
+      console.error('PostgresDownloadGateRepository.updateSoundCloudUserId error:', error);
+      throw new Error(`Failed to update soundcloud_user_id: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
   async delete(userId: number, gateId: string): Promise<void> {
     try {
       const result = await sql`

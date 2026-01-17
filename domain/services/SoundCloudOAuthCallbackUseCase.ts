@@ -230,9 +230,10 @@ export class SoundCloudOAuthCallbackUseCase {
           if (trackInfo.userId && !gate.soundcloudUserId) {
             console.log('[SoundCloudOAuthCallbackUseCase] Updating gate with artist user ID:', trackInfo.userId);
 
-            await this.gateRepository.update(gate.userId, gate.id, {
-              soundcloudUserId: trackInfo.userId.toString(),
-            });
+            await this.gateRepository.updateSoundCloudUserId(
+              gate.id,
+              trackInfo.userId.toString()
+            );
 
             // Refresh gate object with updated data (reassign to preserve immutability)
             const updatedGate = await this.gateRepository.findByIdPublic(gate.id.toString());

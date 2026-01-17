@@ -109,14 +109,14 @@ export default function DownloadGatePage({ params }: { params: Promise<{ slug: s
 
       {/* Content Layer */}
       <main className="relative z-20 h-full w-full flex flex-col md:flex-row">
-        {/* Left Side: Artwork (60% width on large screens) */}
-        <section className="flex-[1.5] h-1/2 md:h-full flex items-center justify-center p-6 md:p-12 lg:p-20 overflow-hidden">
+        {/* Left Side: Artwork (balance width with right side) */}
+        <section className="flex-1 h-1/2 md:h-full flex items-center justify-center p-6 md:p-12 lg:p-20 overflow-hidden">
           <DownloadGateArtwork title={gate.title} artworkUrl={gate.artworkUrl} />
         </section>
 
-        {/* Right Side: Form (40% width on large screens) */}
-        <section className="flex-1 h-1/2 md:h-full bg-[#121620] flex flex-col border-l border-white/5 overflow-hidden shadow-[-20px_0_50px_rgba(0,0,0,0.5)]">
-          <div className="flex-1 flex flex-col p-8 md:p-12 lg:p-16 max-w-[520px] mx-auto w-full pt-16">
+        {/* Right Side: Form (wider proportion) */}
+        <section className="flex-[1.2] h-1/2 md:h-full bg-[#121620] flex flex-col border-l border-white/5 overflow-hidden shadow-[-20px_0_50px_rgba(0,0,0,0.5)]">
+          <div className="flex-1 flex flex-col p-8 md:p-12 lg:p-16 max-w-[640px] mx-auto w-full pt-16">
             {/* Header info */}
             <header className="mb-8 md:mb-12">
               <motion.h1 
@@ -244,13 +244,13 @@ export default function DownloadGatePage({ params }: { params: Promise<{ slug: s
               </nav>
 
               <footer className="w-full flex flex-wrap items-center justify-end gap-x-3 text-[8.5px] lg:text-[9.5px] font-medium uppercase tracking-[0.05em] text-white/30 pt-4 mb-4">
-                <a href="#" className="hover:text-white transition-colors">Help</a>
+                <a href="/help" className="hover:text-white transition-colors">Help</a>
                 <span className="opacity-50">|</span>
-                <a href="#" className="hover:text-white transition-colors">Terms</a>
+                <a href="/terms" className="hover:text-white transition-colors">Terms</a>
                 <span className="opacity-50">|</span>
-                <a href="#" className="hover:text-white transition-colors">Privacy</a>
+                <a href="/privacy" className="hover:text-white transition-colors">Privacy</a>
                 <span className="opacity-50">|</span>
-                <a href="#" className="hover:text-white transition-colors">DMCA Policy</a>
+                <a href="/dmca" className="hover:text-white transition-colors">DMCA Policy</a>
                 <span className="opacity-50">|</span>
                 <a href="https://thebackstage.com" target="_blank" className="text-white/60 hover:text-white transition-colors font-bold">thebackstage.com</a>
               </footer>
