@@ -94,7 +94,7 @@ export class UpdateSoundCloudTrackBuyLinkUseCase {
       );
 
       if (!result.success) {
-        this.logger.error('Failed to update buy link', { error: result.error });
+        this.logger.error('Failed to update buy link', undefined, { error: result.error });
         return {
           success: false,
           error: result.error,
@@ -107,7 +107,10 @@ export class UpdateSoundCloudTrackBuyLinkUseCase {
         success: true,
       };
     } catch (error) {
-      this.logger.error('execute error', { error });
+      this.logger.error(
+        'execute error',
+        error instanceof Error ? error : new Error(String(error))
+      );
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Failed to update buy link',
