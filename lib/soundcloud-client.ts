@@ -306,7 +306,7 @@ export class SoundCloudClient implements ISoundCloudClient {
           method: 'POST',
           headers: {
             Authorization: `OAuth ${accessToken}`,
-            Accept: 'application/json',
+            Accept: 'application/json; charset=utf-8',
           },
         }
       );
@@ -455,7 +455,7 @@ export class SoundCloudClient implements ISoundCloudClient {
           method: 'PUT',
           headers: {
             Authorization: `OAuth ${accessToken}`,
-            Accept: 'application/json',
+            Accept: 'application/json; charset=utf-8',
           },
         }
       );
