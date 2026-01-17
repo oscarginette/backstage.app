@@ -336,9 +336,10 @@ export async function GET(request: Request) {
     }
 
     // 10. Redirect back to gate page with success (using slug, not UUID)
+    // Use consistent OAuth callback pattern (same as SoundCloud)
     return NextResponse.redirect(
       new URL(
-        `/gate/${gate.slug}?spotify_connected=true`,
+        `/gate/${gate.slug}?oauth=success&provider=spotify`,
         request.url
       )
     );
