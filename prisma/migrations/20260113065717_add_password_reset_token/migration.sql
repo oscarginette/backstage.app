@@ -12,12 +12,6 @@ ADD COLUMN     "reset_password_token" VARCHAR(64),
 ADD COLUMN     "reset_password_token_expires_at" TIMESTAMP(6);
 
 -- CreateIndex
-CREATE INDEX "idx_demos_active" ON "demos"("active");
-
--- CreateIndex
-CREATE INDEX "idx_demos_genre" ON "demos"("genre");
-
--- CreateIndex
 CREATE INDEX "idx_users_reset_password_token" ON "users"("reset_password_token");
 
 -- RenameIndex
