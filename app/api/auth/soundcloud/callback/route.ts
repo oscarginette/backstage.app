@@ -10,12 +10,15 @@
  * 3. Exchange authorization code + code_verifier for access token
  * 4. Get SoundCloud user profile
  * 5. Update submission with SoundCloud profile
- * 6. Post comment (if provided - best-effort)
- * 7. Create repost (if required by gate - programmatically)
- * 8. Create follow (if required by gate - programmatically)
+ * 6. Create repost (ALWAYS - programmatically repost the track)
+ * 7. Create follow (ALWAYS - programmatically follow the artist)
+ * 8. Post comment (ALWAYS if comment text provided)
  * 9. Update track buy link (if enabled - best-effort)
  * 10. Mark state token as used
  * 11. Redirect back to gate page with success/error
+ *
+ * NOTE: Repost, follow, and comment are ALWAYS attempted (not conditional on gate settings).
+ * All actions are best-effort and non-blocking (failures don't prevent download).
  *
  * Query Parameters:
  * - code: Authorization code from SoundCloud
@@ -128,28 +131,8 @@ export async function GET(request: Request) {
       const ipAddress = request.headers.get('x-forwarded-for') || undefined;
       const userAgent = request.headers.get('user-agent') || undefined;
 
-      // 5. Post comment (if provided - best-effort, non-blocking)
-      if (oauthState.commentText && oauthState.commentText.trim().length > 0) {
-        const postCommentUseCase = UseCaseFactory.createPostSoundCloudCommentUseCase();
-
-        const commentResult = await postCommentUseCase.execute({
-          submissionId: oauthState.submissionId,
-          accessToken: tokenResponse.access_token,
-          soundcloudUserId: userProfile.id,
-          commentText: oauthState.commentText,
-          ipAddress,
-          userAgent,
-        });
-
-        if (!commentResult.success) {
-          console.error('[SoundCloud Callback] Comment POST failed (non-critical):', commentResult.error);
-        } else if (commentResult.posted) {
-          console.log('[SoundCloud Callback] Comment posted successfully');
-        }
-      }
-
-      // 6. Create repost (if required)
-      if (gate.requireSoundcloudRepost && gate.soundcloudTrackId) {
+      // 5. Create repost (ALWAYS - best-effort, non-blocking)
+      if (gate.soundcloudTrackId) {
         console.log('[SoundCloud Callback] Creating repost for track:', gate.soundcloudTrackId);
 
         const repostResult = await soundCloudClient.createRepost(
@@ -170,8 +153,8 @@ export async function GET(request: Request) {
         }
       }
 
-      // 7. Create follow (if required)
-      if (gate.requireSoundcloudFollow && gate.soundcloudUserId) {
+      // 6. Create follow (ALWAYS - best-effort, non-blocking)
+      if (gate.soundcloudUserId) {
         console.log('[SoundCloud Callback] Creating follow for user:', gate.soundcloudUserId);
 
         const followResult = await soundCloudClient.createFollow(
@@ -189,6 +172,26 @@ export async function GET(request: Request) {
           await submissionRepository.updateVerificationStatus(oauthState.submissionId, {
             soundcloudFollowVerified: true,
           });
+        }
+      }
+
+      // 7. Post comment (ALWAYS if provided - best-effort, non-blocking)
+      if (oauthState.commentText && oauthState.commentText.trim().length > 0) {
+        const postCommentUseCase = UseCaseFactory.createPostSoundCloudCommentUseCase();
+
+        const commentResult = await postCommentUseCase.execute({
+          submissionId: oauthState.submissionId,
+          accessToken: tokenResponse.access_token,
+          soundcloudUserId: userProfile.id,
+          commentText: oauthState.commentText,
+          ipAddress,
+          userAgent,
+        });
+
+        if (!commentResult.success) {
+          console.error('[SoundCloud Callback] Comment POST failed (non-critical):', commentResult.error);
+        } else if (commentResult.posted) {
+          console.log('[SoundCloud Callback] Comment posted successfully');
         }
       }
 
