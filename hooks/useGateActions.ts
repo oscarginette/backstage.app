@@ -58,6 +58,7 @@ export function useGateActions({
       submissionId: result.submissionId,
       email: data.email,
       soundcloudRepostVerified: false,
+      soundcloudFollowVerified: false,
       spotifyConnected: false,
       instagramClickTracked: false,
       downloadCompleted: false,
