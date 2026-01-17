@@ -37,8 +37,13 @@ export function useOAuthCallback({ onSuccess }: UseOAuthCallbackProps): UseOAuth
     const buyLink = params.get('buyLink');
 
     if (status === OAUTH_STATUS.SUCCESS && provider) {
-      // Success: trigger callback
-      onSuccess(provider);
+      console.log('[useOAuthCallback] OAuth success detected, waiting for submission to load...');
+
+      // Wait a bit for submission to load from localStorage before triggering callback
+      setTimeout(() => {
+        console.log('[useOAuthCallback] Triggering onSuccess callback');
+        onSuccess(provider);
+      }, 100);
 
       // Show buy link success message if applicable
       if (buyLink === OAUTH_STATUS.SUCCESS) {
