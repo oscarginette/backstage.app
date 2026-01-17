@@ -29,7 +29,9 @@
  */
 
 import { IDownloadGateRepository } from '../repositories/IDownloadGateRepository';
-import { SoundCloudClient } from '@/lib/soundcloud-client';
+import { ISoundCloudClient } from '../providers/ISoundCloudClient';
+import { ILogger } from '@/infrastructure/logging/Logger';
+import { validateGateExists } from '../utils/soundcloud-validation';
 
 export interface UpdateSoundCloudTrackBuyLinkInput {
   gateId: string; // UUID of the Download Gate
@@ -45,7 +47,8 @@ export interface UpdateSoundCloudTrackBuyLinkResult {
 export class UpdateSoundCloudTrackBuyLinkUseCase {
   constructor(
     private readonly gateRepository: IDownloadGateRepository,
-    private readonly soundCloudClient: SoundCloudClient
+    private readonly soundCloudClient: ISoundCloudClient,
+    private readonly logger: ILogger
   ) {}
 
   /**
@@ -58,20 +61,13 @@ export class UpdateSoundCloudTrackBuyLinkUseCase {
   ): Promise<UpdateSoundCloudTrackBuyLinkResult> {
     try {
       // 1. Get gate to validate feature is enabled
-      const gate = await this.gateRepository.findByIdPublic(input.gateId);
-      if (!gate) {
-        console.error('[UpdateSoundCloudTrackBuyLinkUseCase] Gate not found:', input.gateId);
-        return {
-          success: false,
-          error: 'Gate not found',
-        };
-      }
+      const gate = await validateGateExists(this.gateRepository, input.gateId);
 
       // 2. Validate buy link feature is enabled
       if (!gate.enableSoundcloudBuyLink) {
-        console.warn(
-          '[UpdateSoundCloudTrackBuyLinkUseCase] Buy link not enabled for gate:',
-          input.gateId
+        this.logger.warn(
+          'Buy link not enabled for gate',
+          { gateId: input.gateId }
         );
         return {
           success: false,
@@ -83,7 +79,7 @@ export class UpdateSoundCloudTrackBuyLinkUseCase {
       const buyLinkUrl = `${this.getBaseUrl()}/gate/${gate.slug}`;
       const buyLinkTitle = 'Download Free Track';
 
-      console.log('[UpdateSoundCloudTrackBuyLinkUseCase] Updating track buy link:', {
+      this.logger.info('Updating track buy link', {
         gateId: input.gateId,
         trackId: input.soundcloudTrackId,
         buyLinkUrl,
@@ -98,20 +94,20 @@ export class UpdateSoundCloudTrackBuyLinkUseCase {
       );
 
       if (!result.success) {
-        console.error('[UpdateSoundCloudTrackBuyLinkUseCase] Failed to update buy link:', result.error);
+        this.logger.error('Failed to update buy link', { error: result.error });
         return {
           success: false,
           error: result.error,
         };
       }
 
-      console.log('[UpdateSoundCloudTrackBuyLinkUseCase] Successfully updated buy link');
+      this.logger.info('Successfully updated buy link');
 
       return {
         success: true,
       };
     } catch (error) {
-      console.error('[UpdateSoundCloudTrackBuyLinkUseCase] execute error:', error);
+      this.logger.error('execute error', { error });
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Failed to update buy link',

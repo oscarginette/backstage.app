@@ -98,6 +98,9 @@ import type { ISendingDomainRepository } from '@/domain/repositories/ISendingDom
 // Provider Imports (Domain Interfaces)
 // ============================================================================
 import { resendEmailProvider } from '@/infrastructure/email';
+import type { ISoundCloudClient } from '@/domain/providers/ISoundCloudClient';
+import type { ILogger } from '@/infrastructure/logging/Logger';
+import { createLogger } from '@/infrastructure/logging/Logger';
 import type { IEmailProvider } from '@/domain/providers/IEmailProvider';
 import type { IImageStorageProvider } from '@/domain/providers/IImageStorageProvider';
 import type { ICsvGenerator } from '@/domain/providers/ICsvGenerator';
@@ -414,8 +417,12 @@ export class ProviderFactory {
     return resendEmailProvider;
   }
 
-  static createSoundCloudClient(): SoundCloudClient {
+  static createSoundCloudClient(): ISoundCloudClient {
     return new SoundCloudClient();
+  }
+
+  static createLogger(service: string): ILogger {
+    return createLogger(service);
   }
 
   static createMailgunClient(): IMailgunClient {
@@ -699,7 +706,8 @@ export class UseCaseFactory {
       RepositoryFactory.createDownloadSubmissionRepository(),
       RepositoryFactory.createDownloadGateRepository(),
       RepositoryFactory.createDownloadAnalyticsRepository(),
-      ProviderFactory.createSoundCloudClient()
+      ProviderFactory.createSoundCloudClient(),
+      createLogger('VerifySoundCloudRepostUseCase')
     );
   }
 

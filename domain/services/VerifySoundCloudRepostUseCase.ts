@@ -26,7 +26,15 @@
 import { IDownloadSubmissionRepository } from '../repositories/IDownloadSubmissionRepository';
 import { IDownloadGateRepository } from '../repositories/IDownloadGateRepository';
 import { IDownloadAnalyticsRepository } from '../repositories/IDownloadAnalyticsRepository';
-import { SoundCloudClient } from '@/lib/soundcloud-client';
+import { ISoundCloudClient } from '@/domain/providers/ISoundCloudClient';
+import { ILogger } from '@/infrastructure/logging/Logger';
+import {
+  validateSubmissionExists,
+  validateGateExists,
+  validateGateRequiresRepost,
+  validateGateHasTrackId,
+  SoundCloudValidationError,
+} from '@/domain/utils/soundcloud-validation';
 
 export interface VerifySoundCloudRepostInput {
   submissionId: string;
@@ -47,7 +55,8 @@ export class VerifySoundCloudRepostUseCase {
     private readonly submissionRepository: IDownloadSubmissionRepository,
     private readonly gateRepository: IDownloadGateRepository,
     private readonly analyticsRepository: IDownloadAnalyticsRepository,
-    private readonly soundCloudClient: SoundCloudClient
+    private readonly soundCloudClient: ISoundCloudClient,
+    private readonly logger: ILogger
   ) {}
 
   /**
@@ -57,60 +66,65 @@ export class VerifySoundCloudRepostUseCase {
    */
   async execute(input: VerifySoundCloudRepostInput): Promise<VerifySoundCloudRepostResult> {
     try {
-      // 1. Find submission
-      const submission = await this.submissionRepository.findById(input.submissionId);
-      if (!submission) {
-        return {
-          success: false,
-          error: 'Submission not found',
-        };
-      }
+      // 1. Validate submission exists
+      const submission = await validateSubmissionExists(
+        this.submissionRepository,
+        input.submissionId
+      );
 
       // 2. Check if already verified (idempotent)
       if (submission.soundcloudRepostVerified) {
+        this.logger.info('Repost already verified (idempotent)', {
+          submissionId: input.submissionId,
+        });
         return {
           success: true,
           verified: true,
         };
       }
 
-      // 3. Get gate to find required track ID
-      const gate = await this.gateRepository.findByIdPublic(submission.gateId.toString());
-      if (!gate) {
-        return {
-          success: false,
-          error: 'Gate not found',
-        };
-      }
+      // 3. Validate gate exists and requirements
+      const gate = await validateGateExists(
+        this.gateRepository,
+        submission.gateId.toString()
+      );
+      validateGateRequiresRepost(gate);
+      validateGateHasTrackId(gate);
 
-      // 4. Validate gate requires repost
-      if (!gate.requireSoundcloudRepost || !gate.soundcloudTrackId) {
-        return {
-          success: false,
-          error: 'Gate does not require SoundCloud repost',
-        };
-      }
+      // 4. Check repost via SoundCloud API
+      this.logger.info('Checking SoundCloud repost', {
+        trackId: gate.soundcloudTrackId,
+        userId: input.soundcloudUserId,
+      });
 
-      // 5. Check repost via SoundCloud API
       const hasReposted = await this.soundCloudClient.checkRepost(
         input.accessToken,
-        gate.soundcloudTrackId,
+        gate.soundcloudTrackId!,
         input.soundcloudUserId
       );
 
       if (!hasReposted) {
+        this.logger.info('Repost not found', {
+          submissionId: input.submissionId,
+          trackId: gate.soundcloudTrackId,
+        });
         return {
           success: true,
           verified: false,
         };
       }
 
-      // 6. Update submission verification status
+      // 5. Update submission verification status
       await this.submissionRepository.updateVerificationStatus(input.submissionId, {
         soundcloudRepostVerified: true,
       });
 
-      // 7. Track analytics event
+      this.logger.info('Repost verified successfully', {
+        submissionId: input.submissionId,
+        trackId: gate.soundcloudTrackId,
+      });
+
+      // 6. Track analytics event
       await this.trackVerifyRepostEvent(gate.id, input);
 
       return {
@@ -118,7 +132,25 @@ export class VerifySoundCloudRepostUseCase {
         verified: true,
       };
     } catch (error) {
-      console.error('VerifySoundCloudRepostUseCase.execute error:', error);
+      // Handle validation errors explicitly
+      if (error instanceof SoundCloudValidationError) {
+        this.logger.warn('Validation error during repost verification', {
+          error: error.message,
+          code: error.code,
+          submissionId: input.submissionId,
+        });
+        return {
+          success: false,
+          error: error.message,
+        };
+      }
+
+      // Handle unexpected errors
+      this.logger.error(
+        'Unexpected error during repost verification',
+        error instanceof Error ? error : new Error(String(error)),
+        { submissionId: input.submissionId }
+      );
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Failed to verify repost',
@@ -145,7 +177,13 @@ export class VerifySoundCloudRepostUseCase {
       });
     } catch (error) {
       // Non-critical error: verification succeeds even if analytics tracking fails
-      console.error('Failed to track verify_repost event (non-critical):', error);
+      this.logger.warn(
+        'Failed to track verify_repost event (non-critical)',
+        {
+          gateId,
+          error: error instanceof Error ? error.message : String(error),
+        }
+      );
     }
   }
 }

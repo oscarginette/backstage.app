@@ -26,7 +26,15 @@
 import { IDownloadSubmissionRepository } from '../repositories/IDownloadSubmissionRepository';
 import { IDownloadGateRepository } from '../repositories/IDownloadGateRepository';
 import { IDownloadAnalyticsRepository } from '../repositories/IDownloadAnalyticsRepository';
-import { SoundCloudClient } from '@/lib/soundcloud-client';
+import { ISoundCloudClient } from '@/domain/providers/ISoundCloudClient';
+import { ILogger } from '@/infrastructure/logging/Logger';
+import {
+  validateSubmissionExists,
+  validateGateExists,
+  validateGateRequiresFollow,
+  validateGateHasUserId,
+  SoundCloudValidationError,
+} from '@/domain/utils/soundcloud-validation';
 
 export interface VerifySoundCloudFollowInput {
   submissionId: string;
@@ -47,7 +55,8 @@ export class VerifySoundCloudFollowUseCase {
     private readonly submissionRepository: IDownloadSubmissionRepository,
     private readonly gateRepository: IDownloadGateRepository,
     private readonly analyticsRepository: IDownloadAnalyticsRepository,
-    private readonly soundCloudClient: SoundCloudClient
+    private readonly soundCloudClient: ISoundCloudClient,
+    private readonly logger: ILogger
   ) {}
 
   /**
@@ -57,60 +66,66 @@ export class VerifySoundCloudFollowUseCase {
    */
   async execute(input: VerifySoundCloudFollowInput): Promise<VerifySoundCloudFollowResult> {
     try {
-      // 1. Find submission
-      const submission = await this.submissionRepository.findById(input.submissionId);
-      if (!submission) {
-        return {
-          success: false,
-          error: 'Submission not found',
-        };
-      }
+      // 1. Validate submission exists
+      const submission = await validateSubmissionExists(
+        this.submissionRepository,
+        input.submissionId
+      );
 
       // 2. Check if already verified (idempotent)
       if (submission.soundcloudFollowVerified) {
+        this.logger.info('Submission already verified (idempotent)', {
+          submissionId: input.submissionId,
+        });
         return {
           success: true,
           verified: true,
         };
       }
 
-      // 3. Get gate to find required artist user ID
-      const gate = await this.gateRepository.findByIdPublic(submission.gateId.toString());
-      if (!gate) {
-        return {
-          success: false,
-          error: 'Gate not found',
-        };
-      }
+      // 3. Validate gate exists and requires follow
+      const gate = await validateGateExists(
+        this.gateRepository,
+        submission.gateId.toString()
+      );
+      validateGateRequiresFollow(gate);
+      validateGateHasUserId(gate);
 
-      // 4. Validate gate requires follow
-      if (!gate.requireSoundcloudFollow || !gate.soundcloudUserId) {
-        return {
-          success: false,
-          error: 'Gate does not require SoundCloud follow',
-        };
-      }
+      // 4. Check follow via SoundCloud API
+      this.logger.info('Checking SoundCloud follow status', {
+        submissionId: input.submissionId,
+        targetUserId: gate.soundcloudUserId,
+        userId: input.soundcloudUserId,
+      });
 
-      // 5. Check follow via SoundCloud API
       const isFollowing = await this.soundCloudClient.checkFollow(
         input.accessToken,
-        gate.soundcloudUserId,
+        gate.soundcloudUserId!,
         input.soundcloudUserId
       );
 
       if (!isFollowing) {
+        this.logger.info('SoundCloud follow not verified', {
+          submissionId: input.submissionId,
+          targetUserId: gate.soundcloudUserId,
+        });
         return {
           success: true,
           verified: false,
         };
       }
 
-      // 6. Update submission verification status
+      // 5. Update submission verification status
       await this.submissionRepository.updateVerificationStatus(input.submissionId, {
         soundcloudFollowVerified: true,
       });
 
-      // 7. Track analytics event
+      this.logger.info('SoundCloud follow verified successfully', {
+        submissionId: input.submissionId,
+        targetUserId: gate.soundcloudUserId,
+      });
+
+      // 6. Track analytics event
       await this.trackVerifyFollowEvent(gate.id, input);
 
       return {
@@ -118,7 +133,25 @@ export class VerifySoundCloudFollowUseCase {
         verified: true,
       };
     } catch (error) {
-      console.error('VerifySoundCloudFollowUseCase.execute error:', error);
+      // Handle validation errors with specific error messages
+      if (error instanceof SoundCloudValidationError) {
+        this.logger.warn('Validation failed', {
+          submissionId: input.submissionId,
+          error: error.message,
+          code: error.code,
+        });
+        return {
+          success: false,
+          error: error.message,
+        };
+      }
+
+      // Handle unexpected errors
+      this.logger.error(
+        'Failed to verify SoundCloud follow',
+        error instanceof Error ? error : new Error(String(error)),
+        { submissionId: input.submissionId }
+      );
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Failed to verify follow',
@@ -145,7 +178,11 @@ export class VerifySoundCloudFollowUseCase {
       });
     } catch (error) {
       // Non-critical error: verification succeeds even if analytics tracking fails
-      console.error('Failed to track verify_follow event (non-critical):', error);
+      this.logger.warn('Failed to track verify_follow event (non-critical)', {
+        gateId,
+        submissionId: input.submissionId,
+        error: error instanceof Error ? error.message : String(error),
+      });
     }
   }
 }

@@ -27,7 +27,13 @@
 import { IDownloadSubmissionRepository } from '../repositories/IDownloadSubmissionRepository';
 import { IDownloadGateRepository } from '../repositories/IDownloadGateRepository';
 import { IDownloadAnalyticsRepository } from '../repositories/IDownloadAnalyticsRepository';
-import { SoundCloudClient } from '@/lib/soundcloud-client';
+import { ISoundCloudClient } from '../providers/ISoundCloudClient';
+import { ILogger } from '@/infrastructure/logging/Logger';
+import {
+  validateSubmissionExists,
+  validateGateHasTrackId,
+  SoundCloudValidationError,
+} from '../utils/soundcloud-validation';
 
 /**
  * Input for PostSoundCloudCommentUseCase.execute()
@@ -64,7 +70,8 @@ export class PostSoundCloudCommentUseCase {
     private readonly submissionRepository: IDownloadSubmissionRepository,
     private readonly gateRepository: IDownloadGateRepository,
     private readonly analyticsRepository: IDownloadAnalyticsRepository,
-    private readonly soundCloudClient: SoundCloudClient
+    private readonly soundCloudClient: ISoundCloudClient,
+    private readonly logger: ILogger
   ) {}
 
   /**
@@ -75,18 +82,17 @@ export class PostSoundCloudCommentUseCase {
    */
   async execute(input: PostSoundCloudCommentInput): Promise<PostSoundCloudCommentResult> {
     try {
-      // 1. Find submission
-      const submission = await this.submissionRepository.findById(input.submissionId);
-      if (!submission) {
-        return {
-          success: true,
-          posted: false,
-          error: 'Submission not found (skipped comment)',
-        };
-      }
+      // 1. Validate submission exists (uses shared validation)
+      const submission = await validateSubmissionExists(
+        this.submissionRepository,
+        input.submissionId
+      );
 
       // 2. Validate comment text
       if (!input.commentText || input.commentText.trim().length === 0) {
+        this.logger.warn('Comment text is empty, skipping comment posting', {
+          submissionId: input.submissionId,
+        });
         return {
           success: true,
           posted: false,
@@ -97,6 +103,10 @@ export class PostSoundCloudCommentUseCase {
       // 3. Get gate to find target track
       const gate = await this.gateRepository.findById(1, submission.gateId.toString());
       if (!gate) {
+        this.logger.warn('Gate not found, skipping comment posting', {
+          submissionId: input.submissionId,
+          gateId: submission.gateId,
+        });
         return {
           success: true,
           posted: false,
@@ -104,21 +114,21 @@ export class PostSoundCloudCommentUseCase {
         };
       }
 
-      // 4. Validate gate has SoundCloud track configured
-      if (!gate.soundcloudTrackId) {
-        return {
-          success: true,
-          posted: false,
-          error: 'Gate does not have SoundCloud track configured (skipped comment)',
-        };
-      }
+      // 4. Validate gate has SoundCloud track configured (uses shared validation)
+      validateGateHasTrackId(gate);
 
       // 5. Post comment via SoundCloud API
       await this.soundCloudClient.postComment(
         input.accessToken,
-        gate.soundcloudTrackId,
+        gate.soundcloudTrackId!,
         input.commentText
       );
+
+      this.logger.info('SoundCloud comment posted successfully', {
+        submissionId: input.submissionId,
+        gateId: gate.id,
+        trackId: gate.soundcloudTrackId,
+      });
 
       // 6. Track analytics event (non-critical, doesn't block result)
       await this.trackCommentPostedEvent(gate.id, input);
@@ -130,13 +140,28 @@ export class PostSoundCloudCommentUseCase {
     } catch (error) {
       // Best-effort: log error but return success
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      console.error('PostSoundCloudCommentUseCase.execute error:', errorMessage);
+
+      // Use structured logger instead of console.error
+      this.logger.error(
+        'Failed to post SoundCloud comment',
+        error instanceof Error ? error : undefined,
+        {
+          submissionId: input.submissionId,
+          errorMessage,
+        }
+      );
 
       // Track failed comment attempt for monitoring
       try {
         await this.trackCommentFailedEvent(input.submissionId, errorMessage);
       } catch (trackingError) {
-        console.error('Failed to track comment failure event:', trackingError);
+        this.logger.error(
+          'Failed to track comment failure event',
+          trackingError instanceof Error ? trackingError : undefined,
+          {
+            submissionId: input.submissionId,
+          }
+        );
       }
 
       // Return success (best-effort): comment failure doesn't block download
@@ -168,7 +193,13 @@ export class PostSoundCloudCommentUseCase {
       });
     } catch (error) {
       // Non-critical error: comment already posted, just tracking failed
-      console.error('Failed to track comment_posted event (non-critical):', error);
+      this.logger.warn(
+        'Failed to track comment_posted event (non-critical)',
+        {
+          gateId,
+          submissionId: input.submissionId,
+        }
+      );
     }
   }
 
@@ -187,10 +218,18 @@ export class PostSoundCloudCommentUseCase {
       // Get submission to extract gateId for tracking
       const submission = await this.submissionRepository.findById(submissionId);
       if (submission) {
-        console.warn(`Comment posting failed for submission ${submissionId}: ${errorMessage}`);
+        this.logger.warn('Comment posting failed', {
+          submissionId,
+          gateId: submission.gateId,
+          errorMessage,
+        });
       }
     } catch (error) {
-      console.error('Failed to track comment failure:', error);
+      this.logger.error(
+        'Failed to track comment failure',
+        error instanceof Error ? error : undefined,
+        { submissionId }
+      );
     }
   }
 }
