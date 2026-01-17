@@ -75,7 +75,7 @@ export class VerifySoundCloudRepostUseCase {
       }
 
       // 3. Get gate to find required track ID
-      const gate = await this.gateRepository.findById(1, submission.gateId.toString());
+      const gate = await this.gateRepository.findByIdPublic(submission.gateId.toString());
       if (!gate) {
         return {
           success: false,

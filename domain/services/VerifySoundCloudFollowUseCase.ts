@@ -75,7 +75,7 @@ export class VerifySoundCloudFollowUseCase {
       }
 
       // 3. Get gate to find required artist user ID
-      const gate = await this.gateRepository.findById(1, submission.gateId.toString());
+      const gate = await this.gateRepository.findByIdPublic(submission.gateId.toString());
       if (!gate) {
         return {
           success: false,
