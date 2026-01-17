@@ -194,6 +194,7 @@ import { GetUserAppearanceUseCase } from '@/domain/services/GetUserAppearanceUse
 import { UpdateUserAppearanceUseCase } from '@/domain/services/UpdateUserAppearanceUseCase';
 import { UpdateEmailSignatureUseCase } from '@/domain/services/UpdateEmailSignatureUseCase';
 import { FollowSpotifyArtistUseCase } from '@/domain/services/FollowSpotifyArtistUseCase';
+import { SaveSpotifyTrackUseCase } from '@/domain/services/SaveSpotifyTrackUseCase';
 import { CreateAutoSaveSubscriptionUseCase } from '@/domain/services/CreateAutoSaveSubscriptionUseCase';
 import { TrackPixelEventUseCase } from '@/domain/services/TrackPixelEventUseCase';
 import { GetPaymentHistoryUseCase } from '@/domain/services/GetPaymentHistoryUseCase';
@@ -1119,6 +1120,13 @@ export class UseCaseFactory {
 
   static createFollowSpotifyArtistUseCase(spotifyClient: any): FollowSpotifyArtistUseCase {
     return new FollowSpotifyArtistUseCase(
+      spotifyClient,
+      RepositoryFactory.createDownloadSubmissionRepository()
+    );
+  }
+
+  static createSaveSpotifyTrackUseCase(spotifyClient: any): SaveSpotifyTrackUseCase {
+    return new SaveSpotifyTrackUseCase(
       spotifyClient,
       RepositoryFactory.createDownloadSubmissionRepository()
     );

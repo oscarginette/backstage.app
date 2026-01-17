@@ -239,6 +239,37 @@ export async function GET(request: Request) {
               console.error('[Spotify OAuth] Failed to follow artist (non-critical):', followResult.error);
             }
 
+            // 6b. Save track to library (if gate has SoundCloud track URL configured)
+            if (gate.soundcloudTrackUrl) {
+              try {
+                console.log('[Spotify OAuth] Attempting to save track to library:', {
+                  trackUrl: gate.soundcloudTrackUrl,
+                  submissionId: oauthState.submissionId,
+                });
+
+                const saveSpotifyTrackUseCase = UseCaseFactory.createSaveSpotifyTrackUseCase(spotifyClient);
+
+                const saveResult = await saveSpotifyTrackUseCase.execute({
+                  submissionId: oauthState.submissionId,
+                  accessToken: tokenResponse.access_token,
+                  spotifyTrackUrl: gate.soundcloudTrackUrl,
+                });
+
+                if (saveResult.success) {
+                  console.log('[Spotify OAuth] Successfully saved track to library:', {
+                    trackId: saveResult.trackId,
+                    alreadySaved: saveResult.alreadySaved,
+                  });
+                } else {
+                  console.error('[Spotify OAuth] Failed to save track (non-critical):', saveResult.error);
+                }
+              } catch (error) {
+                console.error('[Spotify OAuth] Error saving track (non-critical):', error);
+              }
+            } else {
+              console.log('[Spotify OAuth] No Spotify track URL configured for gate, skipping track save');
+            }
+
             // 7. Create auto-save subscription (if user opted in and refresh token available)
             if (oauthState.autoSaveOptIn && tokenResponse.refresh_token) {
               try {

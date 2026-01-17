@@ -395,6 +395,87 @@ export class SpotifyClient {
   }
 
   /**
+   * Save tracks to user's library (Liked Songs)
+   *
+   * @param accessToken - Spotify access token
+   * @param trackIds - Array of track IDs (max 50 per call)
+   * @throws Error if save fails or more than 50 IDs provided
+   */
+  public async saveTracksToLibrary(accessToken: string, trackIds: string[]): Promise<void> {
+    this.validateConfiguration();
+
+    if (trackIds.length > 50) {
+      throw new Error('Cannot save more than 50 tracks at once (Spotify API limit)');
+    }
+
+    try {
+      const idsParam = trackIds.join(',');
+      const response = await fetch(`${this.API_BASE_URL}/me/tracks?ids=${idsParam}`, {
+        method: 'PUT',
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          `Failed to save tracks: ${response.status} ${JSON.stringify(errorData)}`
+        );
+      }
+    } catch (error) {
+      console.error('SpotifyClient.saveTracksToLibrary error:', error);
+      throw new Error(
+        `Failed to save tracks to library: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
+    }
+  }
+
+  /**
+   * Check if user has saved specific tracks
+   *
+   * @param accessToken - Spotify access token
+   * @param trackIds - Array of track IDs (max 50)
+   * @returns Boolean array indicating if each track is saved
+   * @throws Error if check fails or more than 50 IDs provided
+   */
+  public async checkSavedTracks(accessToken: string, trackIds: string[]): Promise<boolean[]> {
+    this.validateConfiguration();
+
+    if (trackIds.length > 50) {
+      throw new Error('Cannot check more than 50 tracks at once (Spotify API limit)');
+    }
+
+    try {
+      const idsParam = trackIds.join(',');
+      const response = await fetch(
+        `${this.API_BASE_URL}/me/tracks/contains?ids=${idsParam}`,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          `Failed to check saved tracks: ${response.status} ${JSON.stringify(errorData)}`
+        );
+      }
+
+      const result: boolean[] = await response.json();
+      return result;
+    } catch (error) {
+      console.error('SpotifyClient.checkSavedTracks error:', error);
+      throw new Error(
+        `Failed to check saved tracks: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
+    }
+  }
+
+  /**
    * Check if user has saved specific albums
    *
    * @param accessToken - Spotify access token

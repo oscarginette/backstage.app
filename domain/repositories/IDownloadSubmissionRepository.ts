@@ -113,4 +113,12 @@ export interface IDownloadSubmissionRepository {
    * @param followed - Whether artist was followed
    */
   updateSpotifyFollowStatus(id: string, followed: boolean): Promise<void>;
+
+  /**
+   * Update Spotify track saved status
+   * Used after saving track to user's library
+   * @param id - Submission UUID
+   * @param saved - Whether track was saved to library
+   */
+  updateSpotifyTrackSaved(id: string, saved: boolean): Promise<void>;
 }

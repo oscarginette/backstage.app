@@ -291,6 +291,27 @@ export class PostgresDownloadSubmissionRepository implements IDownloadSubmission
     }
   }
 
+  async updateSpotifyTrackSaved(id: string, saved: boolean): Promise<void> {
+    try {
+      const result = await sql`
+        UPDATE download_submissions
+        SET
+          spotify_track_saved = ${saved},
+          spotify_track_saved_at = ${saved ? new Date() : null},
+          updated_at = NOW()
+        WHERE id = ${id}::uuid
+        RETURNING id
+      `;
+
+      if (result.rowCount === 0) {
+        throw new Error(`Submission not found: ${id}`);
+      }
+    } catch (error) {
+      console.error('PostgresDownloadSubmissionRepository.updateSpotifyTrackSaved error:', error);
+      throw new Error(`Failed to update Spotify track saved status: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
   /**
    * Map database row to DownloadSubmission entity
    * Converts snake_case to camelCase and handles null values

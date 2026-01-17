@@ -227,6 +227,10 @@ model download_submissions {
   spotify_connected_at            DateTime?                         @db.Timestamp(6)
   spotify_follow_completed        Boolean?                          @default(false)
   spotify_follow_completed_at     DateTime?                         @db.Timestamp(6)
+  /// Whether user saved (liked) the track to their Spotify library (Liked Songs)
+  spotify_track_saved             Boolean?                          @default(false)
+  /// Timestamp when track was saved to Spotify library
+  spotify_track_saved_at          DateTime?                         @db.Timestamp(6)
   instagram_click_tracked         Boolean?                          @default(false)
   instagram_click_tracked_at      DateTime?                         @db.Timestamp(6)
   download_token                  String?                           @unique @db.VarChar(255)
