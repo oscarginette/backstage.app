@@ -51,6 +51,7 @@ export default function DownloadGatePage({ params }: { params: Promise<{ slug: s
   };
 
   const { oauthError, buyLinkSuccess } = useOAuthCallback({
+    slug,
     onSuccess: handleOAuthSuccess,
   });
 
