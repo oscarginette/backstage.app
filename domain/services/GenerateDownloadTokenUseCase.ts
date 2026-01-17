@@ -20,7 +20,6 @@
 
 import { IDownloadSubmissionRepository } from '../repositories/IDownloadSubmissionRepository';
 import { IDownloadGateRepository } from '../repositories/IDownloadGateRepository';
-import { randomBytes } from 'crypto';
 import { sql } from '@vercel/postgres';
 
 export interface GenerateDownloadTokenInput {
@@ -36,7 +35,6 @@ export interface GenerateDownloadTokenResult {
 
 export class GenerateDownloadTokenUseCase {
   private readonly TOKEN_EXPIRY_HOURS = 24;
-  private readonly TOKEN_LENGTH = 32; // 32 bytes = 64 hex characters
 
   constructor(
     private readonly submissionRepository: IDownloadSubmissionRepository,
@@ -119,15 +117,12 @@ export class GenerateDownloadTokenUseCase {
         }
       }
 
-      // 7. Generate secure token
-      const token = this.generateSecureToken();
-
-      // 8. Calculate expiry
+      // 7. Calculate expiry
       const expiresAt = new Date();
       expiresAt.setHours(expiresAt.getHours() + this.TOKEN_EXPIRY_HOURS);
 
-      // 9. Save token to submission
-      await this.submissionRepository.generateDownloadToken(input.submissionId, expiresAt);
+      // 8. Generate and save token to submission (repository generates the token)
+      const token = await this.submissionRepository.generateDownloadToken(input.submissionId, expiresAt);
 
       return {
         success: true,
@@ -197,14 +192,6 @@ export class GenerateDownloadTokenUseCase {
     }
 
     return { complete: true };
-  }
-
-  /**
-   * Generate cryptographically secure random token
-   * @returns Hex-encoded secure token
-   */
-  private generateSecureToken(): string {
-    return randomBytes(this.TOKEN_LENGTH).toString('hex');
   }
 
   /**

@@ -112,9 +112,16 @@ export function useGateActions({
     try {
       const { token } = await generateDownloadToken(slug, submission.submissionId);
 
-      window.location.href = `/api/download/${token}`;
+      // Open download in new tab
+      window.open(`/api/download/${token}`, '_blank');
 
+      // Mark download as completed
       onSubmissionPartialUpdate({ downloadCompleted: true });
+
+      // Redirect current page to landing page
+      setTimeout(() => {
+        window.location.href = '/';
+      }, 500); // Small delay to ensure download starts
     } catch (error) {
       console.error('Error generating download token:', error);
     }
