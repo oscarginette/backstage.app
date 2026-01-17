@@ -115,8 +115,8 @@ export default function DownloadGatePage({ params }: { params: Promise<{ slug: s
         </section>
 
         {/* Right Side: Form (40% width on large screens) */}
-        <section className="flex-1 h-1/2 md:h-full bg-black/40 backdrop-blur-xl md:backdrop-blur-none md:bg-black/60 flex flex-col border-l border-white/10 overflow-hidden shadow-[-20px_0_50px_rgba(0,0,0,0.5)]">
-          <div className="flex-1 flex flex-col p-8 md:p-12 lg:p-16 max-w-[550px] mx-auto w-full pt-20">
+        <section className="flex-1 h-1/2 md:h-full bg-[#121620] flex flex-col border-l border-white/5 overflow-hidden shadow-[-20px_0_50px_rgba(0,0,0,0.5)]">
+          <div className="flex-1 flex flex-col p-8 md:p-12 lg:p-16 max-w-[520px] mx-auto w-full pt-16">
             {/* Header info */}
             <header className="mb-8 md:mb-12">
               <motion.h1 
@@ -130,7 +130,7 @@ export default function DownloadGatePage({ params }: { params: Promise<{ slug: s
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.1 }}
-                className="text-lg text-white/50 font-medium"
+                className="text-lg text-white/70 font-medium"
               >
                 {gate.artistName}
               </motion.p>
@@ -243,16 +243,16 @@ export default function DownloadGatePage({ params }: { params: Promise<{ slug: s
                 <Youtube className="w-6 h-6 hover:text-white cursor-pointer transition-colors" />
               </nav>
 
-              <footer className="w-full flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-[9px] lg:text-[10px] font-black uppercase tracking-[0.2em] text-white/20 border-t border-white/5 pt-8 mb-4">
+              <footer className="w-full flex flex-wrap items-center justify-end gap-x-3 text-[8.5px] lg:text-[9.5px] font-medium uppercase tracking-[0.05em] text-white/30 pt-4 mb-4">
                 <a href="#" className="hover:text-white transition-colors">Help</a>
-                <span>|</span>
+                <span className="opacity-50">|</span>
                 <a href="#" className="hover:text-white transition-colors">Terms</a>
-                <span>|</span>
+                <span className="opacity-50">|</span>
                 <a href="#" className="hover:text-white transition-colors">Privacy</a>
-                <span>|</span>
+                <span className="opacity-50">|</span>
                 <a href="#" className="hover:text-white transition-colors">DMCA Policy</a>
-                <span>|</span>
-                <a href={PATHS.HOME} target="_blank" className="text-white/40 hover:text-white transition-colors font-black">TheBackstage.app</a>
+                <span className="opacity-50">|</span>
+                <a href="https://thebackstage.com" target="_blank" className="text-white/60 hover:text-white transition-colors font-bold">thebackstage.com</a>
               </footer>
             </div>
           </div>

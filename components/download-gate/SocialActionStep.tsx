@@ -12,7 +12,7 @@ const SoundCloudIcon = ({ className }: { className?: string }) => (
     className={className}
     stroke="none"
   >
-    <path d="M11.562 13.1c-.027 0-.053.003-.092.006V7.087c0-.18-.12-.343-.3-.384-.18-.041-.351.054-.42.22l-1.921 4.596c.036-.015.072-.03.111-.04.14-.04.281-.06.425-.06.273 0 .531.077.755.214.153.093.284.212.392.348zm10.155.808c-.732-2.712-3.23-4.575-6.024-4.575-.125 0-.251.004-.376.014C14.17 6.444 11.458 4.25 8.318 4.25c-3.791 0-6.864 3.111-6.864 6.95 0 .265.016.526.046.782C.646 12.653 0 13.514 0 14.5c0 1.258 1.052 2.278 2.348 2.278h19.222c1.341 0 2.43-1.072 2.43-2.394 0-.236-.035-.466-.1-.682l-.183.206z" />
+    <path d="M12.4 17.5c-.2 0-.3-.1-.3-.3V10c0-.2.1-.3.3-.3h.1c.2 0 .3.1.3.3v7.2c0 .2-.1.3-.3.3h-.1zm-1.8 0c-.2 0-.3-.1-.3-.3V11c0-.2.1-.3.3-.3h.1c.2 0 .3.1.3.3v6.2c0 .2-.1.3-.3.3h-.1zm-1.8-1.5c-.2 0-.3-.1-.3-.3v-4c0-.2.1-.3.3-.3h.1c.2 0 .3.1.3.3v4c0 .2-.1.3-.3.3h-.1zm-1.8-1c-.2 0-.3-.1-.3-.3v-2.5c0-.2.1-.3.3-.3h.1c.2 0 .3.1.3.3v2.5c0 .2-.1.3-.3.3h-.1zM23.1 14.5c0 1.6-1.3 3-3 3h-8v-9.1c.2-.1.5-.1.8-.1 2.8 0 5.1 1.9 5.8 4.6.1 0 .3-.1.4-.1 2.2 0 4 1.8 4 4v7.3z" />
   </svg>
 );
 
@@ -119,7 +119,7 @@ export function SocialActionStep({
             placeholder="bomb"
             maxLength={300}
             aria-label="Comment on SoundCloud track"
-            className="w-full px-4 py-3 bg-white border-2 border-black/5 rounded-lg text-foreground placeholder:text-foreground/40 focus:outline-none focus:border-[#ff5500] focus:ring-0 disabled:opacity-50 disabled:cursor-not-allowed transition-all text-sm h-11 shadow-sm"
+            className="w-full px-4 py-3 bg-white border-2 border-black/10 rounded-lg text-foreground placeholder:text-foreground/40 focus:outline-none focus:border-[#ff5500] focus:ring-0 disabled:opacity-50 disabled:cursor-not-allowed transition-all text-sm h-11 shadow-sm"
           />
           {/* Character counter and error */}
           <div className="flex justify-between items-center mt-2 h-4">
