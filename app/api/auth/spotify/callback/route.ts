@@ -206,14 +206,27 @@ export async function GET(request: Request) {
     // 6. Follow artist (non-blocking - connection succeeds even if follow fails)
     if (result.success) {
       try {
-        // Get the gate to find the artist user (findBySlug since we don't have userId in this context)
+        // Get the gate to find the artist user (using gateId which is UUID)
         const downloadGateRepository = RepositoryFactory.createDownloadGateRepository();
-        const gate = await downloadGateRepository.findBySlug(oauthState.gateId);
+        const gate = await downloadGateRepository.findByIdPublic(oauthState.gateId);
+
+        console.log('[Spotify OAuth] Gate lookup result:', {
+          gateId: oauthState.gateId,
+          gateFound: !!gate,
+          userId: gate?.userId,
+        });
 
         if (gate) {
           // Get the artist user to retrieve their Spotify ID
           const userRepository = RepositoryFactory.createUserRepository();
           const artistUser = await userRepository.findById(gate.userId);
+
+          console.log('[Spotify OAuth] Artist user lookup result:', {
+            userId: gate.userId,
+            userFound: !!artistUser,
+            hasSpotifyId: !!artistUser?.spotifyId,
+            spotifyId: artistUser?.spotifyId,
+          });
 
           if (artistUser?.spotifyId) {
             console.log('[Spotify OAuth] Attempting to follow artist:', {
@@ -239,7 +252,8 @@ export async function GET(request: Request) {
               console.error('[Spotify OAuth] Failed to follow artist (non-critical):', followResult.error);
             }
 
-            // 6b. Save track to library (if gate has SoundCloud track URL configured)
+            // 6b. Save track to library (if gate has Spotify track URL configured)
+            // Note: soundcloudTrackUrl field is reused for Spotify track URL
             if (gate.soundcloudTrackUrl) {
               try {
                 console.log('[Spotify OAuth] Attempting to save track to library:', {
